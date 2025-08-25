@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-function Review(handleNext:any) {
+function Review({handleNext}:any) {
      const [sourceChain, setSourceChain] = useState("Ethereum Mainnet");
       const [amount, setAmount] = useState("");
     

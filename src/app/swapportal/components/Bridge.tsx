@@ -18,9 +18,9 @@ const Bridge: React.FC<BridgeModalProps> = ({ isOpen, onClose }) => {
     "Set Staking Terms",
     "Review & Confirm",
   ];
-  const [currentStep, setCurrentStep] = useState(3);
+  const [currentStep, setCurrentStep] = useState(1);
   const handleNext = () => {
-    setCurrentStep((prevStep) =>(prevStep + 1));
+    setCurrentStep((prevStep) => prevStep + 1);
   };
 
   return (
@@ -33,7 +33,6 @@ const Bridge: React.FC<BridgeModalProps> = ({ isOpen, onClose }) => {
         {currentStep === 2 && <SetStacking handleNext={handleNext} />}
         {currentStep === 3 && <Success handleNext={handleNext} />}
         {currentStep === 4 && <Review handleNext={handleNext} />}
-
         <Stepper steps={steps} currentStep={currentStep} />
       </div>
     </div>

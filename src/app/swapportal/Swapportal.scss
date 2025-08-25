@@ -580,3 +580,114 @@
 
 
 }
+
+
+.swap_popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+
+}
+
+.swap_popup_content {
+    background-color: rgba(2, 2, 2, 1);
+    border-radius: 12px;
+    color: var(--white-100);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-09);
+    max-width: 408px;
+    height: 464px;
+    position: relative;
+
+}
+
+.popup_close {
+    padding: 12px;
+    color: var(--white-100);
+    font-size: 24px;
+    text-align: end;
+
+}
+
+
+
+.wallet_popup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 16px 32px;
+    text-align: center;
+    height: 408px;
+    border-radius: 0px 0px 12px 12px;
+}
+
+.wallet_popup_title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--white-100);
+}
+
+.wallet_options {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.wallet_option_btn {
+    border-radius: 8px;
+    padding: 16px;
+    color: var(--white-100);
+    font-size: 18px;
+    font-weight: 700;
+    width: 343px;
+    height: 56px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+}
+
+.matamask {
+    background-color: rgba(249, 170, 26, 1);
+}
+
+.rabby {
+    background-color: var(--white-100);
+    color: rgba(35, 48, 16, 1);
+}
+
+.wallet {
+    background-color: rgba(48, 80, 251, 1);
+
+}
+
+.wallet_option_img {
+    object-fit: contain;
+}
+
+.wallet_help_links {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 343px;
+}
+
+.wallet_help_link {
+    font-size: 12px;
+    text-decoration: underline;
+    color: var(--white-80);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}

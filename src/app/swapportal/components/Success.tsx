@@ -1,7 +1,7 @@
 import Image from "next/image";
 import React from "react";
 
-function Success(handleNext:any) {
+function Success({handleNext}:any) {
   return (
     <div className="success-card">
       <Image

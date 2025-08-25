@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function SetStacking(handleNext:any) {
+function SetStacking({handleNext}:any) {
   const [sourceChain, setSourceChain] = useState("Ethereum Mainnet");
   const [amount, setAmount] = useState("");
 
