@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 
-function BridgeCPY({handleNext}:any) {
+interface BridgeCPYProps {
+  handleNext: () => void;
+}
+
+function BridgeCPY({handleNext}: BridgeCPYProps) {
   const [sourceChain, setSourceChain] = useState("Ethereum Mainnet");
   const [amount, setAmount] = useState("");
 
