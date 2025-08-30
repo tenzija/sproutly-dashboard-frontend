@@ -11,7 +11,6 @@ interface BridgeModalProps {
 }
 
 const Bridge: React.FC<BridgeModalProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
   const steps = [
     "Connect Wallet",
     "Bridge CBY",
@@ -19,6 +18,9 @@ const Bridge: React.FC<BridgeModalProps> = ({ isOpen, onClose }) => {
     "Review & Confirm",
   ];
   const [currentStep, setCurrentStep] = useState(1);
+  
+  if (!isOpen) return null;
+  
   const handleNext = () => {
     setCurrentStep((prevStep) => prevStep + 1);
   };
@@ -31,7 +33,7 @@ const Bridge: React.FC<BridgeModalProps> = ({ isOpen, onClose }) => {
         </button>
         {currentStep === 1 && <BridgeCPY handleNext={handleNext} />}
         {currentStep === 2 && <SetStacking handleNext={handleNext} />}
-        {currentStep === 3 && <Success handleNext={handleNext} />}
+        {currentStep === 3 && <Success />}
         {currentStep === 4 && <Review handleNext={handleNext} />}
         <Stepper steps={steps} currentStep={currentStep} />
       </div>
