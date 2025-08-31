@@ -1,4 +1,9 @@
 import React, { useState } from "react";
+import { 
+  isValidNumberInput, 
+  calculateDestinationAmount, 
+  formatDisplayAmount 
+} from "../utils/numberUtils";
 
 interface BridgeCPYProps {
   handleNext: () => void;
@@ -9,14 +14,13 @@ function BridgeCPY({handleNext}: BridgeCPYProps) {
   const [amount, setAmount] = useState("");
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAmount(e.target.value);
+    const value = e.target.value;
+    // Only allow numbers and decimal point
+    if (isValidNumberInput(value)) {
+      setAmount(value);
+    }
   };
 
-
-  const calculateDestinationAmount = (sourceAmount: string) => {
-    const numAmount = parseFloat(sourceAmount);
-    return isNaN(numAmount) ? "2500" : Math.floor(numAmount * 0.2).toString();
-  };
   return (
     <>
       <div className="modal-header">
@@ -66,7 +70,7 @@ function BridgeCPY({handleNext}: BridgeCPYProps) {
           <div className="bridge-card source-card">
             <div className="card-header">Source Chain</div>
             <div className="card-amount">
-              {amount || "12500"} <span className="token">$CBY</span>
+              {formatDisplayAmount(amount)} <span className="token">$CBY</span>
             </div>
           </div>
 
