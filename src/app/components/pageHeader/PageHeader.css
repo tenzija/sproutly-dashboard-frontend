@@ -286,7 +286,6 @@
     color: #ff6b6b;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .pageheader {
         flex-direction: column;

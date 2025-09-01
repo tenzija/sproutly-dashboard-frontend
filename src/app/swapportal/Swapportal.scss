@@ -1,4 +1,8 @@
 .swap_portals {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  
   .swap_portal {
     display: flex;
     flex-direction: column;
@@ -16,6 +20,7 @@
     border-radius: 16px;
     padding: 16px;
     gap: 8px;
+    margin-top: 16px;
   }
 
   .swap_wallet_image {

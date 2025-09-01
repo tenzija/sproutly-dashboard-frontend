@@ -3,8 +3,8 @@
 import PageHeader from "../components/pageHeader/PageHeader";
 import LockCard from "./components/LockCard";
 import Bridge from "./components/Bridge";
-import React, { useState } from "react";
-import { IoClose } from "react-icons/io5";
+import WalletConnectPopup from "../components/WalletConnectPopup";
+import React, { useState, useEffect } from "react";
 import "./Swapportal.scss";
 
 import Image from "next/image";
@@ -14,12 +14,26 @@ function SwapPortalPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWalletConnected, setIsWalletConnected] = useState(false);
 
+  useEffect(() => {
+    const walletStatus = localStorage.getItem('walletConnected');
+    if (walletStatus === 'true') {
+      setIsWalletConnected(true);
+    }
+  }, []);
+
   const handleStartSwap = () => {
     setIsModalOpen(true);
   };
 
   const handleWalletConnect = (walletType) => {
     setIsWalletConnected(true);
+    localStorage.setItem('walletConnected', 'true');
+    localStorage.setItem('walletType', walletType);
+    
+    window.dispatchEvent(new CustomEvent('localStorageChange', {
+      detail: { key: 'walletConnected', newValue: 'true' }
+    }));
+    
     setPopup(false);
   };
 
@@ -48,63 +62,15 @@ function SwapPortalPage() {
             Connect Wallet
           </button>
         </div>
-        {popup && (
-          <div className="swap_popup">
-            <div className="swap_popup_content">
-              <div className="popup_close" onClick={() => setPopup(false)}>
-                <IoClose />
-              </div>
-              <div className="wallet_popup">
-                <p className="wallet_popup_title">Connect Your Wallet</p>
-                <div className="wallet_options">
-                  <button 
-                    className="wallet_option_btn matamask"
-                    onClick={() => handleWalletConnect('metamask')}
-                  >
-                    <Image
-                      src="/images/metamask.png"
-                      alt="Metamask"
-                      width={26}
-                      height={24}
-                      className="wallet_option_img"
-                    />
-                    Metamask
-                  </button>
-                  <button 
-                    className="wallet_option_btn rabby"
-                    onClick={() => handleWalletConnect('rabby')}
-                  >
-                    <Image
-                      src="/images/rabby.png"
-                      alt="Rabby Wallet"
-                      width={24}
-                      height={24}
-                      className="wallet_option_img"
-                    />
-                    Rabby Wallet
-                  </button>
-                  <button 
-                    className="wallet_option_btn wallet"
-                    onClick={() => handleWalletConnect('walletconnect')}
-                  >
-                    <Image
-                      src="/images/wallet.png"
-                      alt="WalletConnect"
-                      width={24}
-                      height={24}
-                      className="wallet_option_img"
-                    />
-                    WalletConnect
-                  </button>
-                </div>
-                <div className="wallet_help_links">
-                  <p className="wallet_help_link">What is a Web3 Wallet?</p>
-                  <p className="wallet_help_link">Having trouble connecting?</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        
+        {/* Reusable Wallet Connection Popup */}
+        <WalletConnectPopup
+          isOpen={popup}
+          onClose={() => setPopup(false)}
+          onWalletConnect={handleWalletConnect}
+          title="Connect Your Wallet"
+          showHelpLinks={true}
+        />
       </div>
     );
   }
@@ -153,64 +119,14 @@ function SwapPortalPage() {
       </div>
       <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} handleConnectWallet={handleConnectWalletClick} />
       
-      {/* Wallet Connection Popup - Always rendered */}
-      {popup && (
-        <div className="swap_popup">
-          <div className="swap_popup_content">
-            <div className="popup_close" onClick={() => setPopup(false)}>
-              <IoClose />
-            </div>
-            <div className="wallet_popup">
-              <p className="wallet_popup_title">Connect Your Wallet</p>
-              <div className="wallet_options">
-                <button 
-                  className="wallet_option_btn matamask"
-                  onClick={() => handleWalletConnect('metamask')}
-                >
-                  <Image
-                    src="/images/metamask.png"
-                    alt="Metamask"
-                    width={26}
-                    height={24}
-                    className="wallet_option_img"
-                  />
-                  Metamask
-                </button>
-                <button 
-                  className="wallet_option_btn rabby"
-                  onClick={() => handleWalletConnect('rabby')}
-                >
-                  <Image
-                    src="/images/rabby.png"
-                    alt="Rabby Wallet"
-                    width={24}
-                    height={24}
-                    className="wallet_option_img"
-                  />
-                  Rabby Wallet
-                </button>
-                <button 
-                  className="wallet_option_btn wallet"
-                  onClick={() => handleWalletConnect('walletconnect')}
-                >
-                  <Image
-                    src="/images/wallet.png"
-                    alt="WalletConnect"
-                    width={24}
-                    height={24}
-                    className="wallet_option_img"
-                  />
-                  WalletConnect
-                </button>
-              </div>
-              <div className="wallet_help_links">
-                <p className="wallet_help_link">What is a Web3 Wallet?</p>
-                <p className="wallet_help_link">Having trouble connecting?</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Reusable Wallet Connection Popup - Always rendered */}
+      <WalletConnectPopup
+        isOpen={popup}
+        onClose={() => setPopup(false)}
+        onWalletConnect={handleWalletConnect}
+        title="Connect Your Wallet"
+        showHelpLinks={true}
+      />
     </div>
   );
 }
