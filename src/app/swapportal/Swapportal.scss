@@ -2,7 +2,11 @@
   margin-top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 24px;
+  
+  @media (max-width: 768px) {
+    gap: 16px;
+  }
   
   .swap_portal {
     display: flex;
@@ -212,7 +216,7 @@
     padding-right: 24px;
     padding-bottom: 32px;
     padding-left: 24px;
-    margin-top: 40px;
+    margin-top: 0;
     > div {
       width: 50%;
       display: flex;
@@ -331,27 +335,47 @@
       row-gap: 24px;
       width: 100%;
       
+      @media (max-width: 1200px) {
+        column-gap: 20px;
+        row-gap: 20px;
+      }
+      
       @media (max-width: 768px) {
         grid-template-columns: 1fr;
         column-gap: 16px;
         row-gap: 16px;
       }
       
-              .cby-seed-vesting {
-          width: 500px;
-          border-radius: 16px;
-          border-width: 1px;
-          opacity: 1;
-          padding: 24px;
-          gap: 16px;
-          background: var(--glass-new, #8989890d);
-          border: 1px solid var(--glass-stroke-new, #ffffff17);
-          backdrop-filter: blur(150px);
-          
-          @media (max-width: 768px) {
-            width: 100%;
-            padding: 20px;
-          }
+      .lock-card-background {
+        width: 100%;
+        padding: 20px;
+        background-image: url('/images/bg1.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        border-radius: 20px;
+        position: relative;
+        
+        @media (max-width: 768px) {
+          padding: 16px;
+        }
+      }
+      
+                    .cby-seed-vesting {
+        width: 100%;
+        border-radius: 16px;
+        border-width: 1px;
+        opacity: 1;
+        padding: 24px;
+        gap: 16px;
+        background: var(--glass-new, #8989890d);
+        border: 1px solid var(--glass-stroke-new, #ffffff17);
+        backdrop-filter: blur(150px);
+        
+        @media (max-width: 768px) {
+          width: 100%;
+          padding: 20px;
+        }
 
           .header {
           display: flex;
@@ -465,19 +489,29 @@
 
         .claim-btn {
           background: var(--Primary-primary-500, #adf151);
-
           color: #083214;
-          font-size: 20px;
+          font-size: 14px;
           font-weight: 600;
           border: none;
-          border-radius: 25px;
-          padding: 14px 0;
-          width: 100%;
+          border-radius: 20px;
+          padding: 8px 16px;
+          width: 160px;
+          height: 36px;
           cursor: pointer;
           transition: background 0.2s;
+          align-self: flex-start;
+          white-space: nowrap;
+          text-align: center;
 
           &:hover {
             background: #c2ee5b;
+          }
+          
+          @media (max-width: 768px) {
+            font-size: 12px;
+            padding: 6px 12px;
+            height: 32px;
+            width: 140px;
           }
         }
       }
