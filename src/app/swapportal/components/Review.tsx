@@ -7,9 +7,10 @@ import {
 
 interface ReviewProps {
   handleNext: () => void;
+  handleBack: () => void;
 }
 
-function Review({handleNext}: ReviewProps) {
+function Review({handleNext, handleBack}: ReviewProps) {
   const [sourceChain, setSourceChain] = useState("Ethereum Mainnet");
   const [amount, setAmount] = useState("");
 
@@ -19,6 +20,9 @@ function Review({handleNext}: ReviewProps) {
       setAmount(value);
     }
   };
+
+  // Validation: Next button is disabled when amount is empty
+  const isNextDisabled = !amount.trim();
 
   return (
     <>
@@ -89,8 +93,14 @@ function Review({handleNext}: ReviewProps) {
         </div>
 
         <div className="action-buttons">
-          <button className="bridge-btn disabled">Review & Confirm Lock</button>
-          <button className="next-btn" onClick={handleNext}>
+          <button className="bridge-btn" onClick={handleBack}>
+            Back
+          </button>
+          <button 
+            className="next-btn" 
+            onClick={handleNext}
+            disabled={isNextDisabled}
+          >
             Next
           </button>
         </div>

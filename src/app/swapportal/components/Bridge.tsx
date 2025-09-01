@@ -8,9 +8,10 @@ import Success from "./Success";
 interface BridgeModalProps {
   isOpen: boolean;
   onClose: () => void;
+  handleConnectWallet?: () => void;
 }
 
-const Bridge: React.FC<BridgeModalProps> = ({ isOpen, onClose }) => {
+const Bridge: React.FC<BridgeModalProps> = ({ isOpen, onClose, handleConnectWallet }) => {
   const steps = [
     "Connect Wallet",
     "Bridge CBY",
@@ -40,15 +41,19 @@ const Bridge: React.FC<BridgeModalProps> = ({ isOpen, onClose }) => {
     setCurrentStep((prevStep) => prevStep + 1);
   };
 
+  const handleBack = () => {
+    setCurrentStep((prevStep) => Math.max(1, prevStep - 1));
+  };
+
   return (
     <div className="bridge-modal-overlay">
       <div className="bridge-modal">
         <button className="close-button" onClick={handleClose}>
           ×
         </button>
-        {currentStep === 1 && <BridgeCPY handleNext={handleNext} />}
-        {currentStep === 2 && <SetStacking handleNext={handleNext} />}
-        {currentStep === 3 && <Review handleNext={handleNext} />}
+        {currentStep === 1 && <BridgeCPY handleNext={handleNext} handleBack={handleBack} handleConnectWallet={handleConnectWallet} />}
+        {currentStep === 2 && <SetStacking handleNext={handleNext} handleBack={handleBack} />}
+        {currentStep === 3 && <Review handleNext={handleNext} handleBack={handleBack} />}
         {currentStep === 4 && <Success />}
         <Stepper steps={steps} currentStep={currentStep} />
       </div>

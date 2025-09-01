@@ -7,17 +7,25 @@ import {
 
 interface BridgeCPYProps {
   handleNext: () => void;
+  handleConnectWallet?: () => void;
 }
 
-function BridgeCPY({handleNext}: BridgeCPYProps) {
+function BridgeCPY({handleNext, handleConnectWallet}: BridgeCPYProps) {
   const [sourceChain, setSourceChain] = useState("Ethereum Mainnet");
   const [amount, setAmount] = useState("");
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Only allow numbers and decimal point
     if (isValidNumberInput(value)) {
       setAmount(value);
+    }
+  };
+
+  const isNextDisabled = !amount.trim();
+
+  const handleBackClick = () => {
+    if (handleConnectWallet) {
+      handleConnectWallet();
     }
   };
 
@@ -88,8 +96,14 @@ function BridgeCPY({handleNext}: BridgeCPYProps) {
         </div>
 
         <div className="action-buttons">
-          <button className="bridge-btn disabled">Bridge</button>
-          <button className="next-btn" onClick={handleNext}>
+          <button className="bridge-btn" onClick={handleBackClick}>
+            Back
+          </button>
+          <button 
+            className="next-btn" 
+            onClick={handleNext}
+            disabled={isNextDisabled}
+          >
             Next
           </button>
         </div>

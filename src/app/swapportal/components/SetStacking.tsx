@@ -7,9 +7,10 @@ import {
 
 interface SetStackingProps {
   handleNext: () => void;
+  handleBack: () => void;
 }
 
-function SetStacking({handleNext}: SetStackingProps) {
+function SetStacking({handleNext, handleBack}: SetStackingProps) {
   const [sourceChain, setSourceChain] = useState("Ethereum Mainnet");
   const [amount, setAmount] = useState("");
 
@@ -20,6 +21,8 @@ function SetStacking({handleNext}: SetStackingProps) {
     }
   };
 
+  // Validation: Next button is disabled when amount is empty
+  const isNextDisabled = !amount.trim();
 
   return (
     <>
@@ -90,8 +93,14 @@ function SetStacking({handleNext}: SetStackingProps) {
         </div>
 
         <div className="action-buttons">
-          <button className="bridge-btn disabled">Review & Confirm Lock</button>
-          <button className="next-btn" onClick={handleNext}>
+          <button className="bridge-btn" onClick={handleBack}>
+            Back
+          </button>
+          <button 
+            className="next-btn" 
+            onClick={handleNext}
+            disabled={isNextDisabled}
+          >
             Next
           </button>
         </div>
