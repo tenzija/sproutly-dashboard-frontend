@@ -31,7 +31,7 @@ function SwapPortalPage() {
   if (!isWalletConnected) {
     return (
       <div className="swap_portals">
-        <PageHeader title="Swap Portal" showSearch={false} showButton={false} />
+        <PageHeader title="Swap Portal" showSearch={false} showButton={false} showBalance={true} />
         <div className="swap_connect_container glass_card">
           <Image
             src="/images/ConnectWallet.png"
@@ -111,7 +111,7 @@ function SwapPortalPage() {
 
   return (
     <div className="swap_portals">
-      <PageHeader title="Swap Portal" showSearch={false} showButton={false} />
+      <PageHeader title="Swap Portal" showSearch={false} showButton={false} showBalance={true} />
       <div className="swap_top">
         <div className="left">
           <h2>Ready to Grow Your SEED?</h2>
