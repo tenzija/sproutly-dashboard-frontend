@@ -2,6 +2,7 @@
   margin-top: 16px;
   display: flex;
   flex-direction: column;
+  gap: 40px;
   
   .swap_portal {
     display: flex;
@@ -310,24 +311,49 @@
   }
   .active_lock {
     width: 100%;
+    
+    h3 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--white-100);
+      margin-bottom: 24px;
+      
+      @media (max-width: 768px) {
+        font-size: 20px;
+        margin-bottom: 16px;
+      }
+    }
+    
     .lock_grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      column-gap: 20px;
-      row-gap: 20px;
+      column-gap: 24px;
+      row-gap: 24px;
       width: 100%;
-      .cby-seed-vesting {
-        width: 500px;
-        border-radius: 16px;
-        border-width: 1px;
-        opacity: 1;
-        padding: 24px;
-        gap: 16px;
-        background: var(--glass-new, #8989890d);
-        border: 1px solid var(--glass-stroke-new, #ffffff17);
-        backdrop-filter: blur(150px);
+      
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        column-gap: 16px;
+        row-gap: 16px;
+      }
+      
+              .cby-seed-vesting {
+          width: 500px;
+          border-radius: 16px;
+          border-width: 1px;
+          opacity: 1;
+          padding: 24px;
+          gap: 16px;
+          background: var(--glass-new, #8989890d);
+          border: 1px solid var(--glass-stroke-new, #ffffff17);
+          backdrop-filter: blur(150px);
+          
+          @media (max-width: 768px) {
+            width: 100%;
+            padding: 20px;
+          }
 
-        .header {
+          .header {
           display: flex;
           flex-direction: column;
           align-items: flex-start;

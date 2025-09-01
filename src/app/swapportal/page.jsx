@@ -109,7 +109,7 @@ function SwapPortalPage() {
         </div>
       </div>
       <div className="active_lock">
-        <h3>Active Lock</h3>
+        <h3>Your Active Locks</h3>
         <div className="lock_grid">
           <LockCard />
           <LockCard />
