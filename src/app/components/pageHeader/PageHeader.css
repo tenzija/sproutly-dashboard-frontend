@@ -211,13 +211,13 @@
     top: 100%;
     right: 0;
     margin-top: 8px;
-    background-color: rgba(32, 32, 32, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--glass-new, #8989890d);
+    border: 1px solid var(--glass-stroke-new, #ffffff17);
     border-radius: 12px;
     padding: 0;
     min-width: 280px;
     z-index: 999999;
-    backdrop-filter: blur(15px);
+    backdrop-filter: blur(150px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     overflow: hidden;
     animation: dropdownFadeIn 0.2s ease-out;

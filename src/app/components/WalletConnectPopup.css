@@ -12,14 +12,15 @@
 }
 
 .wallet_connect_popup_content {
-  background-color: rgba(2, 2, 2, 1);
+  background: var(--glass-new, #8989890d);
   border-radius: 12px;
   color: var(--white-100);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--border-09);
+  border: 1px solid var(--glass-stroke-new, #ffffff17);
   max-width: 408px;
   height: 464px;
   position: relative;
+  backdrop-filter: blur(150px);
 }
 
 .popup_close {
