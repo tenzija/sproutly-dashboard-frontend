@@ -20,6 +20,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" type="image/svg+xml" href="/Favi.svg" />
+      </head>
       <body className={`backgroundImg ${geistSans.variable} ${geistMono.variable}`}>
         <div className="app-container" style={{ display: 'flex' }}>
           <aside >

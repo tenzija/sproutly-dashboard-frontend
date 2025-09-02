@@ -20,7 +20,7 @@ function Sidebar() {
   const [showWalletPopup, setShowWalletPopup] = useState(false);
 
   useEffect(() => {
-    const walletStatus = localStorage.getItem('walletConnected');
+    const walletStatus = sessionStorage.getItem('walletConnected');
     if (walletStatus === 'true') {
       setIsWalletConnected(true);
     }
@@ -49,11 +49,11 @@ function Sidebar() {
       }
     };
 
-    window.addEventListener('localStorageChange', handleCustomStorageChange);
+    window.addEventListener('sessionStorageChange', handleCustomStorageChange);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('localStorageChange', handleCustomStorageChange);
+      window.removeEventListener('sessionStorageChange', handleCustomStorageChange);
     };
   }, []);
 
@@ -63,10 +63,10 @@ function Sidebar() {
 
   const handleWalletConnect = (walletType) => {
     setIsWalletConnected(true);
-    localStorage.setItem('walletConnected', 'true');
-    localStorage.setItem('walletType', walletType);
+    sessionStorage.setItem('walletConnected', 'true');
+    sessionStorage.setItem('walletType', walletType);
     
-    window.dispatchEvent(new CustomEvent('localStorageChange', {
+    window.dispatchEvent(new CustomEvent('sessionStorageChange', {
       detail: { key: 'walletConnected', newValue: 'true' }
     }));
     

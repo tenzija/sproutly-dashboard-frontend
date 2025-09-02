@@ -15,7 +15,7 @@ function SwapPortalPage() {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
 
   useEffect(() => {
-    const walletStatus = localStorage.getItem('walletConnected');
+    const walletStatus = sessionStorage.getItem('walletConnected');
     if (walletStatus === 'true') {
       setIsWalletConnected(true);
     }
@@ -27,10 +27,10 @@ function SwapPortalPage() {
 
   const handleWalletConnect = (walletType) => {
     setIsWalletConnected(true);
-    localStorage.setItem('walletConnected', 'true');
-    localStorage.setItem('walletType', walletType);
+    sessionStorage.setItem('walletConnected', 'true');
+    sessionStorage.setItem('walletType', walletType);
     
-    window.dispatchEvent(new CustomEvent('localStorageChange', {
+    window.dispatchEvent(new CustomEvent('sessionStorageChange', {
       detail: { key: 'walletConnected', newValue: 'true' }
     }));
     
