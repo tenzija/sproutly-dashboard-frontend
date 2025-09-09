@@ -15,9 +15,10 @@ import { RiTreeFill } from "react-icons/ri";
 import { RiNftFill } from "react-icons/ri";
 import { RiSwapBoxFill } from "react-icons/ri";
 import { FaWallet } from "react-icons/fa";
-
+import { useAccount, useDisconnect } from "wagmi";
 import "./Sidebar.css";
 import Image from "next/image";
+import { useAppKit } from "@reown/appkit/react";
 
 const sidebarFallback = [
   { name: "Dashboard", icon: MdDashboard, href: "/dashboard" },
@@ -36,10 +37,21 @@ const sidebarFallback = [
 function Sidebar() {
   // const [sidebarItems, setSidebarItems] = useState([]);
   const pathname = usePathname();
-
-  // useEffect(() => {
-  //     setSidebarItems(sidebarFallback);
-  // }, []);
+  const { isConnected, address } = useAccount();
+  const { open, close } = useAppKit();
+const { disconnect } = useDisconnect();
+  const handleClick = () => {
+    if (isConnected) {
+      close();
+    } else {
+      open();
+    }
+  };
+  const handleDisconnect = () => {
+    if (isConnected) {
+      disconnect();
+    }
+  };
 
   return (
     <div className="sidebar glass_card">
@@ -55,10 +67,18 @@ function Sidebar() {
           <p>Rasmy</p>
         </div>
 
-        <button className="connect_wallet_btn">
-          <FaWallet className="wallet_icon" />
-          Connect Wallet
-        </button>
+        {!isConnected ? (
+          <button onClick={handleClick} className="connect_wallet_btn">
+            <FaWallet className="wallet_icon" />
+            Connect Wallet
+          </button>
+        ) : (
+          <button onClick={handleDisconnect} className="connect_wallet_btn">
+            {address?.slice(0, 6) + "..." + address?.slice(-4)}
+            <br />
+            disconnect
+          </button>
+        )}
 
         <div className="sidebarFallback">
           {sidebarFallback.map((item) => {
