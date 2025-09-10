@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { FaHandHolding } from "react-icons/fa";
 import { BsBarChartFill } from "react-icons/bs";
 import { IoBagHandle } from "react-icons/io5";
@@ -58,7 +58,7 @@ const { disconnect } = useDisconnect();
       <nav className="sidebar_nav">
         <div className="sidebar_header">
           <Image
-            src="/images/sidebarimg.jpg"
+            src="/images/button.png"
             alt="Profile"
             width={48}
             height={48}
