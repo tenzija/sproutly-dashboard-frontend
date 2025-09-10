@@ -1,18 +1,34 @@
 import React, { useState } from "react";
+import { 
+  isValidNumberInput, 
+  calculateDestinationAmount, 
+  formatDisplayAmount 
+} from "../utils/numberUtils";
 
-function BridgeCPY({handleNext}:any) {
+interface BridgeCPYProps {
+  handleNext: () => void;
+  handleConnectWallet?: () => void;
+}
+
+function BridgeCPY({handleNext, handleConnectWallet}: BridgeCPYProps) {
   const [sourceChain, setSourceChain] = useState("Ethereum Mainnet");
   const [amount, setAmount] = useState("");
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAmount(e.target.value);
+    const value = e.target.value;
+    if (isValidNumberInput(value)) {
+      setAmount(value);
+    }
   };
 
+  const isNextDisabled = !amount.trim();
 
-  const calculateDestinationAmount = (sourceAmount: string) => {
-    const numAmount = parseFloat(sourceAmount);
-    return isNaN(numAmount) ? "2500" : Math.floor(numAmount * 0.2).toString();
+  const handleBackClick = () => {
+    if (handleConnectWallet) {
+      handleConnectWallet();
+    }
   };
+
   return (
     <>
       <div className="modal-header">
@@ -62,7 +78,7 @@ function BridgeCPY({handleNext}:any) {
           <div className="bridge-card source-card">
             <div className="card-header">Source Chain</div>
             <div className="card-amount">
-              {amount || "12500"} <span className="token">$CBY</span>
+              {formatDisplayAmount(amount)} <span className="token">$CBY</span>
             </div>
           </div>
 
@@ -80,8 +96,14 @@ function BridgeCPY({handleNext}:any) {
         </div>
 
         <div className="action-buttons">
-          <button className="bridge-btn disabled">Bridge</button>
-          <button className="next-btn" onClick={handleNext}>
+          <button className="bridge-btn" onClick={handleBackClick}>
+            Back
+          </button>
+          <button 
+            className="next-btn" 
+            onClick={handleNext}
+            disabled={isNextDisabled}
+          >
             Next
           </button>
         </div>

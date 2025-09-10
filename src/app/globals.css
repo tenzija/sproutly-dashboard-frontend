@@ -36,9 +36,9 @@
   box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.089);
 } */
 .glass_card {
-  background-color: rgba(137, 137, 137, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--glass-new, #8989890d);
+  backdrop-filter: blur(150px);
+  border: 1px solid var(--glass-stroke-new, #ffffff17);
   box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.089);
 }
 

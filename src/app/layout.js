@@ -23,6 +23,9 @@ export default async function RootLayout({ children }) {
 
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" type="image/svg+xml" href="/Favi.svg" />
+      </head>
       <body
         className={`backgroundImg ${geistSans.variable} ${geistMono.variable}`}
       >

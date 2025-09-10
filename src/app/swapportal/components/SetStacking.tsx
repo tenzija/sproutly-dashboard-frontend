@@ -1,19 +1,29 @@
 import React, { useState } from "react";
+import { 
+  isValidNumberInput, 
+  calculateDestinationAmount, 
+  formatDisplayAmount 
+} from "../utils/numberUtils";
 
-function SetStacking({handleNext}:any) {
+interface SetStackingProps {
+  handleNext: () => void;
+  handleBack: () => void;
+}
+
+function SetStacking({handleNext, handleBack}: SetStackingProps) {
   const [sourceChain, setSourceChain] = useState("Ethereum Mainnet");
   const [amount, setAmount] = useState("");
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAmount(e.target.value);
+    const value = e.target.value;
+    if (isValidNumberInput(value)) {
+      setAmount(value);
+    }
   };
 
+  // Validation: Next button is disabled when amount is empty
+  const isNextDisabled = !amount.trim();
 
-
-  const calculateDestinationAmount = (sourceAmount: string) => {
-    const numAmount = parseFloat(sourceAmount);
-    return isNaN(numAmount) ? "2500" : Math.floor(numAmount * 0.2).toString();
-  };
   return (
     <>
       <div className="modal-header">
@@ -65,7 +75,7 @@ function SetStacking({handleNext}:any) {
           <div className="bridge-card source-card">
             <div className="card-header">Source Chain</div>
             <div className="card-amount">
-              {amount || "12500"} <span className="token">$CBY</span>
+              {formatDisplayAmount(amount)} <span className="token">$CBY</span>
             </div>
           </div>
 
@@ -83,8 +93,14 @@ function SetStacking({handleNext}:any) {
         </div>
 
         <div className="action-buttons">
-          <button className="bridge-btn disabled">Review & Confirm Lock</button>
-          <button className="next-btn" onClick={handleNext}>
+          <button className="bridge-btn" onClick={handleBack}>
+            Back
+          </button>
+          <button 
+            className="next-btn" 
+            onClick={handleNext}
+            disabled={isNextDisabled}
+          >
             Next
           </button>
         </div>

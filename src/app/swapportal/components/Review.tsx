@@ -1,19 +1,29 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import { 
+  isValidNumberInput, 
+  calculateDestinationAmount, 
+  formatDisplayAmount 
+} from "../utils/numberUtils";
 
-function Review({handleNext}:any) {
-     const [sourceChain, setSourceChain] = useState("Ethereum Mainnet");
-      const [amount, setAmount] = useState("");
-    
-      const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setAmount(e.target.value);
-      };
-    
+interface ReviewProps {
+  handleNext: () => void;
+  handleBack: () => void;
+}
 
-    
-      const calculateDestinationAmount = (sourceAmount: string) => {
-        const numAmount = parseFloat(sourceAmount);
-        return isNaN(numAmount) ? "2500" : Math.floor(numAmount * 0.2).toString();
-      };
+function Review({handleNext, handleBack}: ReviewProps) {
+  const [sourceChain, setSourceChain] = useState("Ethereum Mainnet");
+  const [amount, setAmount] = useState("");
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (isValidNumberInput(value)) {
+      setAmount(value);
+    }
+  };
+
+  // Validation: Next button is disabled when amount is empty
+  const isNextDisabled = !amount.trim();
+
   return (
     <>
       <div className="modal-header">
@@ -65,7 +75,7 @@ function Review({handleNext}:any) {
           <div className="bridge-card source-card">
             <div className="card-header">Source Chain</div>
             <div className="card-amount">
-              {amount || "12500"} <span className="token">$CBY</span>
+              {formatDisplayAmount(amount)} <span className="token">$CBY</span>
             </div>
           </div>
 
@@ -83,14 +93,20 @@ function Review({handleNext}:any) {
         </div>
 
         <div className="action-buttons">
-          <button className="bridge-btn disabled">Review & Confirm Lock</button>
-          <button className="next-btn" onClick={handleNext}>
+          <button className="bridge-btn" onClick={handleBack}>
+            Back
+          </button>
+          <button 
+            className="next-btn" 
+            onClick={handleNext}
+            disabled={isNextDisabled}
+          >
             Next
           </button>
         </div>
       </div>
     </>
-  )
+  );
 }
 
-export default Review
+export default Review;
