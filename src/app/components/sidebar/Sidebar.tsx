@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { RiSwapBoxFill } from "react-icons/ri";
 import { FaWallet } from "react-icons/fa";
-import WalletConnectPopup from "../WalletConnectPopup";
-
+import { useAccount, useDisconnect } from "wagmi";
 import "./Sidebar.css";
 import Image from "next/image";
 import { useAppKit } from "@reown/appkit/react";
@@ -17,122 +16,65 @@ const sidebarFallback = [
 
 function Sidebar() {
   const pathname = usePathname();
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
-  const [showWalletPopup, setShowWalletPopup] = useState(false);
-
-  useEffect(() => {
-    const walletStatus = sessionStorage.getItem("walletConnected");
-    if (walletStatus === "true") {
-      setIsWalletConnected(true);
+  const { isConnected, address } = useAccount();
+  const { open, close } = useAppKit();
+  const { disconnect } = useDisconnect();
+  const handleClick = () => {
+    if (isConnected) {
+      close();
+    } else {
+      open();
     }
-  }, []);
-
-  useEffect(() => {
-    const handleStorageChange = (e:any) => {
-      if (e.key === "walletConnected") {
-        if (e.newValue === "true") {
-          setIsWalletConnected(true);
-        } else {
-          setIsWalletConnected(false);
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    const handleCustomStorageChange = (e:any) => {
-      if (e.detail.key === "walletConnected") {
-        if (e.detail.newValue === "true") {
-          setIsWalletConnected(true);
-        } else {
-          setIsWalletConnected(false);
-        }
-      }
-    };
-
-    window.addEventListener("sessionStorageChange", handleCustomStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener(
-        "sessionStorageChange",
-        handleCustomStorageChange
-      );
-    };
-  }, []);
-
-  const handleConnectWalletClick = () => {
-    setShowWalletPopup(true);
   };
-
-  const handleWalletConnect = (walletType: any) => {
-    setIsWalletConnected(true);
-    sessionStorage.setItem("walletConnected", "true");
-    sessionStorage.setItem("walletType", walletType);
-
-    window.dispatchEvent(
-      new CustomEvent("sessionStorageChange", {
-        detail: { key: "walletConnected", newValue: "true" },
-      })
-    );
-
-    setShowWalletPopup(false);
-
-    window.location.reload();
-  };
-
-  const handleClosePopup = () => {
-    setShowWalletPopup(false);
+  const handleDisconnect = () => {
+    if (isConnected) {
+      disconnect();
+    }
   };
 
   return (
-    <>
-      <div className="sidebar glass_card">
-        <nav className="sidebar_nav">
-          <div className="sidebar_header">
-            <Image
-              src="/images/sidebarimg.jpg"
-              alt="Profile"
-              width={48}
-              height={48}
-              className="sidebar_img"
-            />
-            <p>Rasmy</p>
-          </div>
+    <div className="sidebar glass_card">
+      <nav className="sidebar_nav">
+        <div className="sidebar_header">
+          <Image
+            src="/images/button.png"
+            alt="Profile"
+            width={48}
+            height={48}
+            className="sidebar_img"
+          />
+          <p>Rasmy</p>
+        </div>
 
-          <button
-            className="connect_wallet_btn"
-            onClick={handleConnectWalletClick}
-          >
+        {!isConnected ? (
+          <button onClick={handleClick} className="connect_wallet_btn">
             <FaWallet className="wallet_icon" />
-            {isWalletConnected ? "Wallet Connected" : "Connect Wallet"}
+            Connect Wallet
           </button>
+        ) : (
+          <button onClick={handleDisconnect} className="connect_wallet_btn">
+            {address?.slice(0, 6) + "..." + address?.slice(-4)}
+            <br />
+            disconnect
+          </button>
+        )}
 
-          <div className="sidebarFallback">
-            {sidebarFallback.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link key={item.name} href={item.href}>
-                  <div className={`sidebar_item ${isActive ? "active" : ""}`}>
-                    <Icon className="sidebar_icon" />
-                    <span className="sidebar_text">{item.name}</span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      </div>
-
-      <WalletConnectPopup
-        isOpen={showWalletPopup}
-        onClose={handleClosePopup}
-        onWalletConnect={handleWalletConnect}
-        title="Connect Your Wallet"
-        showHelpLinks={true}
-      />
-    </>
+        <div className="sidebarFallback">
+          {sidebarFallback.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link key={item.name} href={item.href}>
+                <div className={`sidebar_item ${isActive ? "active" : ""}`}>
+                  <Icon className="sidebar_icon" />
+                  <span className="sidebar_text">{item.name}</span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </div>
   );
 }
 

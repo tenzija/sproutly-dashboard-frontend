@@ -3,50 +3,35 @@
 import PageHeader from "../components/pageHeader/PageHeader";
 import LockCard from "./components/LockCard";
 import Bridge from "./components/Bridge";
-import WalletConnectPopup from "../components/WalletConnectPopup";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./Swapportal.scss";
 
 import Image from "next/image";
+import { useAccount, useDisconnect } from "wagmi";
+import { useAppKit } from "@reown/appkit/react";
 import WalletPop from "../components/walletconnect/WalletPop";
 
-function SwapPortalPage() {
-  const [popup, setPopup] = useState(false);
+function page() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
-
-  useEffect(() => {
-    const walletStatus = sessionStorage.getItem('walletConnected');
-    if (walletStatus === 'true') {
-      setIsWalletConnected(true);
+  const [popup, setpopup] = useState(true);
+  const { isConnected } = useAccount();
+  const { open, close } = useAppKit();
+  const handleClick = () => {
+    if (isConnected) {
+      close();
+    } else {
+      open();
     }
-  }, []);
-
-  const handleStartSwap = () => {
-    setIsModalOpen(true);
   };
-
-  const handleWalletConnect = (walletType:any) => {
-    setIsWalletConnected(true);
-    sessionStorage.setItem('walletConnected', 'true');
-    sessionStorage.setItem('walletType', walletType);
-    
-    window.dispatchEvent(new CustomEvent('sessionStorageChange', {
-      detail: { key: 'walletConnected', newValue: 'true' }
-    }));
-    
-    setPopup(false);
-  };
-
-  const handleConnectWalletClick = () => {
-    setPopup(true);
-    setIsModalOpen(false);
-  };
-
-  if (!isWalletConnected) {
+  if (!isConnected) {
     return (
       <div className="swap_portals">
-        <PageHeader title="Swap Portal" showSearch={false} showButton={false} showBalance={true} />
+        <PageHeader
+          title="Swap Portal"
+          showSearch={false}
+          showButton={false}
+          showBalance={true}
+        />
         <div className="swap_connect_container glass_card">
           <Image
             src="/images/ConnectWallet.png"
@@ -57,28 +42,29 @@ function SwapPortalPage() {
           />
           <p className="swap_connect_title">Connect Your Wallet to Begin</p>
           <p className="swap_connect_subtitle">
-            To access the Swap Portal and start exchanging your $CBY for $SEED, please connect your Web3 wallet
+            To access the Swap Portal and start exchanging your $CBY for $SEED,
+            please connect your Web3 wallet
           </p>
-          <button className="swap_connect_btn" onClick={handleConnectWalletClick}>
+          <button className="swap_connect_btn" onClick={handleClick}>
             Connect Wallet
           </button>
         </div>
-        
+
         {/* Reusable Wallet Connection Popup */}
-        <WalletConnectPopup
+        {/* <WalletConnectPopup
           isOpen={popup}
           onClose={() => setPopup(false)}
           onWalletConnect={handleWalletConnect}
           title="Connect Your Wallet"
           showHelpLinks={true}
-        />
+        /> */}
+        {/* {popup && <WalletPop setPopup={setpopup} />} */}
       </div>
     );
   }
-
   return (
     <div className="swap_portals">
-      <PageHeader title="Swap Portal" showSearch={false} showButton={false} showBalance={true} />
+      <PageHeader title="Swap Portal" showSearch={false} showButton={false} />
       <div className="swap_top">
         <div className="left">
           <h2>Ready to Grow Your SEED?</h2>
@@ -95,7 +81,7 @@ function SwapPortalPage() {
             <p>In Base Chain</p>
           </div>
           <h3>Your $CBY for Swap</h3>
-          <button onClick={handleStartSwap}>Start New Swap </button>
+          <button>Start New Swap </button>
         </div>
         <div className="right">
           <div className="image">
@@ -110,7 +96,7 @@ function SwapPortalPage() {
         </div>
       </div>
       <div className="active_lock">
-        <h3>Your Active Locks</h3>
+        <h3>Active Lock</h3>
         <div className="lock_grid">
           <LockCard />
           <LockCard />
@@ -118,18 +104,10 @@ function SwapPortalPage() {
           <LockCard />
         </div>
       </div>
-      <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} handleConnectWallet={handleConnectWalletClick} />
-      
-      {/* Reusable Wallet Connection Popup - Always rendered */}
-      <WalletConnectPopup
-        isOpen={popup}
-        onClose={() => setPopup(false)}
-        onWalletConnect={handleWalletConnect}
-        title="Connect Your Wallet"
-        showHelpLinks={true}
-      />
+      <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      {/* {popup && <WalletPop setPopup={setpopup} />} */}
     </div>
   );
 }
 
-export default SwapPortalPage;
+export default page;
