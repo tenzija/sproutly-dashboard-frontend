@@ -8,7 +8,20 @@ import { TbWorld } from "react-icons/tb";
 import { IoMdNotificationsOutline, IoMdSearch } from "react-icons/io";
 import { IoSettingsOutline } from "react-icons/io5";
 import { IoChevronDown } from "react-icons/io5";
-
+import { useAccount } from "wagmi";
+import {
+  useAppKitAccount,
+  useAppKitProvider,
+  useAppKitNetworkCore,
+  type Provider,
+  useAppKit,
+} from "@reown/appkit/react";
+import {
+  BrowserProvider,
+  JsonRpcSigner,
+  formatEther,
+  parseUnits,
+} from "ethers";
 function PageHeader({
   title,
   showSearch = true,
@@ -16,20 +29,31 @@ function PageHeader({
   buttonText = "Connect wallet",
   buttonIcon = <FaWallet />,
   showBalance = false,
-}) {
+}:any) {
+    const { address, isConnected } = useAccount();
+    const { chainId } = useAppKitNetworkCore();
+    // AppKit hook to get the wallet provider
+    const { walletProvider } = useAppKitProvider<Provider>("eip155");
+    const { open, close } = useAppKit();
+    const handleClick = () => {
+    if (isConnected) {
+      close();
+    } else {
+      open();
+    }
+  };
   const [isBalanceDropdownOpen, setIsBalanceDropdownOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [notificationPosition, setNotificationPosition] = useState({ top: 0, right: 0 });
   const [settingsPosition, setSettingsPosition] = useState({ top: 0, right: 0 });
-
-  const balanceRef = useRef(null);
-  const notificationRef = useRef(null);
-  const settingsRef = useRef(null);
+const balanceRef = useRef<HTMLDivElement>(null);
+const notificationRef = useRef<HTMLDivElement>(null);
+const settingsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClickOutside(event) {
+    function handleClickOutside(event:any) {
       if (balanceRef.current && !balanceRef.current.contains(event.target)) {
         setIsBalanceDropdownOpen(false);
       }
@@ -46,8 +70,26 @@ function PageHeader({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+    const [balance, setbalance] = useState("0.0000");
+  
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (!walletProvider || !address || !chainId) return;
+      try {
+        const provider = new BrowserProvider(walletProvider, chainId);
+        const balance = await provider.getBalance(address);
+        const eth = formatEther(balance);
+        console.log(`${eth} ETH`);
 
-  const calculateDropdownPosition = (ref) => {
+        setbalance(parseFloat(eth).toFixed(4));
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+      }
+    };
+
+    fetchBalance();
+  }, [address, walletProvider, chainId]);
+  const calculateDropdownPosition = (ref :any) => {
     if (ref.current) {
       const rect = ref.current.getBoundingClientRect();
       return {
@@ -58,7 +100,7 @@ function PageHeader({
     return { top: 0, left: 0 };
   };
 
-  const calculateNotificationPosition = (ref) => {
+  const calculateNotificationPosition = (ref :any) => {
     if (ref.current) {
       const rect = ref.current.getBoundingClientRect();
       return {
@@ -69,7 +111,7 @@ function PageHeader({
     return { top: 0, right: 0 };
   };
 
-  const calculateSettingsPosition = (ref) => {
+  const calculateSettingsPosition = (ref :any) => {
     if (ref.current) {
       const rect = ref.current.getBoundingClientRect();
       return {
@@ -126,15 +168,15 @@ function PageHeader({
       >
         <div className="balance_item">
           <span className="balance_label">Available Balance</span>
-          <span className="balance_amount">14,950 $CBY</span>
+          <span className="balance_amount">{balance} $CBY</span>
         </div>
         <div className="balance_item">
           <span className="balance_label">Locked Balance</span>
-          <span className="balance_amount">50 $CBY</span>
+          <span className="balance_amount">{balance} $CBY</span>
         </div>
         <div className="balance_item">
           <span className="balance_label">Total Balance</span>
-          <span className="balance_amount">15,000 $CBY</span>
+          <span className="balance_amount">{balance} $CBY</span>
         </div>
       </div>
     );
@@ -231,21 +273,21 @@ function PageHeader({
       )}
 
       <div className="right_element">
-        {showBalance && (
+        {isConnected && (
           <div className="balance_section" ref={balanceRef}>
             <div className="balance_dropdown" onClick={toggleBalanceDropdown}>
               <span className="balance_text">Balance</span>
-              <span className="balance_amount">15,000 $CBY</span>
+              <span className="balance_amount">{balance}$CBY</span>
               <IoChevronDown className={`balance_arrow ${isBalanceDropdownOpen ? 'rotated' : ''}`} />
             </div>
             {renderBalanceDropdown()}
           </div>
         )}
 
-        {showButton && (
-          <button>
+        {!isConnected && (
+          <button onClick={() => handleClick()}>
             {buttonIcon}
-            {buttonText}
+            Connect wallet
           </button>
         )}
         

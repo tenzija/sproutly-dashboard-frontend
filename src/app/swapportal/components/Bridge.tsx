@@ -51,7 +51,7 @@ const Bridge: React.FC<BridgeModalProps> = ({ isOpen, onClose, handleConnectWall
         <button className="close-button" onClick={handleClose}>
           ×
         </button>
-        {currentStep === 1 && <BridgeCPY handleNext={handleNext} handleBack={handleBack} handleConnectWallet={handleConnectWallet} />}
+        {currentStep === 1 && <BridgeCPY handleNext={handleNext} handleConnectWallet={handleConnectWallet} />}
         {currentStep === 2 && <SetStacking handleNext={handleNext} handleBack={handleBack} />}
         {currentStep === 3 && <Review handleNext={handleNext} handleBack={handleBack} />}
         {currentStep === 4 && <Success />}

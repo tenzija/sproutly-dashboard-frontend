@@ -3,18 +3,32 @@
 import PageHeader from "../components/pageHeader/PageHeader";
 import LockCard from "./components/LockCard";
 import Bridge from "./components/Bridge";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./Swapportal.scss";
 
 import Image from "next/image";
 import { useAccount, useDisconnect } from "wagmi";
 import { useAppKit } from "@reown/appkit/react";
 import WalletPop from "../components/walletconnect/WalletPop";
-
+import {
+  useAppKitAccount,
+  useAppKitProvider,
+  useAppKitNetworkCore,
+  type Provider,
+} from "@reown/appkit/react";
+import {
+  BrowserProvider,
+  JsonRpcSigner,
+  formatEther,
+  parseUnits,
+} from "ethers";
 function page() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [popup, setpopup] = useState(true);
-  const { isConnected } = useAccount();
+  const [balance, setbalance] = useState("0.0000");
+  const { address, isConnected } = useAccount();
+  const { chainId } = useAppKitNetworkCore();
+  // AppKit hook to get the wallet provider
+  const { walletProvider } = useAppKitProvider<Provider>("eip155");
   const { open, close } = useAppKit();
   const handleClick = () => {
     if (isConnected) {
@@ -23,6 +37,27 @@ function page() {
       open();
     }
   };
+  // const { address, isConnected } = useAppKitAccount();
+  // function to get the balance
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (!walletProvider || !address || !chainId) return;
+      try {
+        const provider = new BrowserProvider(walletProvider, chainId);
+        const balance = await provider.getBalance(address);
+        const eth = formatEther(balance);
+        console.log(`${eth} ETH`);
+
+        setbalance(parseFloat(eth).toFixed(4));
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+      }
+    };
+
+    fetchBalance();
+  }, [address, walletProvider, chainId]);
+
   if (!isConnected) {
     return (
       <div className="swap_portals">
@@ -30,7 +65,7 @@ function page() {
           title="Swap Portal"
           showSearch={false}
           showButton={false}
-          showBalance={true}
+          showBalance={false}
         />
         <div className="swap_connect_container glass_card">
           <Image
@@ -64,7 +99,7 @@ function page() {
   }
   return (
     <div className="swap_portals">
-      <PageHeader title="Swap Portal" showSearch={false} showButton={false} />
+      <PageHeader title="Swap Portal" showSearch={false} showButton={true} />
       <div className="swap_top">
         <div className="left">
           <h2>Ready to Grow Your SEED?</h2>
@@ -75,7 +110,7 @@ function page() {
           <div className="available">
             <p>Available $CBY Balance</p>
             <div className="balance">
-              <h1>14,950</h1>
+              <h1>{balance}</h1>
               <h2>$CBY</h2>
             </div>
             <p>In Base Chain</p>

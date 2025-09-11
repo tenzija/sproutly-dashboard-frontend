@@ -1,16 +1,16 @@
 import React, { useState } from "react";
-import { 
-  isValidNumberInput, 
-  calculateDestinationAmount, 
-  formatDisplayAmount 
+import {
+  isValidNumberInput,
+  calculateDestinationAmount,
+  formatDisplayAmount,
 } from "../utils/numberUtils";
 
 interface BridgeCPYProps {
   handleNext: () => void;
-  handleConnectWallet?: () => void;
+  handleConnectWallet?: () => void | undefined;
 }
 
-function BridgeCPY({handleNext, handleConnectWallet}: BridgeCPYProps) {
+function BridgeCPY({ handleNext, handleConnectWallet }: BridgeCPYProps) {
   const [sourceChain, setSourceChain] = useState("Ethereum Mainnet");
   const [amount, setAmount] = useState("");
 
@@ -96,12 +96,12 @@ function BridgeCPY({handleNext, handleConnectWallet}: BridgeCPYProps) {
         </div>
 
         <div className="action-buttons">
-          <button className="bridge-btn" onClick={handleBackClick}>
+          <button className="bridge-btn" onClick={() => handleBackClick()}>
             Back
           </button>
-          <button 
-            className="next-btn" 
-            onClick={handleNext}
+          <button
+            className="next-btn"
+            onClick={() => handleNext()}
             disabled={isNextDisabled}
           >
             Next
