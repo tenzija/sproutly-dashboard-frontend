@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-
+const PUBLIC_ROUTES = ["/login", "/signup","/forgot-password", "/reset-password"]; 
 export default function ProtectedLayout({
   children,
 }: {
@@ -12,19 +12,16 @@ export default function ProtectedLayout({
   const { isAuthenticated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-      if (!isAuthenticated && pathname !== "/login") {
-        router.push("/login");
-      }
-      setChecked(true);
+     if (!isAuthenticated && !PUBLIC_ROUTES.includes(pathname)) {
+      router.replace("/login");
+    }
   }, [isAuthenticated, pathname, router]);
 
   // While checking auth or redirecting, render nothing
-  if (!checked || (pathname !== "/login")) {
+ if (!isAuthenticated && !PUBLIC_ROUTES.includes(pathname)) {
     return null;
   }
-
   return <>{children}</>;
 }

@@ -1,15 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import "./login.scss";
-import Image from "next/image";
 import { useAuth } from "../../context/AuthContext";
-import { useRouter } from "next/router";
 import { redirect } from "next/navigation";
 import baseUrl from "@/lib/axios";
-
-// Logo will be referenced directly from public folder
-
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 interface LoginFormData {
   email: string;
   password: string;
@@ -22,7 +17,7 @@ interface LoginFormErrors {
   rememberMe?: string;
 }
 
-function page() {
+function Page() {
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
@@ -81,118 +76,122 @@ function page() {
         ...formData,
       })
       .then((response) => {
-        console.log(response);
-        login("demo-token");
+        login(response.data);
         redirect("/swapportal");
       })
       .catch(console.error)
       .finally(() => {
         setIsSubmitting(false);
       });
+    login("demo-token");
+    redirect("/swapportal");
   };
 
   return (
-    <div className="login-page">
-      <div className="login-background">
-        <div className="login-container">
-          <div className="login-card">
-            <div className="login-header">
-              <h1>Welcome Back</h1>
-              <div className="logo_container">
-                <Image
-                  src="/images/logo.png"
-                  alt="Sproutly"
-                  className="login-logo"
-                  width={200}
-                  height={0}
-                />
-              </div>
-              <p>Sign in to your Sproutly account</p>
+ <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-teal-900 flex items-center justify-center p-4 relative  bg-[url('/images/bg2.png')] bg-cover bg-no-repeat ">
+      {/* Background pattern overlay */}
+      <div className="absolute inset-0 opacity-20" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        backgroundRepeat: 'repeat'
+      }}></div>
+      
+      <div className="relative z-10 w-full max-w-md">
+             <div className="rounded-[24px] border border-white/10 bg-[rgba(44,44,44,0.8)] p-40 shadow-[0_25px_50px_rgba(0,0,0,0.3)] backdrop-blur-[20px] sm:rounded-[20px] sm:p-[30px_20px]">
+        
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-normal text-white mb-1">
+              Welcome Back
+            </h1>
+            <h2 className="text-3xl font-light text-white mb-4 tracking-wide">
+              sproutly
+            </h2>
+            <p className="text-slate-400 text-sm">
+              Sign in to your Sproutly account
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider">
+                Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3   border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+                disabled={isSubmitting}
+              />
             </div>
-            <form onSubmit={handleSubmit} className="login-form">
-              <div className="form-group">
-                <label htmlFor="email">Email Address</label>
+
+            {/* Password field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider">
+                Password
+              </label>
+              <div className="relative">
                 <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={formData.password}
                   onChange={handleInputChange}
-                  className={errors.email ? "error" : ""}
-                  placeholder="Enter your email"
+                  className="w-full px-4 py-3 pr-12   border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
                   disabled={isSubmitting}
                 />
-                {errors.email && (
-                  <span className="error-message">{errors.email}</span>
-                )}
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors duration-200"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={isSubmitting}
+                >
+                  {showPassword ? <FaEye /> : <FaEyeSlash />}
+                </button>
               </div>
-              <div className="form-group">
-                <label htmlFor="password">Password</label>
-                <div className="password-input">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className={errors.password ? "error" : ""}
-                    placeholder="Enter your password"
-                    disabled={isSubmitting}
-                  />
-                  <button
-                    type="button"
-                    className="password-toggle"
-                    onClick={() => setShowPassword(!showPassword)}
-                    disabled={isSubmitting}
-                  >
-                    {showPassword ? "👁️" : "👁️‍🗨️"}
-                  </button>
-                </div>
-                {errors.password && (
-                  <span className="error-message">{errors.password}</span>
-                )}
-              </div>
-
-              <div className="form-options">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    name="rememberMe"
-                    checked={formData.rememberMe}
-                    onChange={handleInputChange}
-                    disabled={isSubmitting}
-                  />
-                  <span className="checkmark"></span>
-                  Remember me
-                </label>
-                <a href="/forgot-password" className="forgot-password">
-                  Forgot password?
-                </a>
-              </div>
-
-              <button
-                type="submit"
-                className="login-button"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <div className="button-spinner">
-                    <div className="spinner"></div>
-                    Signing in...
-                  </div>
-                ) : (
-                  "Sign In"
-                )}
-              </button>
-            </form>
-            <div className="login-footer">
-              <p>
-                Don't have an account?{" "}
-                <a href="/register" className="signup-link">
-                  Sign up here
-                </a>
-              </p>
             </div>
+
+            {/* Form options */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center checkbox_label">
+                <input
+                  type="checkbox"
+                  name="rememberMe"
+                  checked={formData.rememberMe}
+                  onChange={handleInputChange}
+                  className="w-4 h-4 text-teal-500 bg-slate-700 border-slate-600 rounded focus:ring-teal-500 focus:ring-2"
+                  disabled={isSubmitting}
+                />
+                  <span className="checkmark"></span>
+                   Remember me
+              </label>
+              <a href="/forgot-password" className="text-sm text-slate-400 hover:text-white transition-colors duration-200">
+                Forgot password?
+              </a>
+            </div>
+
+            {/* Submit button */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3 px-4 bg-white text-slate-900 rounded-lg font-medium hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="text-center mt-6">
+            <p className="text-slate-400 text-sm">
+               Don&apos;t have an account?{' '}
+              <a href="/signup" className="text-teal-400 hover:text-teal-300 transition-colors duration-200 underline">
+               create one
+              </a>
+            </p>
           </div>
         </div>
       </div>
@@ -200,4 +199,4 @@ function page() {
   );
 }
 
-export default page;
+export default Page;

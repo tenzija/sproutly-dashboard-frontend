@@ -3,10 +3,15 @@
 import { ReactNode } from "react";
 import Sidebar from "./components/sidebar/Sidebar";
 import { useAuth } from "../context/AuthContext";
-
+import { usePathname } from "next/navigation";
+const HIDE_SIDEBAR_ROUTES = ["/login", "/signup", "/forgot-password", "/reset-password"];
 export default function AppLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
+  const pathname = usePathname();
 
+  if (HIDE_SIDEBAR_ROUTES.includes(pathname)) {
+    return <>{children}</>;
+  }
   if (!isAuthenticated) {
     return children;
   }

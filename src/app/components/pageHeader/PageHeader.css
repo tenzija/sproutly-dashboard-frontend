@@ -83,6 +83,7 @@
     font-size: 20px;
     cursor: pointer;
     transition: color 0.3s ease;
+    position: relative;
 }
 
 .svgimg svg {
@@ -215,7 +216,7 @@
     border: 1px solid var(--glass-stroke-new, #ffffff17);
     border-radius: 12px;
     padding: 0;
-    min-width: 280px;
+    min-width:  200px;
     z-index: 999999;
     backdrop-filter: blur(150px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
@@ -275,6 +276,7 @@
     cursor: pointer;
     transition: background-color 0.2s ease;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
 }
 
 .settings_item:hover {
@@ -315,7 +317,7 @@
     .notification_dropdown,
     .settings_dropdown {
         right: -50%;
-        min-width: 250px;
+        min-width: 150px;
     }
 
     .elementName p {
@@ -345,6 +347,6 @@
     .notification_dropdown,
     .settings_dropdown {
         right: -100%;
-        min-width: 200px;
+        min-width:  150px;
     }
 }

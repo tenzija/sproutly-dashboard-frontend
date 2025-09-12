@@ -1,5 +1,12 @@
 "use client";
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { deleteCookie, setCookie } from "@/utils/cookies";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -13,21 +20,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("authTokens");
     if (token) setIsAuthenticated(true);
   }, []);
 
   const login = (token: string) => {
-    
-    localStorage.setItem("token", token);
+ setCookie("authTokens", JSON.stringify(token));
     setIsAuthenticated(true);
-    
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
+    deleteCookie("authTokens");
     setIsAuthenticated(false);
-
   };
 
   return (

@@ -43,7 +43,7 @@ const sproutlyTestnet = defineChain({
 })
 
 // Create the modal
-const modal = createAppKit({
+ createAppKit({
   adapters: [wagmiAdapter],
   projectId,
   networks: [mainnet, arbitrum, polygon, base,sproutlyTestnet],
@@ -54,6 +54,10 @@ const modal = createAppKit({
     socials: false,
     email:false,
     
+  },
+   themeVariables: {
+    "--w3m-font-family": "Arial, Helvetica, sans-serif !important",
+
   },
   
 });
