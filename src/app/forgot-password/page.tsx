@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
-import { redirect } from "next/navigation";
-
 import { countries } from "@/utils/countries";
+import Link from "next/link";
+import baseUrl from "@/lib/axios";
 
 interface LoginFormErrors {
   email?: string;
@@ -32,11 +31,7 @@ function Page() {
       newErrors.email = "Email is invalid";
     }
 
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
+   
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -57,8 +52,8 @@ function Page() {
       }));
     }
   };
-  const { login } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
+    
     e.preventDefault();
 
     if (!validateForm()) {
@@ -67,21 +62,19 @@ function Page() {
 
     setIsSubmitting(true);
 
-    // baseUrl
-    //   .post("/auth/login", {
-    //     ...formData,
-    //   })
-    //   .then((response) => {
-    //     console.log(response);
-    //     login("demo-token");
-    //     redirect("/swapportal");
-    //   })
-    //   .catch(console.error)
-    //   .finally(() => {
-    //     setIsSubmitting(false);
-    //   });
-    login("demo-token");
-    redirect("/swapportal");
+    baseUrl
+      .post("/auth/forgot-password", {
+        ...formData,
+      })
+      .then((response) => {
+        console.log(response);
+       
+      })
+      .catch(console.error)
+      .finally(() => {
+        setIsSubmitting(false);
+      });
+ 
   };
 
   return (
@@ -144,12 +137,12 @@ function Page() {
           <div className="text-center mt-6">
             <p className="text-slate-400 text-sm">
               Already have an account?{" "}
-              <a
+              <Link
                 href="/login"
-                className="text-teal-400 hover:text-teal-300 transition-colors duration-200 underline"
+                 className="!text-white hover:underline hover:decoration-white transition duration-200"
               >
                 Sign in here
-              </a>
+              </Link>
             </p>
           </div>
         </div>

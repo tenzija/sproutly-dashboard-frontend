@@ -1,55 +1,30 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { redirect } from "next/navigation";
 import baseUrl from "@/lib/axios";
-import { countries } from "@/utils/countries";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 interface LoginFormErrors {
-  email?: string;
   password?: string;
-  username?: string;
-  country?: string;
   confirmPassword?: string;
-  termsAndConditions?: string;
 }
 
 function Page() {
   const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    country: countries[0].name,
     password: "",
     confirmPassword: "",
-    termsAndConditions: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<LoginFormErrors>({});
-
+  const [token, setToken] = useState<string | null>(null);
+  useEffect(() => {
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    setToken(urlSearchParams.get("token"));
+  }, []);
   const validateForm = (): boolean => {
     const newErrors: LoginFormErrors = {};
-
-    // Username validation
-    if (!formData.username.trim()) {
-      newErrors.username = "Username is required";
-    } else if (formData.username.length < 3) {
-      newErrors.username = "Username must be at least 3 characters";
-    }
-
-    // Email validation
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
-    }
-
-    // Country validation
-    if (!formData.country) {
-      newErrors.country = "Please select a country";
-    }
 
     // Password validation
     if (!formData.password) {
@@ -70,16 +45,11 @@ function Page() {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
-    // Terms and conditions validation
-    if (!formData.termsAndConditions) {
-      newErrors.termsAndConditions = "You must accept the terms and conditions";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (e:  React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -104,27 +74,24 @@ function Page() {
 
     setIsSubmitting(true);
     const data = {
-      username: formData.username,
-      email: formData.email.toLowerCase(),
-      country: formData.country,
       password: formData.password,
+      confirmPassword: formData.confirmPassword,
+      token,
     };
 
     baseUrl
-      .post("/users/register", {
+      .post("/auth/forgot-password/confirm", {
         ...data,
       })
       .then((response) => {
         console.log(response);
 
-        redirect("/login");
+        window.location.replace("/login");
       })
       .catch(console.error)
       .finally(() => {
         setIsSubmitting(false);
       });
-    login("demo-token");
-    redirect("/swapportal");
   };
 
   return (
@@ -174,7 +141,7 @@ function Page() {
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isSubmitting}
                 >
-                 {showPassword ? <FaEye /> : <FaEyeSlash />}
+                  {showPassword ? <FaEye /> : <FaEyeSlash />}
                 </button>
               </div>
             </div>
@@ -201,12 +168,10 @@ function Page() {
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isSubmitting}
                 >
-                 {showPassword ? <FaEye /> : <FaEyeSlash />}
+                  {showPassword ? <FaEye /> : <FaEyeSlash />}
                 </button>
               </div>
             </div>
-
-
 
             {/* Submit button */}
             <button

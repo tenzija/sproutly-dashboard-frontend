@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { redirect } from "next/navigation";
 import baseUrl from "@/lib/axios";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import Link from "next/link";
 interface LoginFormData {
   email: string;
   password: string;
@@ -26,7 +27,7 @@ function Page() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<LoginFormErrors>({});
-
+  const [serverError, setServerError] = useState<string | null>(null);
   const validateForm = (): boolean => {
     const newErrors: LoginFormErrors = {};
 
@@ -60,6 +61,7 @@ function Page() {
         [name]: undefined,
       }));
     }
+    if (serverError) setServerError(null);
   };
   const { login } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,32 +78,42 @@ function Page() {
         ...formData,
       })
       .then((response) => {
+        console.log(response.data);
+
         login(response.data);
-        redirect("/swapportal");
+        window.location.replace("/swapportal");
       })
-      .catch(console.error)
+      .catch((error) => {
+        // console.log(error.response?.data?.msg);
+
+        if (error.response?.data?.msg) {
+          setServerError(error.response.data.msg);
+        } else {
+          setServerError("Something went wrong. Please try again.");
+        }
+      })
       .finally(() => {
         setIsSubmitting(false);
       });
-    login("demo-token");
-    redirect("/swapportal");
   };
 
   return (
- <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-teal-900 flex items-center justify-center p-4 relative  bg-[url('/images/bg2.png')] bg-cover bg-no-repeat ">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-teal-900 flex items-center justify-center p-4 relative  bg-[url('/images/bg2.png')] bg-cover bg-no-repeat ">
       {/* Background pattern overlay */}
-      <div className="absolute inset-0 opacity-20" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        backgroundRepeat: 'repeat'
-      }}></div>
-      
+      <div
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+        }}
+      ></div>
+
       <div className="relative z-10 w-full max-w-md">
-             <div className="rounded-[24px] border border-white/10 bg-[rgba(44,44,44,0.8)] p-40 shadow-[0_25px_50px_rgba(0,0,0,0.3)] backdrop-blur-[20px] sm:rounded-[20px] sm:p-[30px_20px]">
-        
+        <div className="rounded-[24px] border border-white/10 bg-[rgba(44,44,44,0.8)] p-40 shadow-[0_25px_50px_rgba(0,0,0,0.3)] backdrop-blur-[20px] sm:rounded-[20px] sm:p-[30px_20px]">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-normal text-white mb-1">
-              Welcome Back
+            <h1 className="text-xl font-normal text-white mb-1">
+              Welcome back
             </h1>
             <h2 className="text-3xl font-light text-white mb-4 tracking-wide">
               sproutly
@@ -115,7 +127,10 @@ function Page() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider"
+              >
                 Email Address
               </label>
               <input
@@ -131,7 +146,10 @@ function Page() {
 
             {/* Password field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider"
+              >
                 Password
               </label>
               <div className="relative">
@@ -156,41 +174,37 @@ function Page() {
             </div>
 
             {/* Form options */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center checkbox_label">
-                <input
-                  type="checkbox"
-                  name="rememberMe"
-                  checked={formData.rememberMe}
-                  onChange={handleInputChange}
-                  className="w-4 h-4 text-teal-500 bg-slate-700 border-slate-600 rounded focus:ring-teal-500 focus:ring-2"
-                  disabled={isSubmitting}
-                />
-                  <span className="checkmark"></span>
-                   Remember me
-              </label>
-              <a href="/forgot-password" className="text-sm text-slate-400 hover:text-white transition-colors duration-200">
-                Forgot password?
-              </a>
-            </div>
 
-            {/* Submit button */}
+            {serverError && (
+              <div className="text-red-400 text-center text-sm p-0 m-0">
+                {serverError}
+              </div>
+            )}
             <button
               type="submit"
               disabled={isSubmitting}
               className="w-full py-3 px-4 bg-white text-slate-900 rounded-lg font-medium hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
+              {isSubmitting ? "Signing in..." : "Sign In"}
             </button>
           </form>
-
-          {/* Footer */}
-          <div className="text-center mt-6">
+          <div className="flex items-center justify-center mt-6">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-slate-400 hover:text-white transition-colors duration-200"
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <div className="text-center mt-2">
             <p className="text-slate-400 text-sm">
-               Don&apos;t have an account?{' '}
-              <a href="/signup" className="text-teal-400 hover:text-teal-300 transition-colors duration-200 underline">
-               create one
-              </a>
+              Don&apos;t have an account?{" "}
+              <Link
+                href="/signup"
+                className="!text-white hover:underline hover:decoration-white transition duration-200"
+              >
+                Create one here
+              </Link>
             </p>
           </div>
         </div>

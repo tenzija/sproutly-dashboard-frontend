@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
 import { redirect } from "next/navigation";
 import baseUrl from "@/lib/axios";
 import { countries } from "@/utils/countries";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import Link from "next/link";
 
 interface LoginFormErrors {
   email?: string;
@@ -20,7 +20,7 @@ function Page() {
   const [formData, setFormData] = useState({
     username: "",
     email: "",
-    country: countries[0].name,
+    country: "",
     password: "",
     confirmPassword: "",
     termsAndConditions: false,
@@ -28,7 +28,7 @@ function Page() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<LoginFormErrors>({});
-
+  const [serverError, setServerError] = useState<string | null>(null);
   const validateForm = (): boolean => {
     const newErrors: LoginFormErrors = {};
 
@@ -102,12 +102,11 @@ function Page() {
         [name]: undefined,
       }));
     }
+     if (serverError) setServerError(null); 
   };
 
-  const { login } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) {
       return;
     }
@@ -118,23 +117,28 @@ function Page() {
       email: formData.email.toLowerCase(),
       country: formData.country,
       password: formData.password,
+      confirmPassword: formData.confirmPassword,
+      termsAndConditionsAccepted:formData.termsAndConditions
     };
 
     baseUrl
-      .post("/users/register", {
+      .post("/auth/register", {
         ...data,
       })
       .then((response) => {
-        console.log(response);
 
         redirect("/login");
       })
-      .catch(console.error)
+      .catch((error)=>{
+         if (error.response?.data?.message) {
+          setServerError(error.response.data.message);
+        } else {
+          setServerError("Something went wrong. Please try again.");
+        }
+      })
       .finally(() => {
         setIsSubmitting(false);
       });
-    login("demo-token");
-    redirect("/swapportal");
   };
 
   return (
@@ -160,25 +164,31 @@ function Page() {
             </p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email field */}
             <div>
               <label
                 htmlFor="username"
                 className="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider"
               >
-                User Name
+                UserName
               </label>
               <input
                 type="text"
                 id="username"
                 name="username"
+                placeholder="Enter Your Username"
                 value={formData.username}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3  border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+                className={`w-full px-4 py-3 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200  scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-700${
+                  errors.username
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-slate-600 focus:ring-teal-500"
+                }`}
                 disabled={isSubmitting}
               />
+              {errors.username && (
+                <p className="mt-1 text-sm text-red-400">{errors.username}</p>
+              )}
             </div>
             <div>
               <label
@@ -194,9 +204,16 @@ function Page() {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3  border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+                className={`w-full px-4 py-3 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
+                  errors.email
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-slate-600 focus:ring-teal-500"
+                }`}
                 disabled={isSubmitting}
               />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-400">{errors.email}</p>
+              )}
             </div>
             <div>
               <label
@@ -209,16 +226,25 @@ function Page() {
                 value={formData.country}
                 onChange={handleInputChange}
                 id="country"
-                className={
-                  "w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 appearance-none  bg-inputFields border border-white border-opacity-50 text-white text-sm rounded-lg focus:outline-0 focus:ring-blue-500 focus:border-carbifyOrange block w-full p-3"
-                }
+                name="country"
+                className={`w-full p-3 rounded-lg text-sm text-white bg-slate-700/50 border transition-all duration-200 appearance-none placeholder-slate-400 focus:outline-none ${
+                  errors.country
+                    ? "border-red-500 focus:ring-2 focus:ring-red-500"
+                    : "border-white/50 focus:ring-2 focus:ring-teal-500 focus:border-carbifyOrange"
+                }`}
               >
+                <option key={"1"} value={""}>
+                  -- select country --
+                </option>
                 {countries.map((country) => (
                   <option key={country.code} value={country.name}>
                     {country.name}
                   </option>
                 ))}
               </select>
+              {errors.country && (
+                <p className="mt-1 text-sm text-red-400">{errors.country}</p>
+              )}
             </div>
 
             {/* Password field */}
@@ -236,7 +262,12 @@ function Page() {
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 pr-12  border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+                  className={`w-full px-4 py-3 pr-12 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
+                    errors.password
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-slate-600 focus:ring-teal-500"
+                  }`}
+                    placeholder="Enter Your password"
                   disabled={isSubmitting}
                 />
                 <button
@@ -248,10 +279,13 @@ function Page() {
                   {showPassword ? <FaEye /> : <FaEyeSlash />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-400">{errors.password}</p>
+              )}
             </div>
             <div>
               <label
-                htmlFor="password"
+                htmlFor="confirmPassword"
                 className="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider"
               >
                 confirm Password
@@ -263,7 +297,12 @@ function Page() {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 pr-12  border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+                  className={`w-full px-4 py-3 pr-12 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
+                    errors.confirmPassword
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-slate-600 focus:ring-teal-500"
+                  }`}
+                     placeholder="Confim Your password"
                   disabled={isSubmitting}
                 />
                 <button
@@ -275,26 +314,43 @@ function Page() {
                   {showPassword ? <FaEye /> : <FaEyeSlash />}
                 </button>
               </div>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-400">
+                  {errors.confirmPassword}
+                </p>
+              )}
             </div>
 
             {/* Form options */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
+            <div className="flex items-start justify-between flex-col">
+              <label className="flex items-center checkbox_label">
                 <input
                   type="checkbox"
                   name="termsAndConditions"
                   checked={formData.termsAndConditions}
                   onChange={handleInputChange}
-                  className="w-4 h-4 text-teal-500 bg-slate-700 border-slate-600 rounded focus:ring-teal-500 focus:ring-2"
+                  className={`w-4 h-4 text-teal-500 bg-slate-700 border rounded focus:ring-2 ${
+                    errors.termsAndConditions
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-slate-600 focus:ring-teal-500"
+                  }`}
                   disabled={isSubmitting}
                 />
-                <span className="ml-2 text-sm text-slate-400">
-                  Accept Terms and Conditions
-                </span>
+                <span className="checkmark"></span>
+                Accept Terms and Conditions
               </label>
+              {errors.termsAndConditions && (
+                <p className="mt-1 text-sm text-red-400">
+                  {errors.termsAndConditions}
+                </p>
+              )}
             </div>
 
-            {/* Submit button */}
+          {serverError && (
+              <div className="text-red-400 text-center text-sm p-0 m-0">
+                {serverError}
+              </div>
+            )}
             <button
               type="submit"
               disabled={isSubmitting}
@@ -308,12 +364,12 @@ function Page() {
           <div className="text-center mt-6">
             <p className="text-slate-400 text-sm">
               Already have an account?{" "}
-              <a
+              <Link
                 href="/login"
-                className="text-teal-400 hover:text-teal-300 transition-colors duration-200 underline"
+                className="!text-white hover:underline hover:decoration-white transition duration-200"
               >
                 Sign in here
-              </a>
+              </Link>
             </p>
           </div>
         </div>

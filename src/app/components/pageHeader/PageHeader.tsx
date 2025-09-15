@@ -2,33 +2,15 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import "./PageHeader.css";
-import { FaWallet } from "react-icons/fa";
-import { IoMdSearch } from "react-icons/io";
 import { IoSettingsOutline } from "react-icons/io5";
 import { useAccount, useDisconnect } from "wagmi";
-import { useAppKit } from "@reown/appkit/react";
 import { useAuth } from "@/context/AuthContext";
-import { redirect } from "next/navigation";
-interface PageHeaderProps {
-  title: string;
-  showSearch?: boolean;
-}
-function PageHeader({ title, showSearch = true }: PageHeaderProps) {
+
+function PageHeader() {
   const { logout } = useAuth();
   const { disconnect } = useDisconnect();
   const { isConnected } = useAccount();
-  const { open, close } = useAppKit();
-  const handleClick = () => {
-    if (isConnected) {
-      close();
-    } else {
-      open();
-    }
-  };
-
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
   const [settingsPosition, setSettingsPosition] = useState({
     top: 0,
     right: 0,
@@ -36,7 +18,6 @@ function PageHeader({ title, showSearch = true }: PageHeaderProps) {
 
   const settingsRef = useRef<HTMLDivElement>(null);
   const settingsPopRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -75,11 +56,11 @@ function PageHeader({ title, showSearch = true }: PageHeaderProps) {
     }
   };
   const handleLogout = () => {
-    logout();
     if (isConnected) {
       disconnect();
     }
-    redirect("/login");
+    logout();
+
   };
 
   const renderSettingsDropdown = () => {
@@ -87,7 +68,7 @@ function PageHeader({ title, showSearch = true }: PageHeaderProps) {
 
     const dropdownContent = (
       <div
-        className="settings_dropdown"
+        className="absolute top-full right-0 mt-2 bg-[var(--glass-new,#8989890d)] border border-[var(--glass-stroke-new,#ffffff17)] rounded-[12px] p-0 min-w-[200px] z-[999999] backdrop-blur-[150px] shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden animate-[dropdownFadeIn_0.2s_ease-out]"
         style={{
           position: "fixed",
           top: `${settingsPosition.top}px`,
@@ -96,7 +77,10 @@ function PageHeader({ title, showSearch = true }: PageHeaderProps) {
         }}
         ref={settingsPopRef}
       >
-        <button className="settings_item" onClick={() => handleLogout()}>
+        <button
+          className="w-full px-4 py-3 text-[var(--white-100)] text-sm font-normal cursor-pointer transition-colors duration-200 ease-in-out border-b border-white/10 hover:bg-white/5 last:border-b-0 last:text-[#ff6b6b]"
+          onClick={() => handleLogout()}
+        >
           <span>Logout</span>
         </button>
       </div>
@@ -111,35 +95,17 @@ function PageHeader({ title, showSearch = true }: PageHeaderProps) {
                 max-md:flex-col max-md:h-auto max-md:gap-4 max-md:p-4 bg-[var(--glass-new,#8989890d)] backdrop-blur-[150px] border border-[var(--glass-stroke-new,#ffffff17)] shadow-[3px_3px_3px_rgba(0,0,0,0.089)]"
     >
       <div>
-        <p className="text-xl md:text-2xl font-bold">{title}</p>
+        <p className="text-xl md:text-2xl font-bold">Swap portal</p>
       </div>
 
-      {showSearch && (
-        <div className="pageheader_searchicon">
-          <input
-            type="text"
-            className="pageheader_input"
-            placeholder="Search Box"
-          />
-          <IoMdSearch className="pageheader_icon" />
-        </div>
-      )}
-
       <div className="right_element">
-        {!isConnected && (
-          <button onClick={() => handleClick()}>
-            <FaWallet />
-            Connect wallet
-          </button>
-        )}
-
         <div
-          className="svgimg settings_icon"
+          className="flex items-center justify-center bg-[var(--white-50)] backdrop-blur-md rounded-[58px] h-12 w-12 text-[20px] cursor-pointer transition-colors duration-300 ease-in-out  relative z-[10000]"
           ref={settingsRef}
           onClick={toggleSettings}
         >
-          <IoSettingsOutline />
-        {renderSettingsDropdown()}
+          <IoSettingsOutline className="h-8 w-8 text-[var(--white-100)]" />
+          {renderSettingsDropdown()}
         </div>
       </div>
     </div>

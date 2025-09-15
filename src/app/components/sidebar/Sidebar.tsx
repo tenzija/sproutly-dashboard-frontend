@@ -33,9 +33,7 @@ function Sidebar() {
 
   return (
     <div
-      className="sticky top-0 left-0 h-screen w-[263px]
-            border-l border-r border-white/10
-            px-6 py-8 flex flex-col ml-[47px] top-0 left-0 h-screen w-[263px] border-l border-r border-[rgba(255,255,255,0.1)] 
+      className="sticky  py-8  top-0 left-0 h-screen w-[263px] border-l border-r 
                 p-8 px-6 flex flex-col ml-[47px] bg-[var(--glass-new,#8989890d)] backdrop-blur-[150px] border border-[var(--glass-stroke-new,#ffffff17)] shadow-[3px_3px_3px_rgba(0,0,0,0.089)]"
     >
       <nav className="flex flex-col gap-[5px]">

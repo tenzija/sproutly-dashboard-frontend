@@ -13,13 +13,14 @@ import {
   useAppKitNetworkCore,
   type Provider,
 } from "@reown/appkit/react";
-import { BrowserProvider, formatEther } from "ethers";
+import { BrowserProvider, Contract, formatUnits } from "ethers";
+import { CBY_ABI } from "@/constant/BlockchainConstants";
+
 function Page() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [balance, setbalance] = useState("0.0000");
   const { address, isConnected } = useAccount();
   const { chainId } = useAppKitNetworkCore();
-  // AppKit hook to get the wallet provider
   const { walletProvider } = useAppKitProvider<Provider>("eip155");
   const { open, close } = useAppKit();
   const handleClick = () => {
@@ -30,32 +31,31 @@ function Page() {
     }
   };
 
-  useEffect(() => {
-    const fetchBalance = async () => {
-      if (!walletProvider || !address || !chainId) return;
-      try {
-        const provider = new BrowserProvider(walletProvider, chainId);
-        const balance = await provider.getBalance(address);
-        const eth = formatEther(balance);
-        console.log(`${eth} ETH`);
+useEffect(() => {
+  const fetchBalances = async () => {
+    if (!walletProvider || !address || !chainId) return;
+    
+    try {
+      const provider = new BrowserProvider(walletProvider, chainId);
 
-        setbalance(parseFloat(eth).toFixed(4));
-      } catch (error) {
-        console.error("Failed to fetch balance:", error);
-      }
-    };
+      const cbyContract = new Contract(`${process.env.NEXT_PUBLIC_CBY_ADDRESS}`, CBY_ABI, provider);
+      const rawBalance = await cbyContract.balanceOf(address);
+      const decimals = await cbyContract.decimals();
+      const cby = formatUnits(rawBalance, decimals);
+      setbalance(parseFloat(cby).toFixed(4));
+      console.log(`${cby} CBY`);
+    } catch (error) {
+      console.error("Failed to fetch balances:", error);
+    }
+  };
 
-    fetchBalance();
-  }, [address, walletProvider, chainId]);
+  fetchBalances();
+}, [address, walletProvider, chainId]);
 
   if (!isConnected) {
     return (
       <div className="mt-4 flex flex-col gap-6 md:gap-4">
-        <PageHeader
-          title="Swap Portal"
-          showSearch={false}
-      
-        />
+        <PageHeader />
         <div className="flex flex-col items-center justify-center text-center h-[615px] rounded-lg p-4 gap-2 mt-4 bg-[var(--glass-new,#8989890d)] backdrop-blur-[150px] border border-[var(--glass-stroke-new,#ffffff17)] shadow-[3px_3px_3px_rgba(0,0,0,0.089)]">
           <Image
             src="/images/ConnectWallet.png"
@@ -64,34 +64,31 @@ function Page() {
             height={144}
             className="rounded-[32px] object-cover"
           />
-          <p className="text-[32px] font-bold text-[var(--Green--100)]">Connect Your Wallet to Begin</p>
+          <p className="text-[32px] font-bold text-[var(--Green--100)]">
+            Connect Your Wallet to Begin
+          </p>
           <p className="text-sm font-medium text-[var(--white-80)] max-w-[430px] leading-[21px]">
             To access the Swap Portal and start exchanging your $CBY for $SEED,
             please connect your Web3 wallet
           </p>
-         <button className="bg-[var(--Green--100)] text-black text-[16px] font-bold px-4 py-3 
+          <button
+            className="bg-[var(--Green--100)] text-black text-[16px] font-bold px-4 py-3 
                    rounded-[51px] w-[205px] h-[44px] border-none cursor-pointer 
                    transition-all duration-200 ease-in-out 
-                   hover:bg-[#9de142] hover:-translate-y-0.5" onClick={handleClick}>
+                   hover:bg-[#9de142] hover:-translate-y-0.5"
+            onClick={handleClick}
+          >
             Connect Wallet
           </button>
         </div>
 
-        {/* Reusable Wallet Connection Popup */}
-        {/* <WalletConnectPopup
-          isOpen={popup}
-          onClose={() => setPopup(false)}
-          onWalletConnect={handleWalletConnect}
-          title="Connect Your Wallet"
-          showHelpLinks={true}
-        /> */}
-        {/* {popup && <WalletPop setPopup={setpopup} />} */}
+     
       </div>
     );
   }
   return (
     <div className="mt-4 flex flex-col gap-6 md:gap-4">
-      <PageHeader title="Swap Portal" showSearch={false}  />
+      <PageHeader />
       <div className="w-full flex justify-between items-center gap-4 p-8 bg-[rgba(137,137,137,0.05)] backdrop-blur-[150px] border border-[rgba(255,255,255,0.09)] rounded-xl h-[396px]">
         {/* Left Section */}
         <div className="flex flex-col items-center w-1/2 gap-4">
@@ -157,7 +154,6 @@ function Page() {
         </div>
       </div>
       <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-      {/* {popup && <WalletPop setPopup={setpopup} />} */}
     </div>
   );
 }

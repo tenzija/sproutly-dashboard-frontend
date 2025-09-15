@@ -2,8 +2,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { headers } from "next/headers";
 import ContextProvider from "../context";
-import { AuthProvider} from "../context/AuthContext";
+import { AuthProvider } from "../context/AuthContext";
 import AppLayout from "./AppLayout";
+import ProtectedLayout from "./ProtectedLayout";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -35,9 +36,9 @@ export default async function RootLayout({
       >
         <ContextProvider cookies={cookies}>
           <AuthProvider>
-            {/* <ProtectedLayout  > */}
+            <ProtectedLayout>
               <AppLayout>{children}</AppLayout>
-            {/* </ProtectedLayout> */}
+            </ProtectedLayout>
           </AuthProvider>
         </ContextProvider>
       </body>
