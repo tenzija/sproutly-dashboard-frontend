@@ -6,22 +6,20 @@ import Bridge from "./components/Bridge";
 import React, { useEffect, useState } from "react";
 
 import Image from "next/image";
-import { useAccount } from "wagmi";
+import { useAccount, useContractRead } from "wagmi";
 import { useAppKit } from "@reown/appkit/react";
 import {
   useAppKitProvider,
   useAppKitNetworkCore,
   type Provider,
 } from "@reown/appkit/react";
-import { BrowserProvider, Contract, formatUnits } from "ethers";
 import { CBY_ABI } from "@/constant/BlockchainConstants";
-
+const NEXT_PUBLIC_CBY_ADDRESS = process.env.NEXT_PUBLIC_CBY_ADDRESS;
 function Page() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [balance, setbalance] = useState("0.0000");
-  const { address, isConnected } = useAccount();
-  const { chainId } = useAppKitNetworkCore();
-  const { walletProvider } = useAppKitProvider<Provider>("eip155");
+  const { address: currentAddress, isConnected } = useAccount();
+
+
   const { open, close } = useAppKit();
   const handleClick = () => {
     if (isConnected) {
@@ -31,26 +29,24 @@ function Page() {
     }
   };
 
-useEffect(() => {
-  const fetchBalances = async () => {
-    if (!walletProvider || !address || !chainId) return;
-    
-    try {
-      const provider = new BrowserProvider(walletProvider, chainId);
+ 
+  const [value, setValue] = useState<string | undefined>("0.00");
+  const { data} = useContractRead({
+    address: NEXT_PUBLIC_CBY_ADDRESS as `0x${string}`,
+    abi: CBY_ABI,
+    functionName: "balanceOf",
+    args: [currentAddress],
+  });
 
-      const cbyContract = new Contract(`${process.env.NEXT_PUBLIC_CBY_ADDRESS}`, CBY_ABI, provider);
-      const rawBalance = await cbyContract.balanceOf(address);
-      const decimals = await cbyContract.decimals();
-      const cby = formatUnits(rawBalance, decimals);
-      setbalance(parseFloat(cby).toFixed(4));
-      console.log(`${cby} CBY`);
-    } catch (error) {
-      console.error("Failed to fetch balances:", error);
-    }
-  };
-
-  fetchBalances();
-}, [address, walletProvider, chainId]);
+  useEffect(() => {
+    const getData = async () => {
+      await data;
+      if (data !== undefined) {
+        setValue((data as bigint).toString());
+      }
+    };
+    getData().catch(console.error);
+  }, [data]);
 
   if (!isConnected) {
     return (
@@ -81,8 +77,6 @@ useEffect(() => {
             Connect Wallet
           </button>
         </div>
-
-     
       </div>
     );
   }
@@ -105,7 +99,7 @@ useEffect(() => {
               Available $CBY Balance
             </p>
             <div className="flex justify-center items-center gap-2 w-full whitespace-nowrap">
-              <h1 className="text-[24px] text-[#adf151]">{balance}</h1>
+              <h1 className="text-[24px] text-[#adf151]">{value}</h1>
               <h2 className="text-[22px]">$CBY</h2>
             </div>
             <p className="text-center font-medium text-[12px] leading-4">

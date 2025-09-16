@@ -4,23 +4,28 @@ import { ReactNode, useEffect, useState } from "react";
 import Sidebar from "./components/sidebar/Sidebar";
 import { useAuth } from "../context/AuthContext";
 import { usePathname } from "next/navigation";
-const HIDE_SIDEBAR_ROUTES = ["/login", "/signup", "/forgot-password", "/reset-password"];
+const HIDE_SIDEBAR_ROUTES = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+];
 export default function AppLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
   const pathname = usePathname();
-const [isClient, setIsClient] = useState(isAuthenticated);
-useEffect(() => {
-  setIsClient(isAuthenticated);
-}, []);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(isAuthenticated);
+  }, [isAuthenticated]);
+
   if (HIDE_SIDEBAR_ROUTES.includes(pathname)) {
     return <>{children}</>;
   }
-  if (!isClient) {
-    return children;
+
+ if (!mounted || !isAuthenticated) {
+    return <>{children}</>;
   }
 
-
-  
   return (
     <div className="flex">
       <aside>
@@ -32,4 +37,3 @@ useEffect(() => {
     </div>
   );
 }
-

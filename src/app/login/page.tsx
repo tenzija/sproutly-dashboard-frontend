@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { redirect } from "next/navigation";
 import baseUrl from "@/lib/axios";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";

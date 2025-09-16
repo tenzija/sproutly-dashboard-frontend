@@ -64,7 +64,6 @@ function Page() {
       }));
     }
   };
-  const { login } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 

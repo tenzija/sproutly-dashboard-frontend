@@ -2,18 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { RiSwapBoxFill } from "react-icons/ri";
 import { FaWallet } from "react-icons/fa";
 import { useAccount, useDisconnect } from "wagmi";
 import Image from "next/image";
 import { useAppKit } from "@reown/appkit/react";
+import { getCookie } from "@/utils/cookies";
 
 const sidebarFallback = [
   { name: "Swap Portal", icon: RiSwapBoxFill, href: "/swapportal" },
 ];
 
 function Sidebar() {
+  const token = getCookie("authTokens");
+
+  const [username, setUsername] = useState("");
+  const [image, setImage] = useState("");
+
+  useEffect(() => {
+    if (token) {
+      const user = JSON.parse(token).user;
+      setUsername(user?.username || "");
+      setImage(user?.photoUrl
+ || "");
+    }
+  }, [token]);
+
   const pathname = usePathname();
   const { isConnected, address } = useAccount();
   const { open, close } = useAppKit();
@@ -39,13 +54,13 @@ function Sidebar() {
       <nav className="flex flex-col gap-[5px]">
         <div className="flex items-center gap-2 mt-[-1.5px] mb-5">
           <Image
-            src="/images/button.png"
+            src={image || "/images/button.png"}
             alt="Profile"
             width={48}
             height={48}
             className=" w-12 h-12 object-cover rounded-[50%]"
           />
-          <p>Rasmy</p>
+          <p>{username}</p>
         </div>
 
         {!isConnected ? (

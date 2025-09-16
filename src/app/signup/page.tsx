@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { redirect } from "next/navigation";
 import baseUrl from "@/lib/axios";
 import { countries } from "@/utils/countries";
 import { FaEye, FaEyeSlash } from "react-icons/fa";

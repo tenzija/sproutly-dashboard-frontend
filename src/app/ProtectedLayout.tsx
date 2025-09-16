@@ -17,7 +17,6 @@ export default function ProtectedLayout({
   const [isRedirecting, setIsRedirecting] = useState(false);
   
   useEffect(() => {
-    console.log(isAuthenticated);
     if (!isAuthenticated && !PUBLIC_ROUTES.includes(pathname)) {
       setIsRedirecting(true);
       router.replace("/login");
