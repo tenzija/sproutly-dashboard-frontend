@@ -102,7 +102,7 @@ function Page() {
         [name]: undefined,
       }));
     }
-     if (serverError) setServerError(null); 
+    if (serverError) setServerError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,7 +118,7 @@ function Page() {
       country: formData.country,
       password: formData.password,
       confirmPassword: formData.confirmPassword,
-      termsAndConditionsAccepted:formData.termsAndConditions
+      termsAndConditionsAccepted: formData.termsAndConditions,
     };
 
     baseUrl
@@ -126,11 +126,10 @@ function Page() {
         ...data,
       })
       .then((response) => {
-
-        redirect("/login");
+        window.location.replace("/login");
       })
-      .catch((error)=>{
-         if (error.response?.data?.message) {
+      .catch((error) => {
+        if (error.response?.data?.message) {
           setServerError(error.response.data.message);
         } else {
           setServerError("Something went wrong. Please try again.");
@@ -179,7 +178,7 @@ function Page() {
                 placeholder="Enter Your Username"
                 value={formData.username}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-3 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200  scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-700${
+                className={`w-full px-4 py-3 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
                   errors.username
                     ? "border-red-500 focus:ring-red-500"
                     : "border-slate-600 focus:ring-teal-500"
@@ -227,10 +226,10 @@ function Page() {
                 onChange={handleInputChange}
                 id="country"
                 name="country"
-                className={`w-full p-3 rounded-lg text-sm text-white bg-slate-700/50 border transition-all duration-200 appearance-none placeholder-slate-400 focus:outline-none ${
+                className={`w-full p-3 rounded-lg text-sm  text-slate-300 bg-slate-700 border transition-all duration-200 focus:border-transparent appearance-none placeholder-slate-400 focus:outline-none ${
                   errors.country
                     ? "border-red-500 focus:ring-2 focus:ring-red-500"
-                    : "border-white/50 focus:ring-2 focus:ring-teal-500 focus:border-carbifyOrange"
+                    : "border-slate-600 focus:border-carbifyOrange"
                 }`}
               >
                 <option key={"1"} value={""}>
@@ -267,7 +266,7 @@ function Page() {
                       ? "border-red-500 focus:ring-red-500"
                       : "border-slate-600 focus:ring-teal-500"
                   }`}
-                    placeholder="Enter Your password"
+                  placeholder="Enter Your password"
                   disabled={isSubmitting}
                 />
                 <button
@@ -302,7 +301,7 @@ function Page() {
                       ? "border-red-500 focus:ring-red-500"
                       : "border-slate-600 focus:ring-teal-500"
                   }`}
-                     placeholder="Confim Your password"
+                  placeholder="Confim Your password"
                   disabled={isSubmitting}
                 />
                 <button
@@ -346,7 +345,7 @@ function Page() {
               )}
             </div>
 
-          {serverError && (
+            {serverError && (
               <div className="text-red-400 text-center text-sm p-0 m-0">
                 {serverError}
               </div>
