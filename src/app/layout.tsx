@@ -3,8 +3,7 @@ import "./globals.css";
 import { headers } from "next/headers";
 import ContextProvider from "../context";
 import { AuthProvider } from "../context/AuthContext";
-import AppLayout from "./AppLayout";
-import ProtectedLayout from "./ProtectedLayout";
+import { ToastContainer } from "react-toastify";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -36,9 +35,8 @@ export default async function RootLayout({
       >
         <ContextProvider cookies={cookies}>
           <AuthProvider>
-            <ProtectedLayout>
-              <AppLayout>{children}</AppLayout>
-            </ProtectedLayout>
+             {children}
+              <ToastContainer />
           </AuthProvider>
         </ContextProvider>
       </body>

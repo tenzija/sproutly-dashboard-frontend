@@ -5,7 +5,8 @@ import baseUrl from "@/lib/axios";
 import { countries } from "@/utils/countries";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
-
+import { toast } from "react-toastify";
+import { Listbox, ListboxButton, ListboxOptions } from "@headlessui/react";
 interface LoginFormErrors {
   email?: string;
   password?: string;
@@ -53,8 +54,8 @@ function Page() {
     // Password validation
     if (!formData.password) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    } else if (formData.password.length < 10) {
+      newErrors.password = "Password must be at least 10 characters";
     } else if (!/[A-Z]/.test(formData.password)) {
       newErrors.password =
         "Password must contain at least one uppercase letter";
@@ -75,6 +76,7 @@ function Page() {
     }
 
     setErrors(newErrors);
+    
     return Object.keys(newErrors).length === 0;
   };
   const handleInputChange = (
@@ -124,12 +126,15 @@ function Page() {
       .post("/auth/register", {
         ...data,
       })
-      .then((response) => {
-        window.location.replace("/login");
+      .then(() => {
+        toast.success("Registration successful! Please log in.");
+        setTimeout(() => {
+          window.location.replace("/login");
+        }, 2000);
       })
       .catch((error) => {
-        if (error.response?.data?.message) {
-          setServerError(error.response.data.message);
+        if (error.response?.data?.msg) {
+          setServerError(error.response.data.msg);
         } else {
           setServerError("Something went wrong. Please try again.");
         }
@@ -161,7 +166,7 @@ function Page() {
               Sign up to your Sproutly account
             </p>
           </div>
-
+          {/* bg-slate-700 */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
@@ -174,10 +179,12 @@ function Page() {
                 type="text"
                 id="username"
                 name="username"
-                placeholder="Enter Your Username"
+                placeholder="Enter your username"
                 value={formData.username}
                 onChange={handleInputChange}
                 className={`w-full px-4 py-3 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
+                  formData.username.length > 0 ? "bg-slate-700" : ""
+                } ${
                   errors.username
                     ? "border-red-500 focus:ring-red-500"
                     : "border-slate-600 focus:ring-teal-500"
@@ -203,6 +210,8 @@ function Page() {
                 value={formData.email}
                 onChange={handleInputChange}
                 className={`w-full px-4 py-3 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
+                  formData.email.length > 0 ? "bg-slate-700" : ""
+                }  ${
                   errors.email
                     ? "border-red-500 focus:ring-red-500"
                     : "border-slate-600 focus:ring-teal-500"
@@ -213,38 +222,65 @@ function Page() {
                 <p className="mt-1 text-sm text-red-400">{errors.email}</p>
               )}
             </div>
+           
             <div>
               <label
-                htmlFor="email"
+                htmlFor="country"
                 className="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider"
               >
                 country
               </label>
-              <select
+
+              <Listbox
                 value={formData.country}
-                onChange={handleInputChange}
-                id="country"
-                name="country"
-                className={`w-full p-3 rounded-lg text-sm  text-slate-300 bg-slate-700 border transition-all duration-200 focus:border-transparent appearance-none placeholder-slate-400 focus:outline-none ${
-                  errors.country
-                    ? "border-red-500 focus:ring-2 focus:ring-red-500"
-                    : "border-slate-600 focus:border-carbifyOrange"
-                }`}
+                onChange={(value) =>
+                  handleInputChange({
+                    target: {
+                      name: "country",
+                      value,
+                    },
+                  } as React.ChangeEvent<HTMLSelectElement>)
+                }
               >
-                <option key={"1"} value={""}>
-                  -- select country --
-                </option>
-                {countries.map((country) => (
-                  <option key={country.code} value={country.name}>
-                    {country.name}
-                  </option>
-                ))}
-              </select>
+                <div className="relative">
+                  <ListboxButton
+                    className={`w-full px-4 py-3 border rounded-lg text-slate-300 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 flex justify-start  ${
+                      formData.country.length > 0
+                        ? "bg-slate-700"
+                        : "bg-transparent"
+                    } ${
+                      errors.country
+                        ? "border-red-500 focus:ring-2 focus:ring-red-500"
+                        : "border-slate-600 focus:ring-teal-500"
+                    }`}
+                  >
+                    {formData.country.length > 0
+                      ? formData.country
+                      : "-- select country --"}
+                  </ListboxButton>
+
+                  <ListboxOptions className="absolute mt-1 w-full bg-slate-700 rounded-md shadow-lg z-10 max-h-60 overflow-auto focus:outline-none ">
+                    {countries.map((country) => (
+                      <Listbox.Option
+                        key={country.code}
+                        value={country.name}
+                        className={({ active }) =>
+                          `cursor-pointer select-none p-3 text-sm text-slate-200 ${
+                            active ? "bg-slate-600" : "bg-slate-700"
+                          }`
+                        }
+                      >
+                        {country.name}
+                      </Listbox.Option>
+                    ))}
+                  </ListboxOptions>
+                </div>
+              </Listbox>
+
               {errors.country && (
                 <p className="mt-1 text-sm text-red-400">{errors.country}</p>
               )}
             </div>
-
             {/* Password field */}
             <div>
               <label
@@ -261,11 +297,13 @@ function Page() {
                   value={formData.password}
                   onChange={handleInputChange}
                   className={`w-full px-4 py-3 pr-12 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
+                    formData.password.length > 0 ? "bg-slate-700" : ""
+                  } ${
                     errors.password
                       ? "border-red-500 focus:ring-red-500"
                       : "border-slate-600 focus:ring-teal-500"
                   }`}
-                  placeholder="Enter Your password"
+                  placeholder="Enter your password"
                   disabled={isSubmitting}
                 />
                 <button
@@ -296,11 +334,13 @@ function Page() {
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                   className={`w-full px-4 py-3 pr-12 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 ${
+                    formData.confirmPassword.length > 0 ? "bg-slate-700" : ""
+                  } ${
                     errors.confirmPassword
                       ? "border-red-500 focus:ring-red-500"
                       : "border-slate-600 focus:ring-teal-500"
                   }`}
-                  placeholder="Confim Your password"
+                  placeholder="Confirm your password"
                   disabled={isSubmitting}
                 />
                 <button
@@ -338,14 +378,14 @@ function Page() {
                 Accept Terms and Conditions
               </label>
               {errors.termsAndConditions && (
-                <p className="mt-1 text-sm text-red-400">
+                <p className="mt-2 text-sm text-red-400 ">
                   {errors.termsAndConditions}
                 </p>
               )}
             </div>
 
             {serverError && (
-              <div className="text-red-400 text-center text-sm p-0 m-0">
+              <div className="text-red-400 text-center text-sm pb-4 m-0">
                 {serverError}
               </div>
             )}

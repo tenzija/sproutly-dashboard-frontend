@@ -5,8 +5,13 @@ import { createPortal } from "react-dom";
 import { IoSettingsOutline } from "react-icons/io5";
 import { useAccount, useDisconnect } from "wagmi";
 import { useAuth } from "@/context/AuthContext";
+import { GiHamburgerMenu } from "react-icons/gi";
+type PageHeaderProps = {
+  openSidebar: boolean;
+  setOpenSidebar: (value: boolean) => void;
+};
 
-function PageHeader() {
+function PageHeader({ openSidebar, setOpenSidebar }: PageHeaderProps) {
   const { logout } = useAuth();
   const { disconnect } = useDisconnect();
   const { isConnected } = useAccount();
@@ -28,7 +33,6 @@ function PageHeader() {
         setIsSettingsOpen(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -60,9 +64,10 @@ function PageHeader() {
       disconnect();
     }
     logout();
-
   };
-
+  const handleSidebarToggle = () => {
+    setOpenSidebar(!openSidebar);
+  };
   const renderSettingsDropdown = () => {
     if (!isSettingsOpen) return null;
 
@@ -90,11 +95,11 @@ function PageHeader() {
   };
 
   return (
-    <div
-      className="flex items-center justify-between h-20 flex-grow rounded-[59px] px-8 py-4 
-                max-md:flex-col max-md:h-auto max-md:gap-4 max-md:p-4 bg-[var(--glass-new,#8989890d)] backdrop-blur-[150px] border border-[var(--glass-stroke-new,#ffffff17)] shadow-[3px_3px_3px_rgba(0,0,0,0.089)]"
-    >
-      <div>
+    <div className="flex items-center justify-between h-20 flex-grow rounded-[59px] px-8 py-4 max-md:h-auto max-md:gap-4 max-md:p-4 bg-[var(--glass-new,#8989890d)] backdrop-blur-[150px] border border-[var(--glass-stroke-new,#ffffff17)] shadow-[3px_3px_3px_rgba(0,0,0,0.089)]">
+      <div className="flex items-center gap-4">
+        <button className="max-md:flex hidden items-center justify-center" onClick={handleSidebarToggle}>
+          <GiHamburgerMenu className="text-2xl" />
+        </button>
         <p className="text-xl md:text-2xl font-bold">Swap portal</p>
       </div>
 

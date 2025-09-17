@@ -53,7 +53,9 @@
   background-repeat: no-repeat;
   background-position: center;
   min-height: 100vh;
+  
 }
+
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -88,7 +90,7 @@ body {
 }
 button {
   cursor: pointer;
-  border: none;
+ 
 }
 a {
   color: inherit;

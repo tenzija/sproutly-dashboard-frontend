@@ -1,15 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
-import baseUrl from "@/lib/axios";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { countries } from "@/utils/countries";
 import Link from "next/link";
-interface LoginFormData {
-  email: string;
-  password: string;
-  rememberMe: boolean;
-}
+import baseUrl from "@/lib/axios";
+import { toast } from "react-toastify";
 
 interface LoginFormErrors {
   email?: string;
@@ -18,15 +13,17 @@ interface LoginFormErrors {
 }
 
 function Page() {
-  const [formData, setFormData] = useState<LoginFormData>({
+  const [formData, setFormData] = useState({
     email: "",
     password: "",
+    userName: "",
+    country: countries[0].name,
     rememberMe: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
+
   const validateForm = (): boolean => {
     const newErrors: LoginFormErrors = {};
 
@@ -34,12 +31,6 @@ function Page() {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid";
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
     }
 
     setErrors(newErrors);
@@ -62,7 +53,6 @@ function Page() {
     }
     if (serverError) setServerError(null);
   };
-  const { login } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -73,18 +63,18 @@ function Page() {
     setIsSubmitting(true);
 
     baseUrl
-      .post("/auth/login", {
+      .post("/auth/forgot-password", {
         ...formData,
       })
       .then((response) => {
-        console.log(response.data);
+        console.log(response);
+        toast("Reset link sent to your email!", { type: "success" });
 
-        login(response.data);
-        window.location.replace("/swapportal");
+        setTimeout(() => {
+          window.location.replace("/login");
+        }, 2000);
       })
       .catch((error) => {
-        // console.log(error.response?.data?.msg);
-
         if (error.response?.data?.msg) {
           setServerError(error.response.data.msg);
         } else {
@@ -108,29 +98,28 @@ function Page() {
       ></div>
 
       <div className="relative z-10 w-full max-w-md">
-        <div className="rounded-[24px] border border-white/10 bg-[rgba(44,44,44,0.8)] p-40 shadow-[0_25px_50px_rgba(0,0,0,0.3)] backdrop-blur-[20px] sm:rounded-[20px] sm:p-[30px_20px]">
+        <div className="rounded-[24px] border border-white/10 bg-[rgba(44,44,44,0.8)] p-10 shadow-[0_25px_50px_rgba(0,0,0,0.3)] backdrop-blur-[20px] sm:rounded-[20px] sm:p-[30px_20px]">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-xl font-normal text-white mb-1">
-              Welcome back
-            </h1>
-            <h2 className="text-3xl font-light text-white mb-4 tracking-wide">
+          <div className="text-center mb-2">
+            <h2 className="text-3xl font-light text-white mb-1 tracking-wide">
               sproutly
             </h2>
             <p className="text-slate-400 text-sm">
-              Sign in to your Sproutly account
+              Don&apos;t fret! Just type in your email and we will send you a
+              link to reset your password.
             </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email field */}
+
             <div>
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider"
               >
-                Email Address
+                your Email
               </label>
               <input
                 type="email"
@@ -138,44 +127,15 @@ function Page() {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3   border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+                placeholder="name@company.com"
+                className={`w-full px-4 py-3 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 ${
+                  formData.email.length > 0 ? "bg-slate-700" : ""
+                }`}
                 disabled={isSubmitting}
               />
             </div>
-
-            {/* Password field */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-slate-300 mb-2 uppercase tracking-wider"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 pr-12   border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
-                  disabled={isSubmitting}
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors duration-200"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isSubmitting}
-                >
-                  {showPassword ? <FaEye /> : <FaEyeSlash />}
-                </button>
-              </div>
-            </div>
-
-            {/* Form options */}
-
             {serverError && (
-              <div className="text-red-400 text-center text-sm p-0 m-0">
+              <div className="text-red-400 text-center text-sm pb-4 m-0">
                 {serverError}
               </div>
             )}
@@ -184,25 +144,19 @@ function Page() {
               disabled={isSubmitting}
               className="w-full py-3 px-4 bg-white text-slate-900 rounded-lg font-medium hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slate-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Signing in..." : "Sign In"}
+              Send Reset Links
             </button>
           </form>
-          <div className="flex items-center justify-center mt-6">
-            <Link
-              href="/forgot-password"
-              className="text-sm text-slate-400 hover:text-white transition-colors duration-200"
-            >
-              Forgot password?
-            </Link>
-          </div>
-          <div className="text-center mt-2">
+
+          {/* Footer */}
+          <div className="text-center mt-6">
             <p className="text-slate-400 text-sm">
-              Don&apos;t have an account?{" "}
+              Already have an account?{" "}
               <Link
-                href="/signup"
+                href="/login"
                 className="!text-white hover:underline hover:decoration-white transition duration-200"
               >
-                Create one here
+                Sign in here
               </Link>
             </p>
           </div>
