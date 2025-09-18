@@ -222,7 +222,6 @@ function Page() {
                 <p className="mt-1 text-sm text-red-400">{errors.email}</p>
               )}
             </div>
-           
             <div>
               <label
                 htmlFor="country"
@@ -258,7 +257,6 @@ function Page() {
                       ? formData.country
                       : "Select a country"}
                   </ListboxButton>
-
                   <ListboxOptions className="absolute mt-1 w-full bg-slate-700 rounded-md shadow-lg z-10 max-h-60 overflow-auto focus:outline-none ">
                     {countries.map((country) => (
                       <Listbox.Option
@@ -281,7 +279,6 @@ function Page() {
                 <p className="mt-1 text-sm text-red-400">{errors.country}</p>
               )}
             </div>
-            {/* Password field */}
             <div>
               <label
                 htmlFor="password"
@@ -358,8 +355,6 @@ function Page() {
                 </p>
               )}
             </div>
-
-            {/* Form options */}
             <div className="flex items-start justify-between flex-col">
               <label className="flex items-center checkbox_label">
                 <input
@@ -383,7 +378,6 @@ function Page() {
                 </p>
               )}
             </div>
-
             {serverError && (
               <div className="text-red-400 text-center text-sm pb-4 m-0">
                 {serverError}
@@ -397,8 +391,6 @@ function Page() {
               Register
             </button>
           </form>
-
-          {/* Footer */}
           <div className="text-center mt-6">
             <p className="text-slate-400 text-sm">
               Already have an account?{" "}
