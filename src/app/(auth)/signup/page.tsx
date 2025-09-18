@@ -256,7 +256,7 @@ function Page() {
                   >
                     {formData.country.length > 0
                       ? formData.country
-                      : "-- Select a country --"}
+                      : "Select a country"}
                   </ListboxButton>
 
                   <ListboxOptions className="absolute mt-1 w-full bg-slate-700 rounded-md shadow-lg z-10 max-h-60 overflow-auto focus:outline-none ">
