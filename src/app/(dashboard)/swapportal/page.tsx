@@ -5,21 +5,12 @@ import Bridge from "./components/Bridge";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useAccount, useReadContract } from "wagmi";
-import { useAppKit } from "@reown/appkit/react";
 import { CBY_ABI } from "@/constant/BlockchainConstants";
 const NEXT_PUBLIC_CBY_ADDRESS = process.env.NEXT_PUBLIC_CBY_ADDRESS;
 function Page() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { address: currentAddress, isConnected } = useAccount();
 
-  const { open, close } = useAppKit();
-  const handleClick = () => {
-    if (isConnected) {
-      close();
-    } else {
-      open();
-    }
-  };
 
   const [value, setValue] = useState<string | undefined>("0.00");
   const { data } = useReadContract({
@@ -74,7 +65,6 @@ function Page() {
             </button>
           </div>
 
-          {/* Right Section */}
           <div className="flex flex-col items-center justify-center w-1/2">
             <div className="flex justify-center items-center md:w-auto w-100 h-100 overflow-hidden rounded-[32px] border border-[rgba(255,255,255,0.09)] shadow-[0_4px_18px_rgba(0,0,0,0.25)]">
               <Image
@@ -125,15 +115,6 @@ function Page() {
           To access the Swap Portal and start exchanging your $CBY for $SEED,
           please connect your Web3 wallet
         </p>
-        <button
-          className="bg-[var(--Green--100)] text-black text-[16px] font-bold px-4 py-3 
-                   rounded-[51px] w-[205px] h-[44px] border-none cursor-pointer 
-                   transition-all duration-200 ease-in-out 
-                   hover:bg-[#9de142] hover:-translate-y-0.5"
-          onClick={handleClick}
-        >
-          Connect Wallet
-        </button>
       </div>
     );
   }

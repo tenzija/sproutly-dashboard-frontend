@@ -161,6 +161,9 @@ function Page() {
                   {showPassword ? <FaEye /> : <FaEyeSlash />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-400">{errors.password}</p>
+              )}
             </div>
             <div>
               <label
@@ -191,6 +194,9 @@ function Page() {
                   {showPassword ? <FaEye /> : <FaEyeSlash />}
                 </button>
               </div>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-400">{errors.confirmPassword}</p>
+              )}
             </div>
 
             {serverError && (

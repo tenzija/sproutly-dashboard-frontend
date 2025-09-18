@@ -205,7 +205,7 @@ function Page() {
               <input
                 type="email"
                 id="email"
-                placeholder="name@company.com"
+                placeholder="Name@company.com"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
@@ -256,7 +256,7 @@ function Page() {
                   >
                     {formData.country.length > 0
                       ? formData.country
-                      : "-- select country --"}
+                      : "-- Select a country --"}
                   </ListboxButton>
 
                   <ListboxOptions className="absolute mt-1 w-full bg-slate-700 rounded-md shadow-lg z-10 max-h-60 overflow-auto focus:outline-none ">
