@@ -1,9 +1,13 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import "@fontsource/montserrat"; // Defaults to weight 400
+import "@fontsource/montserrat/400.css"; // Specify weight
+import "@fontsource/montserrat/400-italic.css"; // Specify weight and style
 import "./globals.css";
 import { headers } from "next/headers";
 import ContextProvider from "../context";
 import { AuthProvider } from "../context/AuthContext";
 import { ToastContainer } from "react-toastify";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

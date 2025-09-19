@@ -56,7 +56,7 @@ const sproutlyTestnet = defineChain({
     
   },
    themeVariables: {
-    "--w3m-font-family": "Arial, Helvetica, sans-serif !important",
+    "--w3m-font-family": "Montserrat",
 
   },
   
