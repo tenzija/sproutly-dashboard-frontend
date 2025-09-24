@@ -12,31 +12,34 @@ interface BridgeModalProps {
 }
 
 const Bridge: React.FC<BridgeModalProps> = ({ isOpen, onClose, handleConnectWallet }) => {
+
+  console.log("Bridge modal open:", isOpen);
+
   const steps = [
     "Connect Wallet",
     "Bridge CBY",
     "Set Staking Terms",
     "Review & Confirm",
   ];
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(2);
   const [wasCompleted, setWasCompleted] = useState(false);
-  
+
   useEffect(() => {
     if (isOpen && wasCompleted) {
       setCurrentStep(1);
       setWasCompleted(false);
     }
   }, [isOpen, wasCompleted]);
-  
+
   const handleClose = () => {
-    if (currentStep === 4) { 
+    if (currentStep === 4) {
       setWasCompleted(true);
     }
     onClose();
   };
-  
+
   if (!isOpen) return null;
-  
+
   const handleNext = () => {
     setCurrentStep((prevStep) => prevStep + 1);
   };

@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from "react";
-import {
-  isValidNumberInput,
-  calculateDestinationAmount,
-  formatDisplayAmount
+import React, { useState } from "react";
+import { 
+  isValidNumberInput, 
+  calculateDestinationAmount, 
+  formatDisplayAmount 
 } from "../utils/numberUtils";
 
-interface BridgeCPYProps {
+interface SetStackingProps {
   handleNext: () => void;
-  handleConnectWallet?: () => void;
+  handleBack: () => void;
 }
 
-function BridgeCPY({ handleNext, handleConnectWallet }: BridgeCPYProps) {
+function SetStacking({handleNext, handleBack}: SetStackingProps) {
   const [sourceChain, setSourceChain] = useState("Ethereum Mainnet");
   const [amount, setAmount] = useState("");
 
@@ -21,31 +21,24 @@ function BridgeCPY({ handleNext, handleConnectWallet }: BridgeCPYProps) {
     }
   };
 
+  // Validation: Next button is disabled when amount is empty
   const isNextDisabled = !amount.trim();
-
-  const handleBackClick = () => {
-    if (handleConnectWallet) {
-      handleConnectWallet();
-    }
-  };
-
-  useEffect(() => {
-    console.log("BridgeCPY component mounted");
-  }, []);
 
   return (
     <>
       <div className="modal-header">
-        <h1 className="modal-title">Bridge Your $CBY Tokens</h1>
+        <h1 className="modal-title">Set Your Staking Terms</h1>
         <p className="modal-subtitle">
-          Your $CBY tokens must be on the BASE chain to proceed with this swap.
+          Determine the amount of $CBY you wish to lock and select your
+          preferred lock-
           <br />
-          Select your source chain below to initiate the bridge
+          up period. A longer commitment rewards you with a higher $SEED token
+          ratio.
         </p>
       </div>
 
       <div className="modal-content">
-        <div className="form-row">
+        <div className="form-row" style={{ flexDirection: "column" }}>
           <div className="form-group">
             <label>Source Chain</label>
             <div className="select-wrapper">
@@ -100,11 +93,11 @@ function BridgeCPY({ handleNext, handleConnectWallet }: BridgeCPYProps) {
         </div>
 
         <div className="action-buttons">
-          <button className="bridge-btn" onClick={handleBackClick}>
+          <button className="bridge-btn" onClick={handleBack}>
             Back
           </button>
-          <button
-            className="next-btn"
+          <button 
+            className="next-btn" 
             onClick={handleNext}
             disabled={isNextDisabled}
           >
@@ -116,4 +109,4 @@ function BridgeCPY({ handleNext, handleConnectWallet }: BridgeCPYProps) {
   );
 }
 
-export default BridgeCPY;
+export default SetStacking;

@@ -9,8 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@fontsource/montserrat": "^5.2.8",
     "@headlessui/react": "^2.2.8",
+    "@mui/material": "^7.3.2",
     "@reown/appkit": "^1.8.3",
     "@reown/appkit-adapter-wagmi": "^1.8.3",
     "@reown/appkit-wallet-button": "^1.8.4",

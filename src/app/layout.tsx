@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import ContextProvider from "../context";
 import { AuthProvider } from "../context/AuthContext";
 import { ToastContainer } from "react-toastify";
+import ThemeProviderClient from "@/theme/ThemeProviderClient";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,9 +40,10 @@ export default async function RootLayout({
       >
         <ContextProvider cookies={cookies}>
           <AuthProvider>
-             {children}
-              <ToastContainer />
+            <ThemeProviderClient>{children}</ThemeProviderClient>
+            <ToastContainer />
           </AuthProvider>
+
         </ContextProvider>
       </body>
     </html>
