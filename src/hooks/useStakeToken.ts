@@ -3,7 +3,7 @@
 
 import { useCallback, useState } from 'react';
 import { useAccount, usePublicClient, useWriteContract } from 'wagmi';
-import { erc20Abi, parseUnits } from 'viem';
+import { BaseError, erc20Abi, parseUnits } from 'viem';
 import { tokenVestingAbi } from '@/abis/minimalAbi';
 
 const DAY = 86_400n;
@@ -11,8 +11,8 @@ const DAY = 86_400n;
 type StakeParams = {
 	vestingAddress: `0x${string}`;
 	tokenX: `0x${string}`;
-	amount: string; // human amount, e.g. "2500"
-	lockMonths: number; // e.g. 6
+	amount: string; // human, e.g. "2500"
+	durationSec: bigint; // lock duration in seconds
 	cliffDays?: number; // optional extra cliff after lock
 	slicePeriodSeconds?: bigint; // default: 1 day
 	revocable?: boolean; // default: false
@@ -28,70 +28,105 @@ export function useStakeToken() {
 	const [isStaking, setIsStaking] = useState(false);
 	const [approveHash, setApproveHash] = useState<`0x${string}`>();
 	const [stakeHash, setStakeHash] = useState<`0x${string}`>();
+	const [lastError, setLastError] = useState<string | null>(null);
 
 	const stake = useCallback(
 		async ({
 			vestingAddress,
 			tokenX,
 			amount,
-			lockMonths,
+			durationSec,
 			cliffDays = 0,
 			slicePeriodSeconds = DAY,
 			revocable = false,
 			decimals = 18,
 		}: StakeParams) => {
+			setLastError(null);
+
 			if (!address) throw new Error('Wallet not connected');
 			if (!publicClient) throw new Error('No public client');
 
 			const amountWei = parseUnits(amount || '0', decimals);
 			if (amountWei <= 0n) throw new Error('Amount must be greater than 0');
 
-			// Simple month calc: 30-day months; replace if you want calendar-accurate months
-			const durationSec = BigInt(lockMonths) * 30n * DAY;
 			const cliffSec = BigInt(cliffDays) * DAY;
 
-			// 1) Check current allowance
-			const allowance = (await publicClient.readContract({
-				address: tokenX,
-				abi: erc20Abi,
-				functionName: 'allowance',
-				args: [address, vestingAddress],
-			})) as bigint;
-
-			// 2) Approve if needed
-			if (allowance < amountWei) {
-				setIsApproving(true);
-				const hash = await writeContractAsync({
+			try {
+				// -------- 1) Check allowance
+				const allowance = (await publicClient.readContract({
 					address: tokenX,
 					abi: erc20Abi,
-					functionName: 'approve',
-					args: [vestingAddress, amountWei], // or MAX_UINT256 for infinite approval
+					functionName: 'allowance',
+					args: [address, vestingAddress],
+				})) as bigint;
+
+				// -------- 2) Approve if needed (simulate first)
+				if (allowance < amountWei) {
+					setIsApproving(true);
+
+					// simulate to catch reverts & get a ready-to-send request with gas params
+					const { request: approveRequest } =
+						await publicClient.simulateContract({
+							address: tokenX,
+							abi: erc20Abi,
+							functionName: 'approve',
+							args: [vestingAddress, amountWei],
+							account: address,
+						});
+
+					const txHash = await writeContractAsync(approveRequest);
+					setApproveHash(txHash);
+					await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+					setIsApproving(false);
+				}
+
+				// -------- 3) Create vesting schedule (simulate first)
+				setIsStaking(true);
+
+				const { request: stakeRequest } = await publicClient.simulateContract({
+					address: vestingAddress,
+					abi: tokenVestingAbi,
+					functionName: 'createVestingSchedule',
+					args: [
+						address, // beneficiary
+						cliffSec, // cliffDuration (after lock)
+						slicePeriodSeconds, // slice
+						durationSec, // lock duration
+						revocable,
+						amountWei, // amountLockedX
+					],
+					account: address,
 				});
-				setApproveHash(hash);
-				await publicClient.waitForTransactionReceipt({ hash });
+
+				const txHash2 = await writeContractAsync(stakeRequest);
+				setStakeHash(txHash2);
+				await publicClient.waitForTransactionReceipt({ hash: txHash2 });
+
+				setIsStaking(false);
+
+				return { approveHash, stakeHash: txHash2 };
+			} catch (err) {
 				setIsApproving(false);
+				setIsStaking(false);
+
+				let message = 'Transaction failed';
+
+				if (err instanceof Error) {
+					// viem provides BaseError with helpful fields
+					const baseErr = err as BaseError;
+					if ('shortMessage' in baseErr && baseErr.shortMessage) {
+						message = baseErr.shortMessage;
+					} else if ('details' in baseErr && baseErr.details) {
+						message = baseErr.details;
+					} else {
+						message = baseErr.message;
+					}
+				}
+
+				setLastError(message);
+				throw new Error(message);
 			}
-
-			// 3) Create vesting schedule (stake)
-			setIsStaking(true);
-			const hash2 = await writeContractAsync({
-				address: vestingAddress,
-				abi: tokenVestingAbi,
-				functionName: 'createVestingSchedule',
-				args: [
-					address, // beneficiary
-					cliffSec, // cliffDuration (after lock period)
-					slicePeriodSeconds,
-					durationSec, // lock duration
-					revocable,
-					amountWei, // amountLockedX
-				],
-			});
-			setStakeHash(hash2);
-			await publicClient.waitForTransactionReceipt({ hash: hash2 });
-			setIsStaking(false);
-
-			return { approveHash, stakeHash: hash2 };
 		},
 		[address, publicClient, writeContractAsync, approveHash]
 	);
@@ -103,5 +138,6 @@ export function useStakeToken() {
 		isMining: isApproving || isStaking,
 		approveHash,
 		stakeHash,
+		lastError, // expose last error text for UI toasts/snackbars
 	};
 }

@@ -11,7 +11,6 @@ import {
   MenuItem,
   Paper,
   Select,
-  SelectChangeEvent,
   Stack,
   TextField,
   Typography,
@@ -22,59 +21,59 @@ import { useVestingEstimate } from "@/hooks/useVestingEstimate";
 import { base } from "viem/chains";
 import { useStakeToken } from "@/hooks/useStakeToken";
 
-/* helpers */
+const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as `0x${string}`;
+const TOKEN_X_ADDR = process.env.NEXT_PUBLIC_CBY_ADDRESS as `0x${string}`;
+
 const isValidNumberInput = (v: string) => /^(\d+(\.\d{0,18})?)?$/.test(v);
 
-const NEXT_PUBLIC_TOKEN_VESTING_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as `0x${string}`;
-const NEXT_PUBLIC_CBY_ADDRESS = process.env.NEXT_PUBLIC_CBY_ADDRESS as `0x${string}`;
+type LockOption = { label: string; seconds: number };
 
-const addMonths = (d: Date, m: number) => {
-  const x = new Date(d);
-  const day = x.getDate();
-  x.setMonth(x.getMonth() + m);
-  if (x.getDate() < day) x.setDate(0);
-  return x;
-};
+const LOCK_OPTIONS: LockOption[] = [
+  { label: "5 Minutes", seconds: 5 * 60 },
+  { label: "15 Minutes", seconds: 15 * 60 },
+  { label: "30 Minutes", seconds: 30 * 60 },
+  { label: "1 Hour", seconds: 1 * 3600 },
+  { label: "4 Hours", seconds: 4 * 3600 },
+  { label: "12 Hours", seconds: 12 * 3600 },
+  { label: "1 Day", seconds: 1 * 86400 },
+  { label: "3 Days", seconds: 3 * 86400 },
+  { label: "7 Days", seconds: 7 * 86400 },
+  { label: "14 Days", seconds: 14 * 86400 },
+  { label: "1 Month", seconds: 30 * 86400 },
+  { label: "3 Months", seconds: 3 * 30 * 86400 },
+  { label: "6 Months", seconds: 6 * 30 * 86400 },
+  { label: "12 Months", seconds: 12 * 30 * 86400 },
+  { label: "24 Months", seconds: 24 * 30 * 86400 },
+];
+
 const fmtDate = (d: Date) =>
   d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
 
-interface SetStackingProps {
-  handleNext: () => void;
-  handleBack: () => void;
-}
-
-// constants for the control spec (so you can reuse for Select too)
+// Figma control styling
 const CONTROL_SX = {
-  width: 779,                         // Figma: 779px
+  width: 779,
   "& .MuiInputBase-root": {
-    height: 37,                       // Figma: 37px
-    borderRadius: 33,                 // Figma: 33px
-    px: 2,                            // 16px right/left
-    py: 1,                            // 8px top/bottom
+    height: "37px",
+    borderRadius: "33px",
+    px: "16px",
+    py: "8px",
     display: "flex",
-    justifyContent: "space-between",  // Figma: space-between
+    justifyContent: "space-between",
     backgroundColor: "rgba(255,255,255,0.06)",
-    // neutral borders (no neon)
-    "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: "rgba(255,255,255,0.16)", // 1px
-    },
-    "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: "rgba(255,255,255,0.26)",
-    },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "rgba(255,255,255,0.36)",
-    },
+    "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.16)" },
+    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.26)" },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.36)" },
   },
-  // remove extra inner padding so total height stays 37px
   "& .MuiOutlinedInput-input": {
-    p: 0,
-    lineHeight: 1.2,
+    padding: 0,
+    lineHeight: "21px",
+    height: "21px",
+    display: "flex",
+    alignItems: "center",
   },
 } as const;
 
-// put next to CONTROL_SX
 const SELECT_TWEAK_SX = {
-  // outer shell already sized by CONTROL_SX (37px / 33px / 8–16px)
   "& .MuiInputBase-root": {
     height: "37px",
     borderRadius: "33px",
@@ -83,7 +82,6 @@ const SELECT_TWEAK_SX = {
     display: "flex",
     alignItems: "center",
   },
-  // remove default inner paddings so text isn't pushed/cut
   "& .MuiOutlinedInput-input": {
     padding: 0,
     height: "21px",
@@ -91,7 +89,6 @@ const SELECT_TWEAK_SX = {
     display: "flex",
     alignItems: "center",
   },
-  // Select uses this slot for the displayed value
   "& .MuiSelect-select": {
     padding: 0,
     height: "21px",
@@ -101,62 +98,101 @@ const SELECT_TWEAK_SX = {
   },
 } as const;
 
+interface SetStackingProps {
+  handleNext: () => void;
+  handleBack: () => void;
+  availableBalance?: string; // optional cap
+}
 
-export default function SetStacking({ handleNext, handleBack }: SetStackingProps) {
+export default function SetStacking({
+  handleNext,
+  handleBack,
+  availableBalance,
+}: SetStackingProps) {
   const [amount, setAmount] = useState<string>("0");
-  const [lockMonths, setLockMonths] = useState<number>(1);
+
+  // ✅ Store seconds in state (primitive), never undefined
+  const DEFAULT_SECONDS = LOCK_OPTIONS[10].seconds; // "1 Month"
+  const [lockSeconds, setLockSeconds] = useState<number>(DEFAULT_SECONDS);
+  const [enableNext, setEnableNext] = useState<boolean>(false);
+
+  // derive the option (always falls back)
+  const lockOpt = useMemo(
+    () => LOCK_OPTIONS.find((o) => o.seconds === lockSeconds) ?? LOCK_OPTIONS[0],
+    [lockSeconds]
+  );
+
   const { stake, isMining } = useStakeToken();
 
+  const durationSec = useMemo(() => BigInt(lockSeconds), [lockSeconds]);
+
+  const unlockDate = useMemo(
+    () => new Date(Date.now() + lockSeconds * 1000),
+    [lockSeconds]
+  );
+
   const lockDisplay = useMemo(() => formatThousands(amount || "0"), [amount]);
-  const receiveDisplay = lockDisplay; // plug your ratio here
-  const unlockDate = useMemo(() => fmtDate(addMonths(new Date(), lockMonths)), [lockMonths]);
+
+  const est = useVestingEstimate({
+    vestingAddress: VESTING_ADDR,
+    amountX: amount,
+    durationSec,
+    cliffSec: 0n,
+    chainId: base.id,
+  });
 
   const onAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value.trim();
-    console.log(v);
-    if (isValidNumberInput(v)) setAmount(v);
+    if (!isValidNumberInput(v)) return;
+    if (availableBalance) {
+      if (Number(v || "0") <= Number(availableBalance)) setAmount(v);
+    } else {
+      setAmount(v);
+    }
   };
-  const onLock = (e: SelectChangeEvent<number>) => setLockMonths(Number(e.target.value));
+  const onAmountBlur = () => setAmount((prev) => (prev ? String(Number(prev)) : "0"));
 
-  const disabled = !amount || Number(amount) <= 0;
-
-  const est = useVestingEstimate({
-    vestingAddress: NEXT_PUBLIC_TOKEN_VESTING_ADDRESS,
-    amountX: amount,
-    durationSec: BigInt(lockMonths * 30 * 86400),
-    cliffSec: BigInt(0),
-    chainId: base.id, // set if you want to force Base
-  });
+  const disabled = !amount || Number(amount) <= 0 || durationSec <= 0n || isMining;
 
   const handleStack = async () => {
     if (disabled) return;
     try {
-      await stake({
-        vestingAddress: NEXT_PUBLIC_TOKEN_VESTING_ADDRESS,
-        tokenX: NEXT_PUBLIC_CBY_ADDRESS,
+      const res = await stake({
+        vestingAddress: VESTING_ADDR,
+        tokenX: TOKEN_X_ADDR,
         amount,
-        lockMonths: lockMonths,
+        durationSec,                // seconds from dropdown
         cliffDays: 0,
         slicePeriodSeconds: 86_400n,
         revocable: false,
         decimals: 18,
       });
-      // show success
+
+      // const res = {
+      //   stakeHash: "0xe66ec4d603795f90489f38d3a7c2381d6cfcfd9df7008c216bc528d2e96d1b26"
+      // }
+
+      if (res.stakeHash) {
+        setEnableNext(true);
+      }
+
+
+      console.log("Stake submitted:", res);
     } catch (e) {
       console.error(e);
-      // show error
     }
-  }
+  };
 
   return (
     <Box sx={{ color: "#fff", display: "flex", flexDirection: "column", gap: 2.5, mb: 1 }}>
-      {/* Back link */}
+      {/* Back */}
       <Box sx={{ mt: 1 }}>
         <Button onClick={handleBack} sx={{ color: "rgba(255,255,255,0.85)", px: 0 }}>
           {"<"}
         </Button>
       </Box>
-      {/* Title & subtitle */}
+
+      {/* Title */}
       <Box sx={{ textAlign: "center" }}>
         <Typography variant="h5" sx={{ fontWeight: 800 }}>
           Set Your Staking Terms
@@ -172,16 +208,16 @@ export default function SetStacking({ handleNext, handleBack }: SetStackingProps
 
       {/* Inputs */}
       <Stack spacing={2}>
-        {/* Amount field with right-side $CBY */}
+        {/* Amount */}
         <Box>
           <Typography variant="subtitle2" sx={{ mb: 0.75, opacity: 0.9 }}>
             $CBY Amount to Lock
           </Typography>
           <TextField
-            fullWidth={false}          // we want the fixed 779px width
             placeholder="0.00"
             value={amount}
             onChange={onAmount}
+            onBlur={onAmountBlur}
             inputMode="decimal"
             sx={CONTROL_SX}
             slotProps={{
@@ -194,18 +230,17 @@ export default function SetStacking({ handleNext, handleBack }: SetStackingProps
               },
             }}
           />
-
         </Box>
 
-        {/* Lock-up Period (dropdown) */}
+        {/* Lock-up Period (single dropdown with mixed units) */}
         <Box>
           <Typography variant="subtitle2" sx={{ mb: 0.75, opacity: 0.9 }}>
             Lock-up Period
           </Typography>
           <FormControl sx={{ ...CONTROL_SX, ...SELECT_TWEAK_SX }}>
             <Select<number>
-              value={lockMonths}
-              onChange={onLock}
+              value={lockSeconds}
+              onChange={(e) => setLockSeconds(Number(e.target.value))}
               MenuProps={{
                 PaperProps: {
                   sx: {
@@ -217,16 +252,13 @@ export default function SetStacking({ handleNext, handleBack }: SetStackingProps
                 },
               }}
             >
-              <MenuItem value={1}>1 Month</MenuItem>
-              <MenuItem value={3}>3 Months</MenuItem>
-              <MenuItem value={6}>6 Months</MenuItem>
-              <MenuItem value={12}>12 Months</MenuItem>
-              <MenuItem value={18}>18 Months</MenuItem>
-              <MenuItem value={24}>24 Months</MenuItem>
+              {LOCK_OPTIONS.map((o) => (
+                <MenuItem key={o.seconds} value={o.seconds}>
+                  {o.label}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
-
-
         </Box>
       </Stack>
 
@@ -237,31 +269,23 @@ export default function SetStacking({ handleNext, handleBack }: SetStackingProps
           sx={{
             flex: 1,
             p: 2.5,
-            borderRadius: "16px", // was 24/16 → make flatter like figma
-            bgcolor: "rgba(255,255,255,0.035)", // same surface as left (figma looks uniform)
+            borderRadius: "16px",
+            bgcolor: "rgba(255,255,255,0.035)",
             border: "1px solid rgba(255,255,255,0.12)",
           }}
         >
           <Typography variant="caption" sx={{ letterSpacing: 0.6 }}>
-            You will{" "}
-            <Box component="span" sx={{ color: "#9FE870", fontWeight: 500 }}>
-              Lock
-            </Box>
+            You will <Box component="span" sx={{ color: "#9FE870", fontWeight: 500 }}>Lock</Box>
           </Typography>
           <Box sx={{ mt: 1, display: "flex", alignItems: "baseline", gap: 1 }}>
             <Typography variant="h4" sx={{ fontWeight: 800, color: "#fff" }}>
-              {receiveDisplay}
+              {lockDisplay}
             </Typography>
             <Chip label="$CBY" size="small" />
           </Box>
         </Paper>
 
-        <Box
-          sx={{
-            alignSelf: "center",
-            color: "#9FE870", // or #9FE870 if you want green
-          }}
-        >
+        <Box sx={{ alignSelf: "center", color: "#9FE870" }}>
           <ArrowDoubleIcon />
         </Box>
 
@@ -270,20 +294,17 @@ export default function SetStacking({ handleNext, handleBack }: SetStackingProps
           sx={{
             flex: 1,
             p: 2.5,
-            borderRadius: "16px", // was 24/16 → make flatter like figma
-            bgcolor: "rgba(255,255,255,0.035)", // same surface as left (figma looks uniform)
+            borderRadius: "16px",
+            bgcolor: "rgba(255,255,255,0.035)",
             border: "1px solid rgba(255,255,255,0.12)",
           }}
         >
           <Typography variant="caption" sx={{ letterSpacing: 0.6 }}>
-            You will{" "}
-            <Box component="span" sx={{ color: "#9FE870", fontWeight: 500 }}>
-              Receive
-            </Box>
+            You will <Box component="span" sx={{ color: "#9FE870", fontWeight: 500 }}>Receive</Box>
           </Typography>
           <Box sx={{ mt: 1, display: "flex", alignItems: "baseline", gap: 1 }}>
             <Typography variant="h4" sx={{ fontWeight: 800, color: "#fff" }}>
-              {formatThousands(est.formatted.totalY || "0")}
+              {formatThousands(est.formatted.totalY ?? "0")}
             </Typography>
             <Chip label="$CBY" size="small" />
           </Box>
@@ -292,14 +313,14 @@ export default function SetStacking({ handleNext, handleBack }: SetStackingProps
 
       {/* Unlock date */}
       <Typography variant="caption" sx={{ opacity: 0.75 }}>
-        Estimated Total Unlock Date: <b>{unlockDate}</b>
+        Estimated Total Unlock Date: <b>{fmtDate(unlockDate)}</b>
       </Typography>
 
-      {/* CTA row (green + ghost Next) */}
+      {/* CTAs */}
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mt: 0.5 }}>
         <Button
           onClick={handleStack}
-          disabled={disabled}
+          disabled={enableNext}
           variant="contained"
           sx={{
             flex: 1,
@@ -311,19 +332,23 @@ export default function SetStacking({ handleNext, handleBack }: SetStackingProps
             "&:hover": { bgcolor: "#abfb4f" },
           }}
         >
-          Review &amp; Confirm Lock
+          {isMining ? "Submitting…" : "Review & Confirm Lock"}
         </Button>
 
         <Button
-          disabled
+          disabled={!enableNext}
           onClick={handleNext}
-          variant="outlined"
+          variant="contained"
           sx={{
             flex: 1,
             py: 1.4,
             borderRadius: 999,
-            borderColor: "rgba(255,255,255,0.18)",
-            color: "rgba(255,255,255,0.5)",
+            bgcolor: !isMining ? "#b7ff57" : "rgba(255,255,255,0.18)",
+            color: !isMining ? "#000" : "rgba(255,255,255,0.5)",
+            fontWeight: 800,
+            "&:hover": {
+              bgcolor: !isMining ? "#abfb4f" : "rgba(255,255,255,0.18)",
+            },
           }}
         >
           Next

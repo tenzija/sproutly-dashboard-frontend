@@ -126,7 +126,7 @@ function SwapPortalPage() {
           <LockCard />
         </div>
       </div>
-      <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} />
 
       {/* Reusable Wallet Connection Popup - Always rendered */}
       {/* <WalletConnectPopup

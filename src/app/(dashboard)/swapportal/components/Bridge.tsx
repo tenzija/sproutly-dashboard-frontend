@@ -8,10 +8,11 @@ import Success from "./Success";
 interface BridgeModalProps {
   isOpen: boolean;
   onClose: () => void;
+  availableBalance?: string;
   handleConnectWallet?: () => void;
 }
 
-const Bridge: React.FC<BridgeModalProps> = ({ isOpen, onClose, handleConnectWallet }) => {
+const Bridge: React.FC<BridgeModalProps> = ({ isOpen, onClose, availableBalance, handleConnectWallet }) => {
 
   console.log("Bridge modal open:", isOpen);
 
@@ -55,7 +56,7 @@ const Bridge: React.FC<BridgeModalProps> = ({ isOpen, onClose, handleConnectWall
           ×
         </button>
         {currentStep === 1 && <BridgeCPY handleNext={handleNext} handleConnectWallet={handleConnectWallet} />}
-        {currentStep === 2 && <SetStacking handleNext={handleNext} handleBack={handleBack} />}
+        {currentStep === 2 && <SetStacking handleNext={handleNext} handleBack={handleBack} availableBalance={availableBalance} />}
         {currentStep === 3 && <Review handleNext={handleNext} handleBack={handleBack} />}
         {currentStep === 4 && <Success />}
         <Stepper steps={steps} currentStep={currentStep} />
