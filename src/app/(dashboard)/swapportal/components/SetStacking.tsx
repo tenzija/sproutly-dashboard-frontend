@@ -1,7 +1,7 @@
 // components/SetStacking.tsx
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -19,16 +19,21 @@ import { ArrowDoubleIcon } from "@/theme/ArrowDoubleIcon";
 import { formatThousands } from "@/utils/helper";
 import { useVestingEstimate } from "@/hooks/useVestingEstimate";
 import { base } from "viem/chains";
-import { useStakeToken } from "@/hooks/useStakeToken";
 
 const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as `0x${string}`;
-const TOKEN_X_ADDR = process.env.NEXT_PUBLIC_CBY_ADDRESS as `0x${string}`;
 
-const isValidNumberInput = (v: string) => /^(\d+(\.\d{0,18})?)?$/.test(v);
+export type SetStackingDraft = {
+  amountCBY: string;
+  lockSeconds: number;
+  lockPeriodLabel: string;
+  unlockDateText: string;
+  totalSeedToReceive: string;
+  claimableSeed: string;
+  swapRatioLabel: string;
+  displayId?: string;
+};
 
-type LockOption = { label: string; seconds: number };
-
-const LOCK_OPTIONS: LockOption[] = [
+const LOCK_OPTIONS = [
   { label: "5 Minutes", seconds: 5 * 60 },
   { label: "15 Minutes", seconds: 15 * 60 },
   { label: "30 Minutes", seconds: 30 * 60 },
@@ -46,10 +51,6 @@ const LOCK_OPTIONS: LockOption[] = [
   { label: "24 Months", seconds: 24 * 30 * 86400 },
 ];
 
-const fmtDate = (d: Date) =>
-  d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
-
-// Figma control styling
 const CONTROL_SX = {
   width: 779,
   "& .MuiInputBase-root": {
@@ -66,8 +67,8 @@ const CONTROL_SX = {
   },
   "& .MuiOutlinedInput-input": {
     padding: 0,
-    lineHeight: "21px",
     height: "21px",
+    lineHeight: "21px",
     display: "flex",
     alignItems: "center",
   },
@@ -98,90 +99,95 @@ const SELECT_TWEAK_SX = {
   },
 } as const;
 
-interface SetStackingProps {
+const isValidNumberInput = (v: string) => /^(\d+(\.\d{0,18})?)?$/.test(v);
+
+export interface SetStackingProps {
+  value: SetStackingDraft;
+  onChange: (next: SetStackingDraft) => void;
   handleNext: () => void;
   handleBack: () => void;
-  availableBalance?: string; // optional cap
+  availableBalance?: string;
+  /** optional: parent can be notified when user confirms this step */
+  onConfirm?: (snapshot: SetStackingDraft) => void;
 }
 
 export default function SetStacking({
+  value,
+  onChange,
   handleNext,
   handleBack,
   availableBalance,
+  onConfirm,
 }: SetStackingProps) {
-  const [amount, setAmount] = useState<string>("0");
+  const { amountCBY, lockSeconds } = value;
+  const [confirmed, setConfirmed] = useState(false);
 
-  // ✅ Store seconds in state (primitive), never undefined
-  const DEFAULT_SECONDS = LOCK_OPTIONS[10].seconds; // "1 Month"
-  const [lockSeconds, setLockSeconds] = useState<number>(DEFAULT_SECONDS);
-  const [enableNext, setEnableNext] = useState<boolean>(false);
-
-  // derive the option (always falls back)
+  // derive current option, unlock preview
   const lockOpt = useMemo(
-    () => LOCK_OPTIONS.find((o) => o.seconds === lockSeconds) ?? LOCK_OPTIONS[0],
+    () => LOCK_OPTIONS.find((o) => o.seconds === lockSeconds) ?? LOCK_OPTIONS[10],
     [lockSeconds]
   );
-
-  const { stake, isMining } = useStakeToken();
-
-  const durationSec = useMemo(() => BigInt(lockSeconds), [lockSeconds]);
-
-  const unlockDate = useMemo(
-    () => new Date(Date.now() + lockSeconds * 1000),
-    [lockSeconds]
+  const unlockDate = useMemo(() => new Date(Date.now() + lockSeconds * 1000), [lockSeconds]);
+  const unlockDateText = useMemo(
+    () =>
+      new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(unlockDate),
+    [unlockDate]
   );
 
-  const lockDisplay = useMemo(() => formatThousands(amount || "0"), [amount]);
-
+  // live estimate (preview)
   const est = useVestingEstimate({
     vestingAddress: VESTING_ADDR,
-    amountX: amount,
-    durationSec,
+    amountX: amountCBY,
+    durationSec: BigInt(lockSeconds),
     cliffSec: 0n,
     chainId: base.id,
   });
 
+  // reset confirm state whenever user edits inputs
+  useEffect(() => {
+    setConfirmed(false);
+  }, [amountCBY, lockSeconds]);
+
+  // whenever inputs change, reset confirm gate:
+  useEffect(() => {
+    setConfirmed(false);
+  }, [amountCBY, lockSeconds]);
+
+  // handleConfirm enables Next and disables itself
+  const handleConfirm = () => {
+    if (!canContinue) return;
+    const snapshot: SetStackingDraft = {
+      ...value,
+      lockPeriodLabel: lockOpt.label,
+      unlockDateText,
+      totalSeedToReceive: est.formatted.totalY ?? value.totalSeedToReceive,
+    };
+    onChange(snapshot);     // keep parent draft in sync
+    setConfirmed(true);     // ✅ disables Review & Confirm, enables Next
+    onConfirm?.(snapshot);  // optional parent callback
+  };
+
   const onAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value.trim();
     if (!isValidNumberInput(v)) return;
-    if (availableBalance) {
-      if (Number(v || "0") <= Number(availableBalance)) setAmount(v);
-    } else {
-      setAmount(v);
-    }
+    if (availableBalance && Number(v || "0") > Number(availableBalance)) return;
+    onChange({ ...value, amountCBY: v });
   };
-  const onAmountBlur = () => setAmount((prev) => (prev ? String(Number(prev)) : "0"));
 
-  const disabled = !amount || Number(amount) <= 0 || durationSec <= 0n || isMining;
-
-  const handleStack = async () => {
-    if (disabled) return;
-    try {
-      const res = await stake({
-        vestingAddress: VESTING_ADDR,
-        tokenX: TOKEN_X_ADDR,
-        amount,
-        durationSec,                // seconds from dropdown
-        cliffDays: 0,
-        slicePeriodSeconds: 86_400n,
-        revocable: false,
-        decimals: 18,
-      });
-
-      // const res = {
-      //   stakeHash: "0xe66ec4d603795f90489f38d3a7c2381d6cfcfd9df7008c216bc528d2e96d1b26"
-      // }
-
-      if (res.stakeHash) {
-        setEnableNext(true);
-      }
-
-
-      console.log("Stake submitted:", res);
-    } catch (e) {
-      console.error(e);
-    }
+  const onLockChange = (secs: number, label: string) => {
+    onChange({
+      ...value,
+      lockSeconds: secs,
+      lockPeriodLabel: label,
+      unlockDateText, // this will recompute next render anyway
+    });
   };
+
+  const canContinue = !!amountCBY && Number(amountCBY) > 0;
 
   return (
     <Box sx={{ color: "#fff", display: "flex", flexDirection: "column", gap: 2.5, mb: 1 }}>
@@ -208,16 +214,14 @@ export default function SetStacking({
 
       {/* Inputs */}
       <Stack spacing={2}>
-        {/* Amount */}
         <Box>
           <Typography variant="subtitle2" sx={{ mb: 0.75, opacity: 0.9 }}>
             $CBY Amount to Lock
           </Typography>
           <TextField
             placeholder="0.00"
-            value={amount}
+            value={amountCBY}
             onChange={onAmount}
-            onBlur={onAmountBlur}
             inputMode="decimal"
             sx={CONTROL_SX}
             slotProps={{
@@ -232,7 +236,6 @@ export default function SetStacking({
           />
         </Box>
 
-        {/* Lock-up Period (single dropdown with mixed units) */}
         <Box>
           <Typography variant="subtitle2" sx={{ mb: 0.75, opacity: 0.9 }}>
             Lock-up Period
@@ -240,7 +243,11 @@ export default function SetStacking({
           <FormControl sx={{ ...CONTROL_SX, ...SELECT_TWEAK_SX }}>
             <Select<number>
               value={lockSeconds}
-              onChange={(e) => setLockSeconds(Number(e.target.value))}
+              onChange={(e) => {
+                const secs = Number(e.target.value);
+                const opt = LOCK_OPTIONS.find((o) => o.seconds === secs)!;
+                onLockChange(secs, opt.label);
+              }}
               MenuProps={{
                 PaperProps: {
                   sx: {
@@ -274,12 +281,12 @@ export default function SetStacking({
             border: "1px solid rgba(255,255,255,0.12)",
           }}
         >
-          <Typography variant="caption" sx={{ letterSpacing: 0.6 }}>
+          <Typography variant="caption">
             You will <Box component="span" sx={{ color: "#9FE870", fontWeight: 500 }}>Lock</Box>
           </Typography>
           <Box sx={{ mt: 1, display: "flex", alignItems: "baseline", gap: 1 }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: "#fff" }}>
-              {lockDisplay}
+            <Typography variant="h4" sx={{ fontWeight: 800 }}>
+              {formatThousands(amountCBY || "0")}
             </Typography>
             <Chip label="$CBY" size="small" />
           </Box>
@@ -299,11 +306,11 @@ export default function SetStacking({
             border: "1px solid rgba(255,255,255,0.12)",
           }}
         >
-          <Typography variant="caption" sx={{ letterSpacing: 0.6 }}>
+          <Typography variant="caption">
             You will <Box component="span" sx={{ color: "#9FE870", fontWeight: 500 }}>Receive</Box>
           </Typography>
           <Box sx={{ mt: 1, display: "flex", alignItems: "baseline", gap: 1 }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: "#fff" }}>
+            <Typography variant="h4" sx={{ fontWeight: 800 }}>
               {formatThousands(est.formatted.totalY ?? "0")}
             </Typography>
             <Chip label="$CBY" size="small" />
@@ -311,16 +318,16 @@ export default function SetStacking({
         </Paper>
       </Stack>
 
-      {/* Unlock date */}
       <Typography variant="caption" sx={{ opacity: 0.75 }}>
-        Estimated Total Unlock Date: <b>{fmtDate(unlockDate)}</b>
+        Estimated Total Unlock Date: <b>{unlockDateText}</b>
       </Typography>
 
-      {/* CTAs */}
+      {/* CTA row — confirm disables itself and turns Next green */}
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mt: 0.5 }}>
+        {/* Review & Confirm: disabled after confirmed */}
         <Button
-          onClick={handleStack}
-          disabled={enableNext}
+          onClick={handleConfirm}
+          disabled={!canContinue || confirmed}
           variant="contained"
           sx={{
             flex: 1,
@@ -330,30 +337,39 @@ export default function SetStacking({
             color: "#000",
             fontWeight: 800,
             "&:hover": { bgcolor: "#abfb4f" },
+            opacity: confirmed ? 0.6 : 1, // subtle visual cue when disabled
+            pointerEvents: confirmed ? "none" : "auto",
           }}
         >
-          {isMining ? "Submitting…" : "Review & Confirm Lock"}
+          Review &amp; Confirm Lock
         </Button>
 
+        {/* Next: becomes lime & enabled after confirmed */}
         <Button
-          disabled={!enableNext}
           onClick={handleNext}
-          variant="contained"
+          disabled={!confirmed}
+          variant={confirmed ? "contained" : "outlined"}
           sx={{
             flex: 1,
             py: 1.4,
             borderRadius: 999,
-            bgcolor: !isMining ? "#b7ff57" : "rgba(255,255,255,0.18)",
-            color: !isMining ? "#000" : "rgba(255,255,255,0.5)",
-            fontWeight: 800,
-            "&:hover": {
-              bgcolor: !isMining ? "#abfb4f" : "rgba(255,255,255,0.18)",
-            },
+            ...(confirmed
+              ? {
+                bgcolor: "#b7ff57",
+                color: "#000",
+                fontWeight: 800,
+                "&:hover": { bgcolor: "#abfb4f" },
+              }
+              : {
+                borderColor: "rgba(255,255,255,0.18)",
+                color: "rgba(255,255,255,0.5)",
+              }),
           }}
         >
           Next
         </Button>
       </Stack>
+
     </Box>
   );
 }

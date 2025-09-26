@@ -28,6 +28,64 @@ export const tokenVestingAbi = [
 		],
 		outputs: [],
 	},
+	{
+		inputs: [{ internalType: 'address', name: 'beneficiary', type: 'address' }],
+		name: 'getVestingSchedulesCountByBeneficiary',
+		outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		inputs: [
+			{ internalType: 'address', name: 'beneficiary', type: 'address' },
+			{ internalType: 'uint256', name: 'index', type: 'uint256' },
+		],
+		name: 'getVestingScheduleByAddressAndIndex',
+		outputs: [
+			{
+				components: [
+					{ internalType: 'address', name: 'beneficiary', type: 'address' },
+					{ internalType: 'uint256', name: 'cliff', type: 'uint256' },
+					{ internalType: 'uint256', name: 'start', type: 'uint256' },
+					{ internalType: 'uint256', name: 'duration', type: 'uint256' },
+					{
+						internalType: 'uint256',
+						name: 'slicePeriodSeconds',
+						type: 'uint256',
+					},
+					{ internalType: 'bool', name: 'revocable', type: 'bool' },
+					{ internalType: 'uint256', name: 'amountTotal', type: 'uint256' },
+					{ internalType: 'uint256', name: 'released', type: 'uint256' },
+					{ internalType: 'bool', name: 'revoked', type: 'bool' },
+				],
+				internalType: 'struct TokenVesting.VestingSchedule',
+				name: '',
+				type: 'tuple',
+			},
+		],
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		inputs: [{ internalType: 'bytes32', name: 'id', type: 'bytes32' }],
+		name: 'computeReleasableAmount',
+		outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		inputs: [
+			{
+				internalType: 'bytes32',
+				name: 'id',
+				type: 'bytes32',
+			},
+		],
+		name: 'release',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
 ] as const;
 
 // abis/calculationLayer.ts

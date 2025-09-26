@@ -10,10 +10,14 @@ import { CBY_ABI } from "@/constant/BlockchainConstants";
 import "./Swapportal.scss";
 import { formatThousands, formatToken } from "@/utils/helper";
 import { useAppKit } from "@reown/appkit/react";
+import { useActiveLocks } from "@/hooks/useActiveLocks";
+import LockCardFromSchedule from "./components/LockCardFromSchedule";
 
 
 const NEXT_PUBLIC_CBY_ADDRESS = process.env.NEXT_PUBLIC_CBY_ADDRESS;
 const NEXT_PUBLIC_CBY_DECIMALS = Number(process.env.NEXT_PUBLIC_CBY_DECIMALS) || 18;
+const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS;
+
 function SwapPortalPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { address: currentAddress, isConnected } = useAccount();
@@ -34,6 +38,13 @@ function SwapPortalPage() {
     functionName: "balanceOf",
     args: [currentAddress],
   });
+
+  const { locks, isLoading } = useActiveLocks({
+    vestingAddress: VESTING_ADDR as `0x${string}`,
+    tokenDecimals: 18,
+  });
+
+  console.log("locks", locks);
 
   useEffect(() => {
     const getData = async () => {
@@ -120,10 +131,16 @@ function SwapPortalPage() {
       <div className="active_lock">
         <h3>Your Active Locks</h3>
         <div className="lock_grid">
-          <LockCard />
-          <LockCard />
-          <LockCard />
-          <LockCard />
+          {locks.map((item) => (
+            <LockCardFromSchedule
+              key={item.id}
+              item={item}
+              vestingAddress={VESTING_ADDR as `0x${string}`}
+            // onClaim={(id) => {
+            //   // call your release hook here (e.g., writeContract to `release(bytes32 id)`)
+            // }}
+            />
+          ))}
         </div>
       </div>
       <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} />

@@ -26,3 +26,21 @@ export const formatThousands = (v: string | number | bigint): string => {
 	const intWithCommas = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 	return frac ? `${intWithCommas}.${frac}` : intWithCommas;
 };
+
+export const SECONDS_PER_DAY = 86_400n;
+export const SECONDS_PER_MONTH_30 = 30n * SECONDS_PER_DAY;
+
+export function durationLabelFromSeconds(duration: bigint): string {
+	if (duration <= 0n) return '0';
+	// Prefer Months when exact multiple of 30 days
+	if (duration % SECONDS_PER_MONTH_30 === 0n) {
+		const months = Number(duration / SECONDS_PER_MONTH_30);
+		return `${months} ${months === 1 ? 'Month' : 'Months'}`;
+	}
+	if (duration % SECONDS_PER_DAY === 0n) {
+		const days = Number(duration / SECONDS_PER_DAY);
+		return `${days} ${days === 1 ? 'Day' : 'Days'}`;
+	}
+	// Fallback to seconds
+	return `${Number(duration)} sec`;
+}
