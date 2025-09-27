@@ -159,7 +159,7 @@ function Page() {
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  placeholder="Enter your password"
+                  placeholder="●●●●●●●●●●●●●●●●"
                   className={`w-full px-4 py-3 pr-12 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 ${formData.password.length > 0 ? "bg-slate-700" : ""}`}
                   disabled={isSubmitting}
                 />
