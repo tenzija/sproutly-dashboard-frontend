@@ -12,7 +12,7 @@ import { formatThousands, formatToken } from "@/utils/helper";
 import { useAppKit } from "@reown/appkit/react";
 import { useActiveLocks } from "@/hooks/useActiveLocks";
 import LockCardFromSchedule from "./components/LockCardFromSchedule";
-
+import { Skeleton } from '@mui/material';
 
 const NEXT_PUBLIC_CBY_ADDRESS = process.env.NEXT_PUBLIC_CBY_ADDRESS;
 const NEXT_PUBLIC_CBY_DECIMALS = Number(process.env.NEXT_PUBLIC_CBY_DECIMALS) || 18;
@@ -32,11 +32,13 @@ function SwapPortalPage() {
 
 
   const [value, setValue] = useState<string>("0.00");
-  const { data } = useReadContract({
+  const { data, isPending, isFetching, } = useReadContract({
     address: NEXT_PUBLIC_CBY_ADDRESS as `0x${string}`,
     abi: CBY_ABI,
     functionName: "balanceOf",
     args: [currentAddress],
+    // Don’t run until wallet is connected & we have an address
+    query: { enabled: Boolean(isConnected && currentAddress) },
   });
 
   const { locks, isLoading } = useActiveLocks({
@@ -76,9 +78,9 @@ function SwapPortalPage() {
           <p className="swap_connect_subtitle">
             To access the Swap Portal and start exchanging your $CBY for $SEED, please connect your Web3 wallet
           </p>
-          <button className="swap_connect_btn" onClick={handleClick}>
+          {/* <button className="swap_connect_btn" onClick={handleClick}>
             Connect Wallet
-          </button>
+          </button> */}
         </div>
 
         {/* Reusable Wallet Connection Popup */}
@@ -107,7 +109,16 @@ function SwapPortalPage() {
             <p>Available $CBY Balance</p>
             <div className="balance">
               <h1>
-                {formatThousands(value)}
+                {(isPending || isFetching)
+                  ? (
+                    <Skeleton
+                      variant="text"
+                      width={90}
+                      sx={{ fontSize: '2.5rem', lineHeight: 1 }}
+                    />
+                  )
+                  : formatThousands(value)
+                }
               </h1>
               <h2>$CBY</h2>
             </div>
@@ -121,9 +132,11 @@ function SwapPortalPage() {
             <Image
               src="/images/Frame 14.png"
               alt="Connect Wallet"
-              width={144}
-              height={144}
+              width={1080}           // intrinsic pixels
+              height={1080}
+              quality={100}
               className="swap_wallet_image"
+
             />
           </div>
         </div>
@@ -131,9 +144,9 @@ function SwapPortalPage() {
       <div className="active_lock">
         <h3>Your Active Locks</h3>
         <div className="lock_grid">
-          {locks.map((item) => (
+          {locks.map((item, idx) => (
             <LockCardFromSchedule
-              key={item.id}
+              key={`${item.id}-${idx}`}
               item={item}
               vestingAddress={VESTING_ADDR as `0x${string}`}
             // onClaim={(id) => {

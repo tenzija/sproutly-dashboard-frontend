@@ -33,21 +33,21 @@ function LockCard({
             #{displayId}
           </span>
           <h2 className="text-[28px] font-bold m-0">
-            {amountCBY} <span className="text-[#81e490]">$CBY</span>
+            {amountCBY} <span className="text">$CBY</span>
           </h2>
         </div>
 
         {/* Details Row */}
         <div className="flex justify-between mb-5">
           <div className="flex flex-col items-center">
-            <span className="text-[#afcaaf] text-[13px]">Lock Period</span>
+            <span className="text text-[13px]">Lock Period</span>
             <span className="mt-1 text-[20px] font-semibold">
               {lockPeriodLabel}
             </span>
           </div>
 
           <div className="flex flex-col items-center border-l border-r border-[rgba(255,255,255,0.09)] px-4">
-            <span className="text-[#afcaaf] text-[13px]">
+            <span className="text text-[13px]">
               Total $SEED to be Received
             </span>
             <span className="mt-1 text-[20px] font-semibold text-[#e7e7e7]">
@@ -56,8 +56,8 @@ function LockCard({
           </div>
 
           <div className="flex flex-col items-center">
-            <span className="text-[#afcaaf] text-[13px]">Claimable $SEED</span>
-            <span className="mt-1 text-[20px] font-semibold text-[#81e490]">
+            <span className="text-[#adf151] text-[13px]">Claimable $SEED</span>
+            <span className="mt-1 text-[20px] font-semibold text-[#adf151]">
               {claimableSeed}
             </span>
           </div>
@@ -65,7 +65,7 @@ function LockCard({
 
         {/* Progress Section */}
         <div className="mb-4">
-          <span className="text-[#afcaaf] text-[13px] mb-2 block">
+          <span className="text text-[13px] mb-2 block">
             {unlockDateText}
           </span>
           <div className="flex items-center">
@@ -83,7 +83,7 @@ function LockCard({
 
         {/* Time Remaining */}
         <div className="mb-4">
-          <span className="text-[#afcaaf] text-[13px] block">
+          <span className="text text-[13px] block">
             Time Remaining
           </span>
           <span className="text-[18px] font-semibold text-white block">

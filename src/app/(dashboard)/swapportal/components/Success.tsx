@@ -8,8 +8,8 @@ function Success() {
         src="/images/Frame 141.png"
         alt="success"
         className="success-card__image"
-          width={144}
-              height={144}
+        width={144}
+        height={144}
       />
       <h2 className="success-card__title">Successfully Initiated!</h2>
       <p className="success-card__message">
