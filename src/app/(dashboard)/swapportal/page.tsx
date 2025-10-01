@@ -144,16 +144,19 @@ function SwapPortalPage() {
       <div className="active_lock">
         <h3>Your Active Locks</h3>
         <div className="lock_grid">
-          {locks.map((item, idx) => (
-            <LockCardFromSchedule
-              key={`${item.id}-${idx}`}
-              item={item}
-              vestingAddress={VESTING_ADDR as `0x${string}`}
-            // onClaim={(id) => {
-            //   // call your release hook here (e.g., writeContract to `release(bytes32 id)`)
-            // }}
-            />
-          ))}
+          {locks
+            .filter((item) => item !== null)
+            .map((item, idx) => (
+              <LockCardFromSchedule
+                key={`${item!.id}-${idx}`}
+                item={item!}
+                index={idx}
+                vestingAddress={VESTING_ADDR as `0x${string}`}
+              // onClaim={(id) => {
+              //   // call your release hook here (e.g., writeContract to `release(bytes32 id)`)
+              // }}
+              />
+            ))}
         </div>
       </div>
       <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} />

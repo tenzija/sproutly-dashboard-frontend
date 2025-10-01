@@ -30,7 +30,7 @@ function LockCard({
         {/* Header */}
         <div className="flex flex-col items-start mb-6">
           <span className="text-[#8e98b3] text-[16px] mb-1.5 tracking-wide">
-            #{displayId}
+            {displayId}
           </span>
           <h2 className="text-[28px] font-bold m-0">
             {amountCBY} <span className="text">$CBY</span>

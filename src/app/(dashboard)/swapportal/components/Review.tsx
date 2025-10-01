@@ -56,7 +56,7 @@ export default function Review({
   const onConfirm = async () => {
     try {
       setSubmitting(true);
-      await stake({
+      const res = await stake({
         vestingAddress: VESTING_ADDR,
         tokenX: TOKEN_X_ADDR,
         amount: stakeParams.amountCBY,
@@ -66,7 +66,12 @@ export default function Review({
         revocable: false,
         decimals: 18,
       });
-      handleNext(); // go to success
+
+      console.log('Stake transaction response:', res);
+      if (res.ok) {
+        handleNext(); // go to success
+      }
+      setSubmitting(false);
     } catch (err) {
       console.error(err);
       setSubmitting(false);

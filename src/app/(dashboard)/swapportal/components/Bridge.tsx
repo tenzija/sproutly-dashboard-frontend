@@ -87,7 +87,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
           />
         )}
 
-        {currentStep === 4 && <Success />}
+        {currentStep === 4 && <Success handleNext={handleNext} />}
 
         <Stepper steps={steps} currentStep={currentStep} />
       </div>

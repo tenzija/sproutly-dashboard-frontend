@@ -34,21 +34,25 @@ export type VestingScheduleView = {
 type Props = {
 	vestingAddress: `0x${string}`;
 	item: VestingScheduleView;
+	index: number;
 	// onClaimed?: (id: `0x${string}`) => void;
 };
 
 export default function LockCardFromSchedule({
 	vestingAddress,
 	item,
+	index,
 	// onClaimed,
 }: Props) {
 	const { release, isClaiming } = useReleaseVested();
+
+	console.log('item', item);
 
 	const amountCBY = item.amountTokenFormatted ?? '0';
 	const lockPeriodLabel = durationLabelFromSeconds(item.raw.duration);
 	const totalSeed = item.totalFormatted ?? '0';
 	const claimable = item.claimableFormatted ?? '0';
-	const displayId = `#${String((item.index ?? 0) + 1).padStart(3, '0')}`;
+	const displayId = `#${String((index ?? 0) + 1).padStart(3, '0')}`;
 
 	const props: LockCardProps = {
 		displayId,

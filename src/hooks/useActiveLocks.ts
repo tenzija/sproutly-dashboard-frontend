@@ -1,42 +1,12 @@
-'use client';
-
 import { useMemo } from 'react';
-import { Address, formatUnits } from 'viem';
 import { useAccount, useReadContract, useReadContracts } from 'wagmi';
 import { tokenVestingAbi } from '@/abis/minimalAbi';
+import { formatUnits } from 'viem';
 
-const DAY = 86_400; // seconds
-
-export type UiLock = {
-	/** Source */
-	index: number;
-	id: `0x${string}`; // computed from (holder,index) via the contract’s pure fn
-	raw: {
-		beneficiary: Address;
-		cliff: bigint;
-		start: bigint;
-		duration: bigint;
-		slicePeriodSeconds: bigint;
-		revocable: boolean;
-		amountTotal: bigint;
-		released: bigint;
-		revoked: boolean;
-	};
-
-	/** Derived (numbers in seconds / percentages) */
-	unlockCliffTs: number; // cliff timestamp
-	endLinearTs: number; // cliff + duration
-	progressPct: number; // 0..100
-	claimable: bigint; // amount vested - released
-	claimableFormatted: string; // human with decimals
-	totalFormatted: string;
-	amountTokenFormatted: string; // same as totalFormatted (your Y equals X for 1:1 base)
-	timeRemainingText: string; // e.g., "11 Months, 15 Days"
-	unlockDateText: string; // e.g., "September 8, 2026"
-};
+const DAY = 86400; // seconds per day
 
 export function useActiveLocks(opts: {
-	vestingAddress: Address;
+	vestingAddress: string;
 	tokenDecimals?: number; // default 18
 	formatToken?: (v: bigint, decimals: number) => string; // optional custom formatter
 }) {
@@ -75,60 +45,37 @@ export function useActiveLocks(opts: {
 		}
 	);
 
-	/** Small helpers */
-	const formatToken = useMemo(
-		() =>
-			opts.formatToken ??
-			((v: bigint, d: number) => {
-				const s = formatUnits(v, d);
-				// add thousands separators, keep up to 6 decimals (trim trailing)
-				const [i, frac = ''] = s.split('.');
-				const head = Number(i).toLocaleString();
-				const tail = frac.replace(/0+$/, '').slice(0, 6);
-				return tail ? `${head}.${tail}` : head;
-			}),
-		[opts.formatToken] // only recompute if custom formatter changes
-	);
+	console.log('schedulesData', schedulesData);
 
-	const fmtDate = (ts: number) =>
-		new Date(ts * 1000).toLocaleDateString(undefined, {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric',
-		});
+	/** Helper to format the tokens */
+	const formatToken =
+		opts.formatToken ?? ((v: bigint, d: number) => formatUnits(v, d));
 
+	/** Helper to calculate the remaining time */
 	const humanRemaining = (now: number, end: number) => {
 		const sec = Math.max(0, end - now);
 		const days = Math.floor(sec / DAY);
-		if (days >= 60) {
-			const months = Math.floor(days / 30);
-			const remDays = days % 30;
-			return `${months} Month${months > 1 ? 's' : ''}, ${remDays} Day${
-				remDays !== 1 ? 's' : ''
-			}`;
-		}
-		// ≤ 2 months: show days
-		return `${days} Day${days !== 1 ? 's' : ''}`;
+		const hours = Math.floor((sec % DAY) / 3600);
+		const minutes = Math.floor((sec % 3600) / 60);
+		return `${days} Days, ${hours} Hours, ${minutes} Minutes`;
 	};
 
-	/** 3) Build UI list with derived fields */
-	const locks: UiLock[] = useMemo(() => {
+	/** Build the UI data */
+	const locks = useMemo(() => {
 		if (!schedulesData) return [];
 
 		const now = Math.floor(Date.now() / 1000);
 
 		return schedulesData
 			.map((res, i) => {
-				// each result is { status, result } from wagmi
 				if (res.status !== 'success') return null;
 
-				const s = res.result as UiLock['raw'];
+				const s = res.result;
 
-				// Exclude revoked or fully released
-				if (s.revoked) return null;
-				if (s.released >= s.amountTotal) return null;
+				// Exclude revoked or fully released schedules
+				if (s.revoked || s.released >= s.amountTotal) return null;
 
-				// Compute claimable (same math as _computeReleasableAmount)
+				// Calculate the claimable amount
 				const cliff = Number(s.cliff);
 				const duration = Number(s.duration);
 				const slice = Number(s.slicePeriodSeconds);
@@ -146,30 +93,32 @@ export function useActiveLocks(opts: {
 
 				const claimable = vested > s.released ? vested - s.released : 0n;
 
-				const endLinear = cliff + duration;
+				// Calculate the progress percentage
 				const progressPct =
 					now <= cliff
 						? 0
-						: now >= endLinear
+						: now >= cliff + duration
 						? 100
 						: Math.round(((now - cliff) / (duration || 1)) * 100);
 
+				// Calculate the remaining time and unlock date
+				const unlockDate = cliff + duration;
+				const remainingTime = humanRemaining(now, unlockDate);
+
+				// Format the data for the UI
 				return {
 					index: i + 1,
-					id: ('0x' + ''.padStart(64, '0')) as `0x${string}`, // (optional) you can fetch the real id via computeVestingScheduleIdForAddressAndIndex
+					id: ('0x' + ''.padStart(64, '0')) as `0x${string}`, // You can fetch the real id
 					raw: s,
-					unlockCliffTs: cliff,
-					endLinearTs: endLinear,
-					progressPct,
-					claimable,
 					claimableFormatted: formatToken(claimable, decimals),
 					totalFormatted: formatToken(s.amountTotal, decimals),
-					amountTokenFormatted: formatToken(s.amountTotal, decimals),
-					timeRemainingText: humanRemaining(now, endLinear),
-					unlockDateText: fmtDate(endLinear),
-				} satisfies UiLock;
+					lockedFormatted: formatToken(s.amountTotal - s.released, decimals), // Locked = Total - Released
+					timeRemainingText: remainingTime,
+					unlockDateText: new Date(unlockDate * 1000).toLocaleDateString(),
+					progressPct,
+				};
 			})
-			.filter(Boolean) as UiLock[];
+			.filter(Boolean);
 	}, [schedulesData, decimals, formatToken]);
 
 	return {

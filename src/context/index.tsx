@@ -56,9 +56,9 @@ createAppKit({
   // enableWalletConnect: false,
 
   // ✅ Global typography: affects built-in error UI labels like "Try Again"
-  themeVariables: {
-    '--w3m-font-family': 'Montserrat', // picks up global value
-  },
+  // themeVariables: {
+  //   '--w3m-font-family': 'Montserrat', // picks up global value
+  // },
 });
 
 function ContextProvider({

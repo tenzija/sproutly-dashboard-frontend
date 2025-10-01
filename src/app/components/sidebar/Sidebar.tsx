@@ -40,6 +40,8 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
   const { open, close } = useAppKit();
   const { disconnect } = useDisconnect();
   const handleClick = () => {
+
+    console.log("handleClick", isConnected);
     if (isConnected) {
       close();
     } else {
@@ -59,7 +61,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
   return (
     <>
       <div
-        className={`py-8 top-0 left-0 h-screen w-[263px] border-l border-r p-8 px-6 flex flex-col md:ml-[47px] ml-0
+        className={`py-8 top-0 left-0 h-screen w-[263px] border-l border-r p-8 px-6 flex flex-col ml-0
     bg-[var(--glass-new,#8989890d)] backdrop-blur-[150px] border border-[var(--glass-stroke-new,#ffffff17)]
     shadow-[3px_3px_3px_rgba(0,0,0,0.089)] fixed md:sticky z-50 md:z-auto transition-transform duration-300
     ${openSidebar ? 'translate-x-[-100%]' : 'translate-x-0'} md:translate-x-0`}
