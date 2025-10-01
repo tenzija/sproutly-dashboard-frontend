@@ -67,7 +67,8 @@ export default function Review({
         decimals: 18,
       });
 
-      console.log('Stake transaction response:', res);
+      console.log("stake response", res);
+
       if (res.ok) {
         handleNext(); // go to success
       }

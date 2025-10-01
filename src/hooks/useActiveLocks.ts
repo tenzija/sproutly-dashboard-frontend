@@ -23,6 +23,7 @@ export function useActiveLocks(opts: {
 		query: {
 			enabled: Boolean(address && vestingAddress),
 		},
+		chainId: 8453, // Base Mainnet
 	});
 
 	const count = Number(countData ?? 0);
@@ -35,6 +36,7 @@ export function useActiveLocks(opts: {
 					abi: tokenVestingAbi,
 					functionName: 'getVestingScheduleByAddressAndIndex' as const,
 					args: [address, BigInt(i)],
+					chainId: 8453, // Base Mainnet
 			  }))
 			: [];
 
@@ -44,8 +46,6 @@ export function useActiveLocks(opts: {
 			query: { enabled: readList.length > 0 },
 		}
 	);
-
-	console.log('schedulesData', schedulesData);
 
 	/** Helper to format the tokens */
 	const formatToken =
@@ -71,6 +71,8 @@ export function useActiveLocks(opts: {
 				if (res.status !== 'success') return null;
 
 				const s = res.result;
+
+				console.log('Schedule', s);
 
 				// Exclude revoked or fully released schedules
 				if (s.revoked || s.released >= s.amountTotal) return null;

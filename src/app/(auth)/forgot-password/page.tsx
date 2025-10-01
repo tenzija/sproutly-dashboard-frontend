@@ -67,7 +67,6 @@ function Page() {
         ...formData,
       })
       .then((response) => {
-        console.log(response);
         toast("Reset link sent to your email!", { type: "success" });
 
         setTimeout(() => {
@@ -128,9 +127,8 @@ function Page() {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="name@company.com"
-                className={`w-full px-4 py-3 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 ${
-                  formData.email.length > 0 ? "bg-slate-700" : ""
-                }`}
+                className={`w-full px-4 py-3 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 ${formData.email.length > 0 ? "bg-slate-700" : ""
+                  }`}
                 disabled={isSubmitting}
               />
             </div>

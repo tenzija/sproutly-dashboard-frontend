@@ -77,8 +77,6 @@ function Page() {
         ...formData,
       })
       .then((response) => {
-        console.log(response.data);
-
         login(response.data);
         window.location.replace("/swapportal");
       })

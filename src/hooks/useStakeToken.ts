@@ -205,14 +205,6 @@ export function useStakeToken() {
 				// --- 3) Stake (simulate + send)
 				setIsStaking(true);
 
-				console.log('staking with', {
-					address,
-					cliffSec,
-					slicePeriodSeconds,
-					durationSec,
-					revocable,
-					amountWei,
-				});
 				try {
 					const { request } = await publicClient.simulateContract({
 						address: vestingAddress,

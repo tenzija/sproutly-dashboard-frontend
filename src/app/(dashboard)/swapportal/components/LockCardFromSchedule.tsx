@@ -6,7 +6,7 @@ import LockCard from './LockCard';
 import type { LockCardProps } from './LockCard'; // ✅ type-only import
 
 import { useReleaseVested } from '@/hooks/useReleaseVested';
-import { durationLabelFromSeconds, formatThousands } from '@/utils/helper';
+import { durationLabelFromSeconds, formatThousands, formatToken } from '@/utils/helper';
 
 export type VestingScheduleView = {
 	amountTokenFormatted?: string;
@@ -28,6 +28,7 @@ export type VestingScheduleView = {
 		released: bigint;
 		revocable: boolean;
 		revoked: boolean;
+		amountLockedX: bigint;
 	};
 };
 
@@ -46,9 +47,7 @@ export default function LockCardFromSchedule({
 }: Props) {
 	const { release, isClaiming } = useReleaseVested();
 
-	console.log('item', item);
-
-	const amountCBY = item.amountTokenFormatted ?? '0';
+	const amountCBY = formatToken(item.raw.amountLockedX, 18) ?? '0';
 	const lockPeriodLabel = durationLabelFromSeconds(item.raw.duration);
 	const totalSeed = item.totalFormatted ?? '0';
 	const claimable = item.claimableFormatted ?? '0';

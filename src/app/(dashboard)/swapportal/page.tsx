@@ -1,7 +1,6 @@
 "use client";
 
 // import PageHeader from "../components/pageHeader/PageHeader";
-import LockCard from "./components/LockCard";
 import Bridge from "./components/Bridge";
 import Image from "next/image";
 import { useAccount, useReadContract } from "wagmi";
@@ -39,14 +38,13 @@ function SwapPortalPage() {
     args: [currentAddress],
     // Don’t run until wallet is connected & we have an address
     query: { enabled: Boolean(isConnected && currentAddress) },
+    chainId: 8453, // Base Mainnet
   });
 
   const { locks, isLoading } = useActiveLocks({
     vestingAddress: VESTING_ADDR as `0x${string}`,
     tokenDecimals: 18,
   });
-
-  console.log("locks", locks);
 
   useEffect(() => {
     const getData = async () => {

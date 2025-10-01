@@ -57,6 +57,7 @@ export const tokenVestingAbi = [
 					{ internalType: 'uint256', name: 'amountTotal', type: 'uint256' },
 					{ internalType: 'uint256', name: 'released', type: 'uint256' },
 					{ internalType: 'bool', name: 'revoked', type: 'bool' },
+					{ internalType: 'uint256', name: 'amountLockedX', type: 'uint256' },
 				],
 				internalType: 'struct TokenVesting.VestingSchedule',
 				name: '',
@@ -99,5 +100,106 @@ export const calculationLayerAbi = [
 			{ name: 'base', type: 'uint256' }, // you pass 1
 		],
 		outputs: [{ type: 'uint256' }], // scaled by 1e18
+	},
+] as const;
+
+export const mockWormholeBridgeAbi = [
+	{
+		type: 'function',
+		name: 'crossChainId',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'uint16' }],
+	},
+	{
+		type: 'function',
+		name: 'crossChainCounterParty',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'address' }],
+	},
+	{
+		type: 'function',
+		name: 'MIN_GAS_LIMIT',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'uint256' }],
+	},
+	{
+		type: 'function',
+		name: 'quoteCrossChainCall',
+		stateMutability: 'view',
+		inputs: [{ type: 'uint16' }, { type: 'uint256' }],
+		outputs: [{ type: 'uint256' }],
+	},
+	{
+		type: 'function',
+		name: 'sendCrossChainDeposit',
+		stateMutability: 'payable',
+		inputs: [
+			{ name: 'to', type: 'address' },
+			{ name: 'amount', type: 'uint256' },
+			{ name: 'extraGas', type: 'uint256' },
+		],
+		outputs: [],
+	},
+	// events
+	{
+		type: 'event',
+		name: 'Deposit',
+		inputs: [
+			{ indexed: true, name: 'from', type: 'address' },
+			{ indexed: false, name: 'amount', type: 'uint256' },
+		],
+	},
+	{
+		type: 'event',
+		name: 'Withdraw',
+		inputs: [
+			{ indexed: true, name: 'to', type: 'address' },
+			{ indexed: false, name: 'amount', type: 'uint256' },
+		],
+	},
+] as const;
+
+export const vaultUnlimitedAbi = [
+	{
+		type: 'event',
+		name: 'Withdrawn',
+		inputs: [
+			{ indexed: true, name: 'to', type: 'address' },
+			{ indexed: false, name: 'amount', type: 'uint256' },
+		],
+	},
+] as const;
+
+export const erc20Abi = [
+	{
+		type: 'function',
+		name: 'decimals',
+		stateMutability: 'view',
+		inputs: [],
+		outputs: [{ type: 'uint8' }],
+	},
+	{
+		type: 'function',
+		name: 'balanceOf',
+		stateMutability: 'view',
+		inputs: [{ type: 'address' }],
+		outputs: [{ type: 'uint256' }],
+	},
+	{
+		type: 'function',
+		name: 'allowance',
+		stateMutability: 'view',
+		inputs: [{ type: 'address' }, { type: 'address' }],
+		outputs: [{ type: 'uint256' }],
+	},
+	{
+		type: 'function',
+		name: 'approve',
+		stateMutability: 'nonpayable',
+		inputs: [{ type: 'address' }, { type: 'uint256' }],
+		outputs: [{ type: 'bool' }],
 	},
 ] as const;

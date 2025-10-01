@@ -7,7 +7,7 @@
  * @returns boolean - True if valid, false otherwise
  */
 export const isValidNumberInput = (value: string): boolean => {
-  return /^\d*\.?\d*$/.test(value) || value === "";
+	return /^\d*\.?\d*$/.test(value) || value === '';
 };
 
 /**
@@ -17,21 +17,21 @@ export const isValidNumberInput = (value: string): boolean => {
  * @returns string - Formatted number with appropriate suffix
  */
 export const formatLargeNumber = (numStr: string): string => {
-  const num = parseFloat(numStr);
-  if (isNaN(num)) return "0";
-  
-  // Handle extremely large numbers
-  if (num >= 1e12) {
-    return (num / 1e12).toFixed(2) + 'T';
-  } else if (num >= 1e9) {
-    return (num / 1e9).toFixed(2) + 'B';
-  } else if (num >= 1e6) {
-    return (num / 1e6).toFixed(2) + 'M';
-  } else if (num >= 1e3) {
-    return (num / 1e3).toFixed(2) + 'K';
-  } else {
-    return num.toLocaleString();
-  }
+	const num = parseFloat(numStr);
+	if (isNaN(num)) return '0';
+
+	// Handle extremely large numbers
+	if (num >= 1e12) {
+		return (num / 1e12).toFixed(2) + 'T';
+	} else if (num >= 1e9) {
+		return (num / 1e9).toFixed(2) + 'B';
+	} else if (num >= 1e6) {
+		return (num / 1e6).toFixed(2) + 'M';
+	} else if (num >= 1e3) {
+		return (num / 1e3).toFixed(2) + 'K';
+	} else {
+		return num.toLocaleString();
+	}
 };
 
 /**
@@ -40,14 +40,17 @@ export const formatLargeNumber = (numStr: string): string => {
  * @param multiplier - The conversion multiplier (default: 0.2)
  * @returns string - Formatted destination amount
  */
-export const calculateDestinationAmount = (sourceAmount: string, multiplier: number = 0.2): string => {
-  if (!sourceAmount) return "2,500";
-  
-  const numAmount = parseFloat(sourceAmount);
-  if (isNaN(numAmount)) return "2,500";
-  
-  const result = numAmount * multiplier;
-  return formatLargeNumber(result.toString());
+export const calculateDestinationAmount = (
+	sourceAmount: string,
+	multiplier: number = 0.2
+): string => {
+	if (!sourceAmount) return '0';
+
+	const numAmount = parseFloat(sourceAmount);
+	if (isNaN(numAmount)) return '0';
+
+	const result = numAmount * multiplier;
+	return formatLargeNumber(result.toString());
 };
 
 /**
@@ -56,7 +59,10 @@ export const calculateDestinationAmount = (sourceAmount: string, multiplier: num
  * @param defaultValue - Default value if amount is empty (default: "12,500")
  * @returns string - Formatted amount or default value
  */
-export const formatDisplayAmount = (amount: string, defaultValue: string = "12,500"): string => {
-  if (!amount) return defaultValue;
-  return formatLargeNumber(amount);
+export const formatDisplayAmount = (
+	amount: string,
+	defaultValue: string = '0'
+): string => {
+	if (!amount) return defaultValue;
+	return formatLargeNumber(amount);
 };

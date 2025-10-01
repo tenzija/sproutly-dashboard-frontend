@@ -26,6 +26,10 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
 
   const [username, setUsername] = useState("");
   const [image, setImage] = useState("");
+  const pathname = usePathname();
+  const { isConnected, address } = useAccount();
+  const { open, close } = useAppKit();
+  const { disconnect } = useDisconnect();
 
   useEffect(() => {
     if (token) {
@@ -35,13 +39,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
     }
   }, [token]);
 
-  const pathname = usePathname();
-  const { isConnected, address } = useAccount();
-  const { open, close } = useAppKit();
-  const { disconnect } = useDisconnect();
   const handleClick = () => {
-
-    console.log("handleClick", isConnected);
     if (isConnected) {
       close();
     } else {

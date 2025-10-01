@@ -1,7 +1,8 @@
+// src/app/layout.tsx
 import { Geist, Geist_Mono } from "next/font/google";
-import "@fontsource/montserrat"; // Defaults to weight 400
-import "@fontsource/montserrat/400.css"; // Specify weight
-import "@fontsource/montserrat/400-italic.css"; // Specify weight and style
+import "@fontsource/montserrat";
+import "@fontsource/montserrat/400.css";
+import "@fontsource/montserrat/400-italic.css";
 import "./globals.css";
 import { headers } from "next/headers";
 import ContextProvider from "../context";
@@ -9,15 +10,11 @@ import { AuthProvider } from "../context/AuthContext";
 import { ToastContainer } from "react-toastify";
 import ThemeProviderClient from "@/theme/ThemeProviderClient";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// ⬇️ add this import
+import AppKitInit from './AppKitInit';
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata = {
   title: "Sproutly",
@@ -35,15 +32,15 @@ export default async function RootLayout({
       <head>
         <link rel="icon" type="image/svg+xml" href="/Favi.svg" />
       </head>
-      <body
-        className={`backgroundImg ${geistSans.variable} ${geistMono.variable}`}
-      >
+      <body className={`backgroundImg ${geistSans.variable} ${geistMono.variable}`}>
+        {/* ⬇️ ensure AppKit is initialized before anything else renders */}
+        <AppKitInit />
+
         <ContextProvider cookies={cookies}>
           <AuthProvider>
             <ThemeProviderClient>{children}</ThemeProviderClient>
             <ToastContainer />
           </AuthProvider>
-
         </ContextProvider>
       </body>
     </html>

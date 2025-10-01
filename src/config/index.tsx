@@ -1,6 +1,6 @@
 import { cookieStorage, createStorage } from '@wagmi/core';
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
-import { base } from '@reown/appkit/networks';
+import { base, polygon } from '@reown/appkit/networks';
 import { http } from 'wagmi';
 import { injected, metaMask, walletConnect } from 'wagmi/connectors';
 import { defineChain } from "viem";
@@ -25,7 +25,7 @@ const sproutlyTestnet = defineChain({
 });
 
 // (pick your chains)
-export const networks = [base, sproutlyTestnet];
+export const networks = [base, sproutlyTestnet, polygon];
 
 // ✅ Only two connectors: MetaMask (injected) + WalletConnect
 // - `target: 'metaMask'` ensures the injected tile specifically says “MetaMask”
