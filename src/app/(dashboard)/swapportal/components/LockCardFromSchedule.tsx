@@ -3,8 +3,7 @@
 
 import React from 'react';
 import LockCard from './LockCard';
-import type { LockCardProps } from './LockCard'; // ✅ type-only import
-
+import type { LockCardProps } from './LockCard';
 import { useReleaseVested } from '@/hooks/useReleaseVested';
 import { durationLabelFromSeconds, formatThousands, formatToken } from '@/utils/helper';
 
@@ -17,18 +16,20 @@ export type VestingScheduleView = {
 	progressPct?: number;
 	index?: number;
 	id: `0x${string}`;
-
 	raw: {
-		beneficiary: `0x${string}`;
-		start: bigint;
+		// ---- minimal fields you definitely have (per error) ----
 		cliff: bigint;
 		duration: bigint;
 		slicePeriodSeconds: bigint;
 		amountTotal: bigint;
 		released: bigint;
-		revocable: boolean;
 		revoked: boolean;
-		amountLockedX: bigint;
+
+		// ---- make these optional (missing in your current data) ----
+		beneficiary?: `0x${string}`;
+		start?: bigint;
+		revocable?: boolean;
+		amountLockedX?: bigint;
 	};
 };
 
@@ -36,18 +37,15 @@ type Props = {
 	vestingAddress: `0x${string}`;
 	item: VestingScheduleView;
 	index: number;
-	// onClaimed?: (id: `0x${string}`) => void;
 };
 
-export default function LockCardFromSchedule({
-	vestingAddress,
-	item,
-	index,
-	// onClaimed,
-}: Props) {
+export default function LockCardFromSchedule({ vestingAddress, item, index }: Props) {
 	const { release, isClaiming } = useReleaseVested();
 
-	const amountCBY = formatToken(item.raw.amountLockedX, 18) ?? '0';
+	// Prefer amountLockedX if present; otherwise fall back to amountTotal
+	const lockedAmount = item.raw.amountLockedX ?? item.raw.amountTotal;
+
+	const amountCBY = formatToken(lockedAmount, 18) ?? '0';
 	const lockPeriodLabel = durationLabelFromSeconds(item.raw.duration);
 	const totalSeed = item.totalFormatted ?? '0';
 	const claimable = item.claimableFormatted ?? '0';
@@ -62,14 +60,15 @@ export default function LockCardFromSchedule({
 		unlockDateText: item.unlockDateText ?? '',
 		progressPct: item.progressPct ?? 0,
 		timeRemainingText: item.timeRemainingText ?? '',
-		onClaim: async () => {
-			try {
-				await release(vestingAddress, item.id);
-				// onClaimed?.(item.id);
-			} catch (e) {
-				console.error(e);
-			}
-		},
+		onClaim: isClaiming
+			? undefined
+			: async () => {
+				try {
+					await release(vestingAddress, item.id);
+				} catch (e) {
+					console.error(e);
+				}
+			},
 	};
 
 	return <LockCard {...props} />;

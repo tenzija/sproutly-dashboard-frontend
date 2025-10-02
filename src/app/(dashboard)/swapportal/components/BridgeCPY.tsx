@@ -1,36 +1,64 @@
 "use client";
 import { useBridge } from "@/hooks/useBridge";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { calculateDestinationAmount, formatDisplayAmount, isValidNumberInput } from "../utils/numberUtils";
 
 
 interface BridgeCPYProps {
   handleNext: () => void;
-  handleConnectWallet?: () => void;
+  currentStep: number;
 }
 
-export default function BridgeCPY({ handleNext, handleConnectWallet }: BridgeCPYProps) {
+export default function BridgeCPY({ handleNext, currentStep }: BridgeCPYProps) {
   const [sourceChain, setSourceChain] = useState("Polygon");
   const [amount, setAmount] = useState("");
-  const { address, isConnected } = useAccount();
+  const [isNextDisabled, setIsNextDisabled] = useState(false)
+  const { isConnected } = useAccount();
   const { bridge, progress, error, txHash, bridgingMs, isReady, isOnPolygon, reset } = useBridge();
 
   const onBridge = async () => {
-    const res = await bridge(amount);  // BridgeResult
+    // Immediately disable Bridge & enable Next
+
+    // If you want to run the actual bridge flow, uncomment this:
+    const res = await bridge(amount);
     if (res.status === 'success') {
-      handleNext();
-      return;
+      setIsNextDisabled(true);
     }
     if (res.status === 'userRejected') {
-      // user cancelled: immediately re-enable UI & close modal
+      // Re-enable Bridge & keep Next disabled if user cancelled
+      setIsNextDisabled(false);
       reset();
-      return;
     }
-    // failed for another reason
-    // you can show res.message; button will be re-enabled since progress != 'sending'
-    console.error(res.message);
   };
+
+  useEffect(() => {
+    if (currentStep === 1) {
+      // entering this step -> reset to default: Bridge enabled, Next disabled
+      setIsNextDisabled(false);
+    }
+  }, [currentStep]);
+
+  const bridgeDisabled =
+    isNextDisabled || // <- disable after click
+    !amount ||
+    !isConnected ||
+    !isReady ||
+    progress === "sending" ||
+    progress === "waitingBase";
+
+  const nextDisabled = !isNextDisabled; // <- until Bridge clicked
+
+  const inputDisabled =
+    isNextDisabled || // <- lock input after Bridge clicked
+    !isConnected ||
+    !isReady ||
+    progress === "sending" ||
+    progress === "waitingBase";
+
+  // 🔁 swap classes after click
+  const bridgeClass = isNextDisabled ? 'next-btn' : 'bridge-btn';
+  const nextClass = isNextDisabled ? 'bridge-btn' : 'next-btn';
 
   return (
     <>
@@ -63,6 +91,7 @@ export default function BridgeCPY({ handleNext, handleConnectWallet }: BridgeCPY
               value={amount}
               onChange={(e) => setAmount(isValidNumberInput(e.target.value) ? e.target.value : amount)}
               className="amount-input"
+              disabled={inputDisabled}
             />
             <p className="fee-info">
               Estimated Bridging Fee: <span style={{ color: "#9FE870", fontWeight: 500 }}>~ 1.0 POL</span>
@@ -93,11 +122,7 @@ export default function BridgeCPY({ handleNext, handleConnectWallet }: BridgeCPY
         </div>
 
         <div className="action-buttons">
-          <button className="bridge-btn" onClick={handleConnectWallet}>
-            {isConnected ? "Wallet Connected" : "Connect Wallet"}
-          </button>
-
-          <button className="next-btn" onClick={onBridge} disabled={!amount || !isConnected || !isReady || progress === 'sending' || progress === 'waitingBase'}
+          <button className={bridgeClass} onClick={onBridge} disabled={bridgeDisabled}
           >
             {!isReady
               ? 'Initializing RPC…'
@@ -108,6 +133,14 @@ export default function BridgeCPY({ handleNext, handleConnectWallet }: BridgeCPY
                   : isOnPolygon
                     ? 'Bridge'
                     : 'Switching to Polygon…'}
+          </button>
+
+          <button
+            className={nextClass}
+            onClick={handleNext}
+            disabled={nextDisabled}
+          >
+            Next
           </button>
         </div>
 

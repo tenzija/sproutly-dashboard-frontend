@@ -586,6 +586,40 @@
     }
   }
 
+  .back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+
+    /* match close button */
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 24px;
+    /* keeps click target similar size */
+    cursor: pointer;
+    padding: 4px;
+    line-height: 0;
+
+    &:hover {
+      color: #999;
+    }
+
+    /* optional: keyboard focus ring */
+    &:focus-visible {
+      outline: 2px solid #999;
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    /* ensure SVG inherits the color just like the close “×” */
+    svg {
+      display: block;
+      color: currentColor;
+    }
+  }
+
+
   .modal-header {
     text-align: center;
     margin-bottom: 40px;
@@ -775,7 +809,7 @@
     transition: all 0.2s ease;
   }
 
-  .bridge-btn {
+  .next-btn {
     background: #000000;
     color: #666;
 
@@ -799,7 +833,7 @@
     }
   }
 
-  .next-btn {
+  .bridge-btn {
     background: #9acd32;
     color: #1a1a1a;
 
@@ -825,7 +859,7 @@
     padding: 20px;
     border-radius: 12px;
     color: white;
-    max-width: 400px;
+    max-width: 560px;
     margin: 0 auto;
 
     &__image {
@@ -867,6 +901,38 @@
         transform: scale(1.05);
         box-shadow: 0 0 12px rgba(176, 255, 47, 0.7);
       }
+    }
+  }
+
+  /* match Figma: 436px wide, 3 lines tall (14px font, 21px line-height) */
+  .success-card__message {
+    width: 436px;
+    /* fixed width from Figma */
+    max-width: 100%;
+    margin: 12px auto 24px;
+    /* center under the title */
+    font-size: 14px;
+    line-height: 21px;
+    /* 3 × 21px = 63px total height */
+    height: 63px;
+    /* lock to exactly three lines */
+    overflow: hidden;
+    /* avoid accidental 4th-line wrap */
+    color: #ccc;
+  }
+
+  /* responsive fallback so it doesn’t overflow on small screens */
+  @media (max-width: 480px) {
+    .success-card {
+      max-width: 420px;
+      padding: 24px;
+    }
+
+    .success-card__message {
+      width: 100%;
+      height: auto;
+      /* let it wrap on small screens */
+      line-height: 1.5;
     }
   }
 

@@ -101,6 +101,38 @@ export const calculationLayerAbi = [
 		],
 		outputs: [{ type: 'uint256' }], // scaled by 1e18
 	},
+
+	// claim vested tokens
+	{
+		type: 'function',
+		name: 'claim',
+		stateMutability: 'nonpayable',
+		inputs: [],
+		outputs: [],
+	},
+
+	// how much the user can claim right now
+	{
+		type: 'function',
+		name: 'claimable',
+		stateMutability: 'view',
+		inputs: [{ name: 'user', type: 'address' }],
+		outputs: [{ name: '', type: 'uint256' }],
+	},
+
+	// optional: full lock info (amount, start, end, claimed)
+	{
+		type: 'function',
+		name: 'getUserLock',
+		stateMutability: 'view',
+		inputs: [{ name: 'user', type: 'address' }],
+		outputs: [
+			{ name: 'amount', type: 'uint256' },
+			{ name: 'start', type: 'uint64' },
+			{ name: 'end', type: 'uint64' },
+			{ name: 'claimed', type: 'uint256' },
+		],
+	},
 ] as const;
 
 export const mockWormholeBridgeAbi = [

@@ -17,7 +17,6 @@ const Bridge: React.FC<BridgeModalProps> = ({
   isOpen,
   onClose,
   availableBalance,
-  handleConnectWallet,
 }) => {
   const steps = ["Connect Wallet", "Bridge CBY", "Set Staking Terms", "Review & Confirm"];
   const [currentStep, setCurrentStep] = useState(1);
@@ -26,7 +25,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
   // 🔹 lifted shared staking data (edited in SetStacking, displayed/used in Review)
   const [draft, setDraft] = useState<SetStackingDraft>({
     amountCBY: "0",
-    lockSeconds: 30 * 86400, // default 1 Month
+    lockSeconds: 1 * 86400, // default 1 day
     lockPeriodLabel: "1 Month",
     unlockDateText: "",
     totalSeedToReceive: "0",
@@ -55,10 +54,20 @@ const Bridge: React.FC<BridgeModalProps> = ({
   return (
     <div className="bridge-modal-overlay">
       <div className="bridge-modal">
+
+        {currentStep > 1 && currentStep < 4 && (
+          <button type="button" className="back-button" onClick={handleBack} aria-label="Go back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        )}
         <button className="close-button" onClick={handleClose}>×</button>
 
+
+
         {currentStep === 1 && (
-          <BridgeCPY handleNext={handleNext} handleConnectWallet={handleConnectWallet} />
+          <BridgeCPY handleNext={handleNext} currentStep={currentStep} />
         )}
 
         {currentStep === 2 && (
@@ -87,7 +96,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
           />
         )}
 
-        {currentStep === 4 && <Success handleNext={handleNext} />}
+        {currentStep === 4 && <Success onClose={onClose} />}
 
         <Stepper steps={steps} currentStep={currentStep} />
       </div>

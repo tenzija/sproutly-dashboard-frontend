@@ -194,13 +194,6 @@ export default function SetStacking({
 
   return (
     <Box sx={{ color: "#fff", display: "flex", flexDirection: "column", gap: 2.5, mb: 1 }}>
-      {/* Back */}
-      <Box sx={{ mt: 1 }}>
-        <Button onClick={handleBack} sx={{ color: "rgba(255,255,255,0.85)", px: 0 }}>
-          {"<"}
-        </Button>
-      </Box>
-
       {/* Title */}
       <Box sx={{ textAlign: "center" }}>
         <Typography variant="h5" sx={{ fontWeight: 800 }}>

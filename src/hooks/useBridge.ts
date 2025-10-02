@@ -140,7 +140,6 @@ export function useBridge() {
 	});
 
 	// Helpers
-
 	const approveIfNeeded = useCallback(
 		async (owner: Address, amount: bigint): Promise<void> => {
 			if (!polygonClient) throw new Error('Polygon client not ready');
@@ -278,7 +277,6 @@ export function useBridge() {
 	);
 
 	// Public action
-
 	const bridge = useCallback(
 		async (humanAmount: string, receiver?: Address): Promise<BridgeResult> => {
 			setError(null);

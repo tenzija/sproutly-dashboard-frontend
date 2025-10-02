@@ -2,7 +2,13 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { useAccount, usePublicClient, useWriteContract } from 'wagmi';
+import {
+	useAccount,
+	usePublicClient,
+	useWriteContract,
+	useChainId,
+	useSwitchChain,
+} from 'wagmi';
 import {
 	BaseError,
 	erc20Abi,
@@ -14,11 +20,10 @@ import {
 import { tokenVestingAbi } from '@/abis/minimalAbi';
 
 const DAY = 86_400n;
+const BASE_CHAIN_ID = 8453 as const;
 
-/** ✅ Dedicated error code union */
 type TxErrorCode = 'REJECTED' | 'REVERT' | 'RPC' | 'UNKNOWN';
 
-/** Discriminated result so UI can branch without try/catch */
 export type TxOutcome =
 	| { ok: true; approveHash?: `0x${string}`; stakeHash: `0x${string}` }
 	| { ok: false; code: TxErrorCode; message: string };
@@ -26,15 +31,14 @@ export type TxOutcome =
 type StakeParams = {
 	vestingAddress: `0x${string}`;
 	tokenX: `0x${string}`;
-	amount: string; // human, e.g. "2500"
-	durationSec: bigint; // lock in seconds
-	cliffDays?: number; // optional extra cliff after lock
-	slicePeriodSeconds?: bigint; // default: 1 day
-	revocable?: boolean; // default: false
-	decimals?: number; // default: 18
+	amount: string;
+	durationSec: bigint;
+	cliffDays?: number;
+	slicePeriodSeconds?: bigint;
+	revocable?: boolean;
+	decimals?: number;
 };
 
-/** ✅ Properly typed minimal ABI for Error(string) */
 const stdErrorAbi = [
 	{
 		type: 'error',
@@ -42,8 +46,6 @@ const stdErrorAbi = [
 		inputs: [{ name: 'message', type: 'string' }],
 	},
 ] as const satisfies Abi;
-
-/** ✅ Use TxErrorCode directly here (avoid TxOutcome['code']) */
 
 function decodeRevertMessage(err: unknown): {
 	code: TxErrorCode;
@@ -56,7 +58,6 @@ function decodeRevertMessage(err: unknown): {
 		if (m && typeof m === 'string') message = m;
 	};
 
-	// ---------- 1) EIP-1193 rejection
 	if (typeof err === 'object' && err !== null) {
 		const e = err as Record<string, unknown>;
 		const cause = (e.cause as Record<string, unknown> | undefined) ?? undefined;
@@ -64,14 +65,12 @@ function decodeRevertMessage(err: unknown): {
 		const causeCode =
 			typeof cause?.code === 'number' ? (cause.code as number) : undefined;
 		const rejectionCode = causeCode ?? topCode;
-
 		const topMsg = typeof e.message === 'string' ? (e.message as string) : '';
 		if (rejectionCode === 4001 || /User rejected/i.test(topMsg)) {
 			return { code: 'REJECTED', message: 'User rejected the request.' };
 		}
 	}
 
-	// ---------- 2) viem/BaseError rich messages (shortMessage/details/message)
 	if (err instanceof Error) {
 		const rec = err as unknown as Record<string, unknown>;
 		const shortMessage =
@@ -80,13 +79,11 @@ function decodeRevertMessage(err: unknown): {
 				: undefined;
 		const details =
 			typeof rec.details === 'string' ? (rec.details as string) : undefined;
-
 		setMsg(shortMessage);
 		if (message === 'Transaction failed') setMsg(details);
 		if (message === 'Transaction failed') setMsg(err.message);
 	}
 
-	// ---------- 3) Decode revert data (custom errors / Error(string))
 	let data: Hex | undefined;
 	if (typeof err === 'object' && err !== null) {
 		const e = err as Record<string, unknown>;
@@ -118,11 +115,10 @@ function decodeRevertMessage(err: unknown): {
 				code = 'REVERT';
 			}
 		} catch {
-			// ignore decode failure
+			/* ignore */
 		}
 	}
 
-	// ---------- 4) Heuristics
 	if (/revert/i.test(message) || /execution reverted/i.test(message))
 		code = 'REVERT';
 	if (/rpc/i.test(message) || /nonce/i.test(message))
@@ -133,7 +129,13 @@ function decodeRevertMessage(err: unknown): {
 
 export function useStakeToken() {
 	const { address } = useAccount();
-	const publicClient = usePublicClient();
+
+	// 🔒 pin client to Base
+	const publicClient = usePublicClient({ chainId: BASE_CHAIN_ID });
+
+	const activeChainId = useChainId();
+	const { switchChainAsync } = useSwitchChain();
+
 	const { writeContractAsync } = useWriteContract();
 
 	const [isApproving, setIsApproving] = useState(false);
@@ -141,6 +143,11 @@ export function useStakeToken() {
 	const [approveHash, setApproveHash] = useState<`0x${string}`>();
 	const [stakeHash, setStakeHash] = useState<`0x${string}`>();
 	const [lastError, setLastError] = useState<string | null>(null);
+
+	const ensureOnBase = useCallback(async () => {
+		if (activeChainId === BASE_CHAIN_ID) return;
+		await switchChainAsync({ chainId: BASE_CHAIN_ID });
+	}, [activeChainId, switchChainAsync]);
 
 	const stake = useCallback(
 		async ({
@@ -161,17 +168,21 @@ export function useStakeToken() {
 				return { ok: false, code: 'UNKNOWN', message: 'No public client' };
 
 			const amountWei = parseUnits(amount || '0', decimals);
-			if (amountWei <= 0n)
+			if (amountWei <= 0n) {
 				return {
 					ok: false,
 					code: 'UNKNOWN',
 					message: 'Amount must be greater than 0',
 				};
+			}
 
 			const cliffSec = BigInt(cliffDays) * DAY;
 
 			try {
-				// --- 1) Allowance
+				// 🔁 make sure wallet is on Base before any tx
+				await ensureOnBase();
+
+				// 1) Allowance (read on Base)
 				const allowance = (await publicClient.readContract({
 					address: tokenX,
 					abi: erc20Abi,
@@ -179,7 +190,7 @@ export function useStakeToken() {
 					args: [address, vestingAddress],
 				})) as bigint;
 
-				// --- 2) Approve if needed (simulate + send)
+				// 2) Approve if needed (simulate on Base -> write on Base)
 				if (allowance < amountWei) {
 					setIsApproving(true);
 					try {
@@ -189,6 +200,7 @@ export function useStakeToken() {
 							functionName: 'approve',
 							args: [vestingAddress, amountWei],
 							account: address,
+							chain: publicClient.chain, // Base
 						});
 						const txHash = await writeContractAsync(request);
 						setApproveHash(txHash);
@@ -202,9 +214,8 @@ export function useStakeToken() {
 					setIsApproving(false);
 				}
 
-				// --- 3) Stake (simulate + send)
+				// 3) Stake (simulate on Base -> write on Base)
 				setIsStaking(true);
-
 				try {
 					const { request } = await publicClient.simulateContract({
 						address: vestingAddress,
@@ -219,6 +230,7 @@ export function useStakeToken() {
 							amountWei,
 						],
 						account: address,
+						chain: publicClient.chain, // Base
 					});
 					const txHash2 = await writeContractAsync(request);
 					setStakeHash(txHash2);
@@ -239,7 +251,7 @@ export function useStakeToken() {
 				return { ok: false, code, message };
 			}
 		},
-		[address, publicClient, writeContractAsync, approveHash]
+		[address, publicClient, writeContractAsync, approveHash, ensureOnBase]
 	);
 
 	return {
@@ -249,6 +261,6 @@ export function useStakeToken() {
 		isMining: isApproving || isStaking,
 		approveHash,
 		stakeHash,
-		lastError, // for UI toasts/snackbars
+		lastError,
 	};
 }
