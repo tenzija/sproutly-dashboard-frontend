@@ -42,7 +42,7 @@ export const formatLargeNumber = (numStr: string): string => {
  */
 export const calculateDestinationAmount = (
 	sourceAmount: string,
-	multiplier: number = 0.2
+	multiplier: number = 1
 ): string => {
 	if (!sourceAmount) return '0';
 

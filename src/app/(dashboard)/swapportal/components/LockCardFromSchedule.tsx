@@ -5,7 +5,9 @@ import React from 'react';
 import LockCard from './LockCard';
 import type { LockCardProps } from './LockCard';
 import { useReleaseVested } from '@/hooks/useReleaseVested';
-import { durationLabelFromSeconds, formatThousands, formatToken } from '@/utils/helper';
+import { durationLabelFromStartAndCliff, formatThousands, formatToken } from '@/utils/helper';
+import { FriendlyError } from "@/utils/evmError";
+import { useToast } from "@/hooks/useToast";
 
 export type VestingScheduleView = {
 	amountTokenFormatted?: string;
@@ -27,7 +29,7 @@ export type VestingScheduleView = {
 
 		// ---- make these optional (missing in your current data) ----
 		beneficiary?: `0x${string}`;
-		start?: bigint;
+		start: bigint;
 		revocable?: boolean;
 		amountLockedX?: bigint;
 	};
@@ -41,12 +43,13 @@ type Props = {
 
 export default function LockCardFromSchedule({ vestingAddress, item, index }: Props) {
 	const { release, isClaiming } = useReleaseVested();
+	const { showToast } = useToast();
 
 	// Prefer amountLockedX if present; otherwise fall back to amountTotal
 	const lockedAmount = item.raw.amountLockedX ?? item.raw.amountTotal;
 
 	const amountCBY = formatToken(lockedAmount, 18) ?? '0';
-	const lockPeriodLabel = durationLabelFromSeconds(item.raw.duration);
+	const lockPeriodLabel = durationLabelFromStartAndCliff(item.raw.start, item.raw.cliff);
 	const totalSeed = item.totalFormatted ?? '0';
 	const claimable = item.claimableFormatted ?? '0';
 	const displayId = `#${String((index ?? 0) + 1).padStart(3, '0')}`;
@@ -64,9 +67,18 @@ export default function LockCardFromSchedule({ vestingAddress, item, index }: Pr
 			? undefined
 			: async () => {
 				try {
-					await release(vestingAddress, item.id);
-				} catch (e) {
-					console.error(e);
+					const rc = await release(vestingAddress, item.id);
+
+					console.log('release response', { rc });
+					// toast.success('Claim complete!');
+				} catch (err: unknown) {
+					// Narrow unknown → FriendlyError
+					const e = err as FriendlyError;
+
+					console.log('release error', { e });
+					showToast({ type: 'error', message: e.userMessage ?? 'Something went wrong. Please try again.' });
+
+					// toast.error(e.userMessage ?? 'Something went wrong. Please try again.');
 				}
 			},
 	};

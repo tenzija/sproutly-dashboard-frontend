@@ -16,24 +16,21 @@ const Stepper: React.FC<StepperProps> = ({ steps, currentStep }) => {
         return (
           <div className="stepper__step" key={index}>
             <div
-              className={`stepper__circle ${
-                isCompleted ? "completed" : isActive ? "active" : ""
-              }`}
+              className={`stepper__circle ${isCompleted ? "completed" : isActive ? "active" : ""
+                }`}
             >
               {isCompleted ? "✓" : ""}
             </div>
             <div
-              className={`stepper__label ${
-                isActive ? "active-label" : ""
-              }`}
+              className={`stepper__label ${isActive ? "active-label" : ""
+                }`}
             >
               {step}
             </div>
             {index !== steps.length - 1 && (
               <div
-                className={`stepper__line ${
-                  isCompleted ? "line-completed" : ""
-                }`}
+                className={`stepper__line ${isCompleted ? "line-completed" : ""
+                  }`}
               ></div>
             )}
           </div>

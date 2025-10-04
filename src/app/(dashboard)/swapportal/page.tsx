@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react";
 import { CBY_ABI } from "@/constant/BlockchainConstants";
 import "./Swapportal.scss";
 import { formatThousands, formatToken } from "@/utils/helper";
-import { useAppKit } from "@reown/appkit/react";
+// import { useAppKit } from "@reown/appkit/react";
 import { useActiveLocks } from "@/hooks/useActiveLocks";
 import LockCardFromSchedule from "./components/LockCardFromSchedule";
 import { Skeleton } from '@mui/material';
@@ -20,14 +20,14 @@ const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS;
 function SwapPortalPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { address: currentAddress, isConnected } = useAccount();
-  const { open, close } = useAppKit();
-  const handleClick = () => {
-    if (isConnected) {
-      close();
-    } else {
-      open();
-    }
-  };
+  // const { open, close } = useAppKit();
+  // const handleClick = () => {
+  //   if (isConnected) {
+  //     close();
+  //   } else {
+  //     open();
+  //   }
+  // };
 
 
   const [value, setValue] = useState<string>("0.00");
@@ -41,10 +41,12 @@ function SwapPortalPage() {
     chainId: 8453, // Base Mainnet
   });
 
-  const { locks, isLoading } = useActiveLocks({
+  const { locks } = useActiveLocks({
     vestingAddress: VESTING_ADDR as `0x${string}`,
     tokenDecimals: 18,
   });
+
+  console.log({ locks });
 
   useEffect(() => {
     const getData = async () => {

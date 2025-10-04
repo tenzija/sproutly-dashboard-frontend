@@ -41,7 +41,6 @@ export default function Review({
   displayId = "#001",
   amountCBY = "10000",
   totalSeedToReceive = "12000",
-  claimableSeed = "0",
   lockPeriodLabel = "12 Months",
   swapRatioLabel = "1 $CBY = 1.2 $SEED",
   unlockDateText = "September 8, 2026",
@@ -56,6 +55,7 @@ export default function Review({
   const onConfirm = async () => {
     try {
       setSubmitting(true);
+
       const res = await stake({
         vestingAddress: VESTING_ADDR,
         tokenX: TOKEN_X_ADDR,
@@ -63,7 +63,7 @@ export default function Review({
         durationSec: BigInt(stakeParams.lockSeconds),
         cliffDays: 0,
         slicePeriodSeconds: 86_400n,
-        revocable: false,
+        revocable: true,
         decimals: 18,
       });
 
@@ -106,19 +106,31 @@ export default function Review({
 
         {/* Row using thin borders as dividers (no stretch) */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Box sx={{ minWidth: 180 }}>
-            <Typography variant="caption" sx={{ opacity: 0.7, mb: 0.5 }}>Lock Period</Typography>
-            <Typography sx={{ fontSize: 18, fontWeight: 700 }}>{lockPeriodLabel}</Typography>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="caption" sx={{ opacity: 0.7, mb: 0.5 }}>
+              Lock Period
+            </Typography>
+            <Typography sx={{ fontSize: 18, fontWeight: 700 }}>
+              {lockPeriodLabel}
+            </Typography>
           </Box>
-          <Box sx={{ flex: "0 0 auto", height: 32, mx: 3, borderLeft: "1px solid rgba(255,255,255,0.12)" }} />
-          <Box sx={{ minWidth: 210 }}>
-            <Typography variant="caption" sx={{ opacity: 0.7, mb: 0.5 }}>Total $SEED to be Received</Typography>
-            <Typography sx={{ fontSize: 18, fontWeight: 700 }}>{fmt(totalSeedToReceive)}</Typography>
-          </Box>
-          <Box sx={{ flex: "0 0 auto", height: 32, mx: 3, borderLeft: "1px solid rgba(255,255,255,0.12)" }} />
-          <Box sx={{ minWidth: 170 }}>
-            <Typography variant="caption" sx={{ opacity: 0.7, mb: 0.5 }}>Claimable $SEED</Typography>
-            <Typography sx={{ fontSize: 18, fontWeight: 700 }}>{fmt(claimableSeed)}</Typography>
+
+          <Box
+            sx={{
+              flex: "0 0 auto",
+              height: 32,
+              mx: 3,
+              borderLeft: "1px solid rgba(255,255,255,0.12)",
+            }}
+          />
+
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="caption" sx={{ opacity: 0.7, mb: 0.5 }}>
+              Total $SEED to be Received
+            </Typography>
+            <Typography sx={{ fontSize: 18, fontWeight: 700 }}>
+              {fmt(totalSeedToReceive)}
+            </Typography>
           </Box>
         </Box>
 
@@ -144,7 +156,7 @@ export default function Review({
             <Typography variant="caption">You will <Box component="span" sx={{ color: GREEN, fontWeight: 500 }}>Receive</Box></Typography>
             <Box sx={{ mt: 1, display: "flex", alignItems: "baseline", gap: 1 }}>
               <Typography variant="h4" sx={{ fontWeight: 800 }}>{fmt(totalSeedToReceive)}</Typography>
-              <Chip label="$CBY" size="small" />
+              <Chip label="$SEED" size="small" />
             </Box>
           </Paper>
         </Stack>

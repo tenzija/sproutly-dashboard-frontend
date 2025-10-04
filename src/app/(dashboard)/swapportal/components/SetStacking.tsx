@@ -6,11 +6,8 @@ import {
   Box,
   Button,
   Chip,
-  FormControl,
   InputAdornment,
-  MenuItem,
   Paper,
-  Select,
   Stack,
   TextField,
   Typography,
@@ -19,6 +16,7 @@ import { ArrowDoubleIcon } from "@/theme/ArrowDoubleIcon";
 import { formatThousands } from "@/utils/helper";
 import { useVestingEstimate } from "@/hooks/useVestingEstimate";
 import { base } from "viem/chains";
+import LockupSlider from "./LockUpSlider";
 
 const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as `0x${string}`;
 
@@ -45,13 +43,13 @@ const LOCK_OPTIONS = [
   { label: "3 Days", seconds: 3 * 86400 },
   { label: "4 Days", seconds: 4 * 86400 },
   { label: "5 Days", seconds: 5 * 86400 },
-  // { label: "7 Days", seconds: 7 * 86400 },
-  // { label: "14 Days", seconds: 14 * 86400 },
-  // { label: "1 Month", seconds: 30 * 86400 },
-  // { label: "3 Months", seconds: 3 * 30 * 86400 },
-  // { label: "6 Months", seconds: 6 * 30 * 86400 },
-  // { label: "12 Months", seconds: 12 * 30 * 86400 },
-  // { label: "24 Months", seconds: 24 * 30 * 86400 },
+  { label: "7 Days", seconds: 7 * 86400 },
+  { label: "14 Days", seconds: 14 * 86400 },
+  { label: "1 Month", seconds: 30 * 86400 },
+  { label: "3 Months", seconds: 3 * 30 * 86400 },
+  { label: "6 Months", seconds: 6 * 30 * 86400 },
+  { label: "12 Months", seconds: 12 * 30 * 86400 },
+  { label: "24 Months", seconds: 24 * 30 * 86400 },
 ];
 
 const CONTROL_SX = {
@@ -59,6 +57,7 @@ const CONTROL_SX = {
   "& .MuiInputBase-root": {
     height: "37px",
     borderRadius: "33px",
+    width: "746px",
     px: "16px",
     py: "8px",
     display: "flex",
@@ -77,30 +76,6 @@ const CONTROL_SX = {
   },
 } as const;
 
-const SELECT_TWEAK_SX = {
-  "& .MuiInputBase-root": {
-    height: "37px",
-    borderRadius: "33px",
-    px: "16px",
-    py: "8px",
-    display: "flex",
-    alignItems: "center",
-  },
-  "& .MuiOutlinedInput-input": {
-    padding: 0,
-    height: "21px",
-    lineHeight: "21px",
-    display: "flex",
-    alignItems: "center",
-  },
-  "& .MuiSelect-select": {
-    padding: 0,
-    height: "21px",
-    lineHeight: "21px",
-    display: "flex",
-    alignItems: "center",
-  },
-} as const;
 
 const isValidNumberInput = (v: string) => /^(\d+(\.\d{0,18})?)?$/.test(v);
 
@@ -118,7 +93,6 @@ export default function SetStacking({
   value,
   onChange,
   handleNext,
-  handleBack,
   availableBalance,
   onConfirm,
 }: SetStackingProps) {
@@ -231,38 +205,7 @@ export default function SetStacking({
             }}
           />
         </Box>
-
-        <Box>
-          <Typography variant="subtitle2" sx={{ mb: 0.75, opacity: 0.9 }}>
-            Lock-up Period
-          </Typography>
-          <FormControl sx={{ ...CONTROL_SX, ...SELECT_TWEAK_SX }}>
-            <Select<number>
-              value={lockSeconds}
-              onChange={(e) => {
-                const secs = Number(e.target.value);
-                const opt = LOCK_OPTIONS.find((o) => o.seconds === secs)!;
-                onLockChange(secs, opt.label);
-              }}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    backgroundColor: "rgba(15,15,15,0.96)",
-                    border: "1px solid rgba(255,255,255,0.16)",
-                    borderRadius: "16px",
-                    backdropFilter: "blur(4px)",
-                  },
-                },
-              }}
-            >
-              {LOCK_OPTIONS.map((o) => (
-                <MenuItem key={o.seconds} value={o.seconds}>
-                  {o.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
+        <LockupSlider onLockChange={onLockChange} lockSeconds={lockSeconds} />
       </Stack>
 
       {/* Summary cards */}
@@ -309,7 +252,7 @@ export default function SetStacking({
             <Typography variant="h4" sx={{ fontWeight: 800 }}>
               {formatThousands(est.formatted.totalY ?? "0")}
             </Typography>
-            <Chip label="$CBY" size="small" />
+            <Chip label="$SEED" size="small" />
           </Box>
         </Paper>
       </Stack>

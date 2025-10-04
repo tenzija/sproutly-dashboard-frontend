@@ -1,4 +1,3 @@
-// hooks/useStakeToken.ts
 'use client';
 
 import { useCallback, useState } from 'react';
@@ -7,260 +6,176 @@ import {
 	usePublicClient,
 	useWriteContract,
 	useChainId,
-	useSwitchChain,
 } from 'wagmi';
-import {
-	BaseError,
-	erc20Abi,
-	parseUnits,
-	decodeErrorResult,
-	Hex,
-	type Abi,
-} from 'viem';
-import { tokenVestingAbi } from '@/abis/minimalAbi';
+import type { Address, Hex, TransactionReceipt } from 'viem';
+import { parseUnits } from 'viem';
+import { useEvmError } from '@/hooks/useEvmError';
+import { erc20Abi, tokenVestingAbi } from '@/abis/minimalAbi';
+import { base } from 'viem/chains';
 
-const DAY = 86_400n;
-const BASE_CHAIN_ID = 8453 as const;
-
-type TxErrorCode = 'REJECTED' | 'REVERT' | 'RPC' | 'UNKNOWN';
-
-export type TxOutcome =
-	| { ok: true; approveHash?: `0x${string}`; stakeHash: `0x${string}` }
-	| { ok: false; code: TxErrorCode; message: string };
-
-type StakeParams = {
-	vestingAddress: `0x${string}`;
-	tokenX: `0x${string}`;
-	amount: string;
-	durationSec: bigint;
-	cliffDays?: number;
-	slicePeriodSeconds?: bigint;
-	revocable?: boolean;
-	decimals?: number;
+export type StakeParams = {
+	vestingAddress: Address; // TokenVesting proxy
+	tokenX: Address; // CBY (locked token)
+	amount: string; // human units, e.g. "123.45"
+	decimals?: number; // default 18
+	durationSec: bigint; // lock duration in seconds
+	cliffDays?: number; // optional; default 0 days
+	slicePeriodSeconds?: bigint; // default 86_400n
+	revocable?: boolean; // default true
+	autoApprove?: boolean; // default true
+	infiniteApproval?: boolean; // default false
 };
 
-const stdErrorAbi = [
-	{
-		type: 'error',
-		name: 'Error',
-		inputs: [{ name: 'message', type: 'string' }],
-	},
-] as const satisfies Abi;
-
-function decodeRevertMessage(err: unknown): {
-	code: TxErrorCode;
-	message: string;
-} {
-	let message = 'Transaction failed';
-	let code: TxErrorCode = 'UNKNOWN';
-
-	const setMsg = (m?: string) => {
-		if (m && typeof m === 'string') message = m;
-	};
-
-	if (typeof err === 'object' && err !== null) {
-		const e = err as Record<string, unknown>;
-		const cause = (e.cause as Record<string, unknown> | undefined) ?? undefined;
-		const topCode = typeof e.code === 'number' ? (e.code as number) : undefined;
-		const causeCode =
-			typeof cause?.code === 'number' ? (cause.code as number) : undefined;
-		const rejectionCode = causeCode ?? topCode;
-		const topMsg = typeof e.message === 'string' ? (e.message as string) : '';
-		if (rejectionCode === 4001 || /User rejected/i.test(topMsg)) {
-			return { code: 'REJECTED', message: 'User rejected the request.' };
-		}
-	}
-
-	if (err instanceof Error) {
-		const rec = err as unknown as Record<string, unknown>;
-		const shortMessage =
-			typeof rec.shortMessage === 'string'
-				? (rec.shortMessage as string)
-				: undefined;
-		const details =
-			typeof rec.details === 'string' ? (rec.details as string) : undefined;
-		setMsg(shortMessage);
-		if (message === 'Transaction failed') setMsg(details);
-		if (message === 'Transaction failed') setMsg(err.message);
-	}
-
-	let data: Hex | undefined;
-	if (typeof err === 'object' && err !== null) {
-		const e = err as Record<string, unknown>;
-		const cause = e.cause as Record<string, unknown> | undefined;
-		const topData = typeof e.data === 'string' ? (e.data as Hex) : undefined;
-		const causeData =
-			typeof cause?.data === 'string' ? (cause.data as Hex) : undefined;
-		data = causeData ?? topData;
-	}
-
-	if (data && typeof data === 'string') {
-		try {
-			const decoded = (() => {
-				try {
-					return decodeErrorResult({ abi: tokenVestingAbi, data });
-				} catch {
-					return decodeErrorResult({ abi: stdErrorAbi, data });
-				}
-			})();
-
-			if (decoded?.errorName === 'Error' && decoded?.args?.[0] !== undefined) {
-				message = String(decoded.args[0]);
-				code = 'REVERT';
-			} else if (decoded?.errorName) {
-				const args = (decoded.args ?? [])
-					.map((x: unknown) => String(x))
-					.join(', ');
-				message = args ? `${decoded.errorName}(${args})` : decoded.errorName;
-				code = 'REVERT';
-			}
-		} catch {
-			/* ignore */
-		}
-	}
-
-	if (/revert/i.test(message) || /execution reverted/i.test(message))
-		code = 'REVERT';
-	if (/rpc/i.test(message) || /nonce/i.test(message))
-		code = code === 'UNKNOWN' ? 'RPC' : code;
-
-	return { code, message: message || 'Transaction failed' };
-}
+export type StakeSuccess = { ok: true; hash: Hex; receipt: TransactionReceipt };
+export type StakeFailure = {
+	ok: false;
+	error: { userMessage: string; devMessage?: string };
+};
+export type StakeResult = StakeSuccess | StakeFailure;
 
 export function useStakeToken() {
 	const { address } = useAccount();
-
-	// 🔒 pin client to Base
-	const publicClient = usePublicClient({ chainId: BASE_CHAIN_ID });
-
-	const activeChainId = useChainId();
-	const { switchChainAsync } = useSwitchChain();
-
+	const chainId = useChainId();
+	const publicClient = usePublicClient({ chainId: base.id });
 	const { writeContractAsync } = useWriteContract();
+	const { handleTx } = useEvmError({
+		contractHints: [
+			{
+				match: /TokenVesting:\s*startDate not set/i,
+				message: 'Vesting is not configured yet.',
+			},
+			{
+				match: /TokenVesting:\s*unauthorized create/i,
+				message: 'You are not allowed to create this schedule.',
+			},
+			{
+				match: /TokenVesting:\s*zero lock/i,
+				message: 'Amount must be more than zero.',
+			},
+			{
+				match: /TokenVesting:\s*slice > 0/i,
+				message: 'The slice time must be more than zero.',
+			},
+			{
+				match: /TokenVesting:\s*linear needs duration/i,
+				message: 'Linear vesting needs a positive duration.',
+			},
+			{
+				match: /TokenVesting:\s*insufficient reward funds/i,
+				message: 'Rewards vault is empty right now.',
+			},
+		],
+	});
 
 	const [isApproving, setIsApproving] = useState(false);
 	const [isStaking, setIsStaking] = useState(false);
-	const [approveHash, setApproveHash] = useState<`0x${string}`>();
-	const [stakeHash, setStakeHash] = useState<`0x${string}`>();
-	const [lastError, setLastError] = useState<string | null>(null);
-
-	const ensureOnBase = useCallback(async () => {
-		if (activeChainId === BASE_CHAIN_ID) return;
-		await switchChainAsync({ chainId: BASE_CHAIN_ID });
-	}, [activeChainId, switchChainAsync]);
+	const [txHash, setTxHash] = useState<Hex | undefined>();
 
 	const stake = useCallback(
-		async ({
-			vestingAddress,
-			tokenX,
-			amount,
-			durationSec,
-			cliffDays = 0,
-			slicePeriodSeconds = DAY,
-			revocable = false,
-			decimals = 18,
-		}: StakeParams): Promise<TxOutcome> => {
-			setLastError(null);
+		async (p: StakeParams): Promise<StakeResult> => {
+			const {
+				vestingAddress,
+				tokenX,
+				amount,
+				decimals = 18,
+				durationSec,
+				cliffDays = 0,
+				slicePeriodSeconds = 86_400n,
+				revocable = true,
+				autoApprove = true,
+				infiniteApproval = true,
+			} = p;
 
-			if (!address)
-				return { ok: false, code: 'UNKNOWN', message: 'Wallet not connected' };
-			if (!publicClient)
-				return { ok: false, code: 'UNKNOWN', message: 'No public client' };
-
-			const amountWei = parseUnits(amount || '0', decimals);
-			if (amountWei <= 0n) {
+			if (!address) {
 				return {
 					ok: false,
-					code: 'UNKNOWN',
-					message: 'Amount must be greater than 0',
+					error: { userMessage: 'Please connect your wallet.' },
+				};
+			}
+			if (!publicClient) {
+				return {
+					ok: false,
+					error: { userMessage: 'No RPC client available.' },
 				};
 			}
 
-			const cliffSec = BigInt(cliffDays) * DAY;
-
 			try {
-				// 🔁 make sure wallet is on Base before any tx
-				await ensureOnBase();
+				const amountX = parseUnits(amount || '0', decimals);
 
-				// 1) Allowance (read on Base)
-				const allowance = (await publicClient.readContract({
-					address: tokenX,
-					abi: erc20Abi,
-					functionName: 'allowance',
-					args: [address, vestingAddress],
-				})) as bigint;
-
-				// 2) Approve if needed (simulate on Base -> write on Base)
-				if (allowance < amountWei) {
+				// 1) Optional approve flow
+				if (autoApprove) {
 					setIsApproving(true);
-					try {
+					await handleTx(async () => {
+						const allowance = (await publicClient.readContract({
+							address: tokenX,
+							abi: erc20Abi,
+							functionName: 'allowance',
+							args: [address, vestingAddress],
+						})) as bigint;
+
+						if (amountX <= allowance) return 'skip-approve';
+
+						const approveValue = infiniteApproval ? 2n ** 256n - 1n : amountX;
+
 						const { request } = await publicClient.simulateContract({
 							address: tokenX,
 							abi: erc20Abi,
 							functionName: 'approve',
-							args: [vestingAddress, amountWei],
+							args: [vestingAddress, approveValue],
 							account: address,
-							chain: publicClient.chain, // Base
 						});
-						const txHash = await writeContractAsync(request);
-						setApproveHash(txHash);
-						await publicClient.waitForTransactionReceipt({ hash: txHash });
-					} catch (e) {
-						const { code, message } = decodeRevertMessage(e);
-						setIsApproving(false);
-						setLastError(message);
-						return { ok: false, code, message };
-					}
+
+						const hash = await writeContractAsync(request);
+						await publicClient.waitForTransactionReceipt({ hash });
+						return hash;
+					});
 					setIsApproving(false);
 				}
 
-				// 3) Stake (simulate on Base -> write on Base)
+				// 2) Create vesting schedule
 				setIsStaking(true);
-				try {
-					const { request } = await publicClient.simulateContract({
-						address: vestingAddress,
-						abi: tokenVestingAbi,
-						functionName: 'createVestingSchedule',
-						args: [
-							address,
-							cliffSec,
-							slicePeriodSeconds,
-							durationSec,
-							revocable,
-							amountWei,
-						],
-						account: address,
-						chain: publicClient.chain, // Base
-					});
-					const txHash2 = await writeContractAsync(request);
-					setStakeHash(txHash2);
-					await publicClient.waitForTransactionReceipt({ hash: txHash2 });
-					setIsStaking(false);
-					return { ok: true, approveHash, stakeHash: txHash2 };
-				} catch (e) {
-					const { code, message } = decodeRevertMessage(e);
-					setIsStaking(false);
-					setLastError(message);
-					return { ok: false, code, message };
-				}
-			} catch (e) {
-				const { code, message } = decodeRevertMessage(e);
+				const cliffSeconds = BigInt(cliffDays) * 86_400n;
+
+				const { request } = await publicClient.simulateContract({
+					address: vestingAddress,
+					abi: tokenVestingAbi,
+					functionName: 'createVestingSchedule',
+					args: [
+						address, // beneficiary
+						cliffSeconds,
+						slicePeriodSeconds,
+						durationSec,
+						revocable,
+						amountX,
+					],
+					account: address,
+				});
+
+				const hash = await writeContractAsync(request);
+				setTxHash(hash);
+				const receipt = await publicClient.waitForTransactionReceipt({ hash });
+
+				setIsStaking(false);
+				return { ok: true, hash, receipt };
+			} catch (err: unknown) {
 				setIsApproving(false);
 				setIsStaking(false);
-				setLastError(message);
-				return { ok: false, code, message };
+
+				const friendly =
+					err && typeof err === 'object' && 'userMessage' in err
+						? (err as { userMessage: string; devMessage?: string })
+						: { userMessage: 'Something went wrong. Please try again.' };
+
+				return { ok: false, error: friendly };
 			}
 		},
-		[address, publicClient, writeContractAsync, approveHash, ensureOnBase]
+		[address, publicClient, writeContractAsync, chainId, handleTx]
 	);
 
 	return {
 		stake,
 		isApproving,
 		isStaking,
-		isMining: isApproving || isStaking,
-		approveHash,
-		stakeHash,
-		lastError,
+		txHash,
 	};
 }

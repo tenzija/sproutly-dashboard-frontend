@@ -2,7 +2,7 @@ import { cookieStorage, createStorage } from '@wagmi/core';
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { base, polygon } from '@reown/appkit/networks';
 import { http } from 'wagmi';
-import { injected, metaMask, walletConnect } from 'wagmi/connectors';
+import { walletConnect } from 'wagmi/connectors';
 import { defineChain } from "viem";
 
 // WalletConnect Project Id

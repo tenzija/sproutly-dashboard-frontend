@@ -147,3 +147,28 @@ a {
 .checkbox_label input[type='checkbox']:checked + .checkmark::after {
 	opacity: 1;
 }
+
+.Toastify__toast {
+	border-radius: 8px; /* Rounded corners */
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	font-family: 'Roboto', sans-serif; /* Use a modern font similar to your UI */
+}
+
+.Toastify__toast--success {
+	background-color: #4caf50; /* Green background */
+}
+
+.Toastify__toast--error {
+	background-color: #f44336; /* Red background */
+}
+
+.Toastify__toast-body {
+	font-size: 14px; /* Adjust font size */
+	line-height: 20px;
+}
+
+/* Customize Close Button (X) color for specific toast type */
+.custom-toast .Toastify__close-button {
+	color: #ff6347; /* Customize the close button color */
+	font-size: 20px;
+}

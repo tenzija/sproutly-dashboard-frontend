@@ -2,8 +2,12 @@
 import { useBridge } from "@/hooks/useBridge";
 import React, { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
-import { calculateDestinationAmount, formatDisplayAmount, isValidNumberInput } from "../utils/numberUtils";
-
+import {
+  calculateDestinationAmount,
+  formatDisplayAmount,
+  isValidNumberInput,
+} from "../utils/numberUtils";
+import { BridgeStepper } from "./BridgeStepper";
 
 interface BridgeCPYProps {
   handleNext: () => void;
@@ -11,54 +15,77 @@ interface BridgeCPYProps {
 }
 
 export default function BridgeCPY({ handleNext, currentStep }: BridgeCPYProps) {
-  const [sourceChain, setSourceChain] = useState("Polygon");
   const [amount, setAmount] = useState("");
-  const [isNextDisabled, setIsNextDisabled] = useState(false)
+  const [isNextDisabled, setIsNextDisabled] = useState(false);
+
   const { isConnected } = useAccount();
-  const { bridge, progress, error, txHash, bridgingMs, isReady, isOnPolygon, reset } = useBridge();
+  const {
+    bridge,
+    progress,
+    isReady,
+    isOnPolygon, // still useful to decide if we’ll show the “switching” label AFTER click
+    reset,
+  } = useBridge();
+
+  // local UI flag shown only after user clicks Bridge while not on Polygon
+  const [uiSwitching, setUiSwitching] = useState(false);
 
   const onBridge = async () => {
-    // Immediately disable Bridge & enable Next
+    // show "Switching to Polygon…" only if we actually need to switch
+    if (!isOnPolygon) setUiSwitching(true);
 
-    // If you want to run the actual bridge flow, uncomment this:
-    const res = await bridge(amount);
-    if (res.status === 'success') {
+    const res = await bridge(amount); // hook will switch if needed
+
+    setUiSwitching(false);
+
+    if (res.status === "success") {
       setIsNextDisabled(true);
-    }
-    if (res.status === 'userRejected') {
-      // Re-enable Bridge & keep Next disabled if user cancelled
+    } else if (res.status === "userRejected") {
       setIsNextDisabled(false);
       reset();
     }
+    // for failed/wrongNetwork you may keep Next disabled and show error message
   };
 
   useEffect(() => {
     if (currentStep === 1) {
-      // entering this step -> reset to default: Bridge enabled, Next disabled
       setIsNextDisabled(false);
+      setUiSwitching(false);
     }
   }, [currentStep]);
 
   const bridgeDisabled =
-    isNextDisabled || // <- disable after click
+    isNextDisabled ||
     !amount ||
     !isConnected ||
     !isReady ||
+    uiSwitching || // prevent double-click while switching
     progress === "sending" ||
     progress === "waitingBase";
 
-  const nextDisabled = !isNextDisabled; // <- until Bridge clicked
+  const nextDisabled = !isNextDisabled;
 
   const inputDisabled =
-    isNextDisabled || // <- lock input after Bridge clicked
+    isNextDisabled ||
     !isConnected ||
     !isReady ||
+    uiSwitching ||
     progress === "sending" ||
     progress === "waitingBase";
 
-  // 🔁 swap classes after click
-  const bridgeClass = isNextDisabled ? 'next-btn' : 'bridge-btn';
-  const nextClass = isNextDisabled ? 'bridge-btn' : 'next-btn';
+  const bridgeClass = isNextDisabled ? "next-btn" : "bridge-btn";
+  const nextClass = isNextDisabled ? "bridge-btn" : "next-btn";
+
+  // compute button label WITHOUT using isOnPolygon at mount
+  const bridgeLabel = !isReady
+    ? "Initializing RPC…"
+    : uiSwitching
+      ? "Switching to Polygon…"
+      : progress === "sending"
+        ? "Sending…"
+        : progress === "waitingBase"
+          ? "Finalizing on Base…"
+          : "Bridge";
 
   return (
     <>
@@ -73,13 +100,14 @@ export default function BridgeCPY({ handleNext, currentStep }: BridgeCPYProps) {
       <div className="modal-content">
         <div className="form-row">
           <div className="form-group">
-            <label>Source Chain</label>
-            <div className="select-wrapper">
-              <select value={sourceChain} onChange={(e) => setSourceChain(e.target.value)} className="chain-select">
-                <option value="Polygon">Polygon</option>
-                {/* If you add multi-source later, switch clients by chainId */}
-              </select>
-            </div>
+            <label>Amount to Bridge:</label>
+            <input
+              type="text"
+              placeholder="Enter amount"
+              value={"Polygon"}
+              className="amount-input"
+              disabled
+            />
             <p className="destination-info">Destination Chain: BASE Chain</p>
           </div>
 
@@ -89,12 +117,19 @@ export default function BridgeCPY({ handleNext, currentStep }: BridgeCPYProps) {
               type="text"
               placeholder="Enter amount"
               value={amount}
-              onChange={(e) => setAmount(isValidNumberInput(e.target.value) ? e.target.value : amount)}
+              onChange={(e) =>
+                setAmount(
+                  isValidNumberInput(e.target.value) ? e.target.value : amount
+                )
+              }
               className="amount-input"
               disabled={inputDisabled}
             />
             <p className="fee-info">
-              Estimated Bridging Fee: <span style={{ color: "#9FE870", fontWeight: 500 }}>~ 1.0 POL</span>
+              Estimated Bridging Fee:{" "}
+              <span style={{ color: "#9FE870", fontWeight: 500 }}>
+                ~ 1.0 POL
+              </span>
               <span className="info-icon">ⓘ</span>
             </p>
           </div>
@@ -121,36 +156,20 @@ export default function BridgeCPY({ handleNext, currentStep }: BridgeCPYProps) {
           </div>
         </div>
 
-        <div className="action-buttons">
-          <button className={bridgeClass} onClick={onBridge} disabled={bridgeDisabled}
-          >
-            {!isReady
-              ? 'Initializing RPC…'
-              : progress === 'sending'
-                ? 'Sending…'
-                : progress === 'waitingBase'
-                  ? 'Finalizing on Base…'
-                  : isOnPolygon
-                    ? 'Bridge'
-                    : 'Switching to Polygon…'}
+        <div className="action-buttons" style={{ marginBottom: "20px" }}>
+          <button className={bridgeClass} onClick={onBridge} disabled={bridgeDisabled}>
+            {bridgeLabel}
           </button>
 
-          <button
-            className={nextClass}
-            onClick={handleNext}
-            disabled={nextDisabled}
-          >
+          <button className={nextClass} onClick={handleNext} disabled={nextDisabled}>
             Next
           </button>
         </div>
 
-        {/* Status & debug */}
-        <div className="mt-3 text-sm opacity-80">
-          {progress !== "idle" && <div>Status: {progress}</div>}
-          {txHash && <div>Polygon tx: <a href={`https://polygonscan.com/tx/${txHash}`} target="_blank" rel="noreferrer">{txHash}</a></div>}
-          {typeof bridgingMs === "number" && <div>Bridging time: {bridgingMs} ms</div>}
-          {error && <div className="text-red-400">Error: {error}</div>}
-        </div>
+        {/* --- Clean, edge-safe status panel --- */}
+        {progress !== "idle" && progress !== "error" && (
+          <BridgeStepper progress={progress} />
+        )}
       </div>
     </>
   );

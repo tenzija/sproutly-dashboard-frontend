@@ -87,6 +87,39 @@ export const tokenVestingAbi = [
 		stateMutability: 'nonpayable',
 		type: 'function',
 	},
+	{
+		type: 'function',
+		name: 'computeVestingScheduleIdForAddressAndIndex',
+		stateMutability: 'pure',
+		inputs: [
+			{ name: 'holder', type: 'address' },
+			{ name: 'index', type: 'uint256' },
+		],
+		outputs: [{ type: 'bytes32' }],
+	},
+	{
+		type: 'function',
+		name: 'getVestingSchedule',
+		stateMutability: 'view',
+		inputs: [{ name: 'id', type: 'bytes32' }],
+		outputs: [
+			{
+				components: [
+					{ name: 'beneficiary', type: 'address' },
+					{ name: 'cliff', type: 'uint256' },
+					{ name: 'start', type: 'uint256' },
+					{ name: 'duration', type: 'uint256' },
+					{ name: 'slicePeriodSeconds', type: 'uint256' },
+					{ name: 'revocable', type: 'bool' },
+					{ name: 'amountTotal', type: 'uint256' },
+					{ name: 'released', type: 'uint256' },
+					{ name: 'revoked', type: 'bool' },
+					{ name: 'amountLockedX', type: 'uint256' },
+				],
+				type: 'tuple',
+			},
+		],
+	},
 ] as const;
 
 // abis/calculationLayer.ts

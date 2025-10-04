@@ -27,20 +27,32 @@ export const formatThousands = (v: string | number | bigint): string => {
 	return frac ? `${intWithCommas}.${frac}` : intWithCommas;
 };
 
-export const SECONDS_PER_DAY = 86_400n;
-export const SECONDS_PER_MONTH_30 = 30n * SECONDS_PER_DAY;
+const SECONDS_PER_DAY = 86400n; // 60 * 60 * 24
+const SECONDS_PER_MONTH_30 = 30n * SECONDS_PER_DAY; // Approximate 30-day month
 
-export function durationLabelFromSeconds(duration: bigint): string {
-	if (duration <= 0n) return '0';
+export function durationLabelFromStartAndCliff(
+	start: bigint,
+	cliff: bigint
+): string {
+	if (start <= 0n || cliff <= 0n || cliff <= start) {
+		return 'Invalid timestamps';
+	}
+
+	// Calculate the duration between start and cliff
+	const vestingDuration = cliff - start;
+
 	// Prefer Months when exact multiple of 30 days
-	if (duration % SECONDS_PER_MONTH_30 === 0n) {
-		const months = Number(duration / SECONDS_PER_MONTH_30);
+	if (vestingDuration % SECONDS_PER_MONTH_30 === 0n) {
+		const months = Number(vestingDuration / SECONDS_PER_MONTH_30);
 		return `${months} ${months === 1 ? 'Month' : 'Months'}`;
 	}
-	if (duration % SECONDS_PER_DAY === 0n) {
-		const days = Number(duration / SECONDS_PER_DAY);
+
+	// Handle Days if the duration is a multiple of a day
+	if (vestingDuration % SECONDS_PER_DAY === 0n) {
+		const days = Number(vestingDuration / SECONDS_PER_DAY);
 		return `${days} ${days === 1 ? 'Day' : 'Days'}`;
 	}
+
 	// Fallback to seconds
-	return `${Number(duration)} sec`;
+	return `${Number(vestingDuration)} sec`;
 }

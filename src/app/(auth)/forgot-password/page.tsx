@@ -66,7 +66,7 @@ function Page() {
       .post("/auth/forgot-password", {
         ...formData,
       })
-      .then((response) => {
+      .then(() => {
         toast("Reset link sent to your email!", { type: "success" });
 
         setTimeout(() => {
