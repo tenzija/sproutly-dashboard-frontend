@@ -3,11 +3,11 @@ import "@fontsource/montserrat";
 import "@fontsource/montserrat/400.css";
 import "@fontsource/montserrat/400-italic.css";
 import "./globals.css";
+import 'react-toastify/dist/ReactToastify.css';
 import { headers } from "next/headers";
 import ContextProvider from "../context";
 import { AuthProvider } from "../context/AuthContext";
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import ThemeProviderClient from "@/theme/ThemeProviderClient";
 
 // REMOVE: import AppKitInit from './AppKitInit';

@@ -3,12 +3,14 @@
 import { createAppKit } from '@reown/appkit/react';
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { base, polygon } from '@reown/appkit/networks';
-import { defineChain } from 'viem';
+import { defineChain, Chain } from 'viem';
 
+// Ensure projectId is defined
 const projectId = process.env.NEXT_PUBLIC_PROJECT_ID!;
-if (!projectId) console.error('Missing NEXT_PUBLIC_PROJECT_ID');
+if (!projectId) throw new Error('Missing NEXT_PUBLIC_PROJECT_ID');
 
-const sproutlyTestnet = defineChain({
+// Define Sproutly Testnet chain with proper types
+const sproutlyTestnet: Chain = defineChain({
 	id: 1313161798,
 	name: 'Sproutly Testnet',
 	network: 'sproutly-testnet',
@@ -26,25 +28,23 @@ const sproutlyTestnet = defineChain({
 	testnet: true,
 });
 
-// Build a single Wagmi adapter (client-only)
-export const wagmiAdapter = new WagmiAdapter({
-	// You can pass viem chains here; AppKit networks can mix with viem chains.
-	networks: [sproutlyTestnet],
-	projectId,
-	ssr: true,
-});
-
-// Singleton guard to avoid repeated createAppKit() calls in dev/HMR
+// Declare global variable to ensure singleton initialization of AppKit
 declare global {
 	var __APPKIT_SINGLETON__: ReturnType<typeof createAppKit> | undefined;
 }
 
+// Create AppKit instance (singleton pattern)
 export const appKit =
 	globalThis.__APPKIT_SINGLETON__ ||
 	(globalThis.__APPKIT_SINGLETON__ = createAppKit({
-		adapters: [wagmiAdapter],
+		adapters: [
+			new WagmiAdapter({
+				networks: [sproutlyTestnet, base, polygon],
+				projectId,
+				ssr: true,
+			}),
+		],
 		projectId,
-		// AppKit networks may include @reown/appkit/networks presets + custom viem chain
 		networks: [base, polygon, sproutlyTestnet],
 		defaultNetwork: base,
 		metadata: {
@@ -58,5 +58,9 @@ export const appKit =
 		enableCoinbase: false,
 	}));
 
-// Export the Wagmi config for providers
-export const wagmiConfig = wagmiAdapter.wagmiConfig;
+// Define and export wagmiConfig with appropriate types
+export const wagmiConfig = new WagmiAdapter({
+	networks: [sproutlyTestnet, base, polygon],
+	projectId,
+	ssr: true,
+}).wagmiConfig;

@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { RiSwapBoxFill } from "react-icons/ri";
 import { FaWallet } from "react-icons/fa";
+import { useAppKit } from "@reown/appkit/react";
 import { useAccount, useDisconnect } from "wagmi";
 import Image from "next/image";
-import { useAppKit } from "@reown/appkit/react";
 import { getCookie } from "@/utils/cookies";
 import { useAutoDisconnectOnLock } from "@/hooks/useAutoDisconnectOnLock";
 
