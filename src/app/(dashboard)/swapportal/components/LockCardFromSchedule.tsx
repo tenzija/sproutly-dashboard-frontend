@@ -1,13 +1,14 @@
 // components/LockCardFromSchedule.tsx
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import LockCard from './LockCard';
 import type { LockCardProps } from './LockCard';
 import { useReleaseVested } from '@/hooks/useReleaseVested';
 import { durationLabelFromStartAndCliff, formatThousands, formatToken } from '@/utils/helper';
 import { FriendlyError } from "@/utils/evmError";
 import { useToast } from "@/hooks/useToast";
+import { useActiveLocks } from "@/hooks/useActiveLocks";
 
 export type VestingScheduleView = {
 	amountTokenFormatted?: string;
@@ -43,6 +44,8 @@ type Props = {
 
 export default function LockCardFromSchedule({ vestingAddress, item, index }: Props) {
 	const { release, isClaiming } = useReleaseVested();
+	const { refetch } = useActiveLocks({ vestingAddress });
+
 	const { showToast } = useToast();
 
 	// Prefer amountLockedX if present; otherwise fall back to amountTotal
@@ -71,6 +74,8 @@ export default function LockCardFromSchedule({ vestingAddress, item, index }: Pr
 
 					console.log('release response', { rc });
 					// toast.success('Claim complete!');
+					refetch();
+					console.log('Refetch triggered');
 				} catch (err: unknown) {
 					// Narrow unknown → FriendlyError
 					const e = err as FriendlyError;

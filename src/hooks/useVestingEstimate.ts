@@ -89,9 +89,22 @@ export function useVestingEstimate(
 		},
 	});
 
+	// Destructure the exact primitives we read inside the memo
+	const { data: clData, isLoading: clLoading, error: clError } = getCL;
+	const {
+		data: startData,
+		isLoading: startLoading,
+		error: startError,
+	} = getStart;
+	const {
+		data: ratioData,
+		isLoading: ratioLoading,
+		error: ratioError,
+	} = calcRatio;
+
 	const result = useMemo<VestingEstimate>(() => {
 		const amountWei = parseUnits(amountX || '0', Number(DECIMALS));
-		const ratio = (calcRatio.data as bigint | undefined) ?? undefined;
+		const ratio = (ratioData as bigint | undefined) ?? undefined;
 
 		let baseY: bigint | undefined;
 		let bonusY: bigint | undefined;
@@ -111,11 +124,10 @@ export function useVestingEstimate(
 		}
 
 		// dates (only if startDate is set)
-		const sd = getStart.data as bigint | undefined;
 		let dates: VestingEstimate['dates'];
+		const sd = startData as bigint | undefined;
 		if (sd && sd > 0n) {
 			const cliffTime = Number(sd) + Number(durationSec) + Number(cliffSec);
-
 			dates = {
 				startDate: Number(sd),
 				cliffTime,
@@ -144,10 +156,23 @@ export function useVestingEstimate(
 				amountX, // already human
 			},
 			dates,
-			isLoading: getCL.isLoading || calcRatio.isLoading || getStart.isLoading,
-			error: getCL.error || calcRatio.error || getStart.error,
+			isLoading: clLoading || ratioLoading || startLoading,
+			error: clError || ratioError || startError,
 		};
-	}, [amountX, calcRatio.data, getStart.data, durationSec, cliffSec]);
+	}, [
+		amountX,
+		durationSec,
+		cliffSec,
+		// memo inputs actually read:
+		ratioData,
+		startData,
+		clLoading,
+		ratioLoading,
+		startLoading,
+		clError,
+		ratioError,
+		startError,
+	]);
 
 	return result;
 }

@@ -3,15 +3,18 @@
 import { useCallback, useState } from 'react';
 import {
 	useAccount,
-	usePublicClient,
-	useWriteContract,
 	useChainId,
+	usePublicClient,
+	useSwitchChain,
+	useWriteContract,
 } from 'wagmi';
 import type { Address, Hex, TransactionReceipt } from 'viem';
-import { parseUnits } from 'viem';
+import { parseUnits, UserRejectedRequestError } from 'viem';
 import { useEvmError } from '@/hooks/useEvmError';
 import { erc20Abi, tokenVestingAbi } from '@/abis/minimalAbi';
-import { base } from 'viem/chains';
+import { base, polygon } from 'wagmi/chains'; // Adjust for your networks
+import { switchChain } from '@wagmi/core'; // Correctly import from @wagmi/core
+import { config } from '@/config'; // Assuming you have a config file that defines the wagmi config
 
 export type StakeParams = {
 	vestingAddress: Address; // TokenVesting proxy
@@ -32,12 +35,28 @@ export type StakeFailure = {
 	error: { userMessage: string; devMessage?: string };
 };
 export type StakeResult = StakeSuccess | StakeFailure;
+class UserRejected extends Error {
+	constructor(m: string) {
+		super(m);
+		this.name = 'UserRejected';
+	}
+}
+const isUserRejectedDeep = (err: unknown): boolean => {
+	if (err instanceof UserRejectedRequestError) return true;
+	const any = err as { code?: number; message?: string; cause?: unknown };
+	if (any?.code === 4001) return true;
+	if (/denied transaction signature|user rejected/i.test(any?.message ?? ''))
+		return true;
+	if (any?.cause) return isUserRejectedDeep(any.cause);
+	return false;
+};
 
 export function useStakeToken() {
 	const { address } = useAccount();
-	const chainId = useChainId();
 	const publicClient = usePublicClient({ chainId: base.id });
+	const { switchChainAsync } = useSwitchChain();
 	const { writeContractAsync } = useWriteContract();
+	const activeChainId = useChainId();
 	const { handleTx } = useEvmError({
 		contractHints: [
 			{
@@ -71,6 +90,20 @@ export function useStakeToken() {
 	const [isStaking, setIsStaking] = useState(false);
 	const [txHash, setTxHash] = useState<Hex | undefined>();
 
+	// === Only check / switch network inside bridge ===
+	const ensureOnBase = useCallback(async (): Promise<void> => {
+		if (activeChainId === base.id) return;
+		try {
+			await switchChainAsync({ chainId: base.id });
+			if (typeof window !== 'undefined')
+				await new Promise<void>((r) => setTimeout(r, 200));
+		} catch (err) {
+			if (isUserRejectedDeep(err))
+				throw new UserRejected('Network switch rejected');
+			throw err as Error;
+		}
+	}, [activeChainId, switchChainAsync]);
+
 	const stake = useCallback(
 		async (p: StakeParams): Promise<StakeResult> => {
 			const {
@@ -98,6 +131,7 @@ export function useStakeToken() {
 					error: { userMessage: 'No RPC client available.' },
 				};
 			}
+			await ensureOnBase();
 
 			try {
 				const amountX = parseUnits(amount || '0', decimals);
@@ -169,7 +203,7 @@ export function useStakeToken() {
 				return { ok: false, error: friendly };
 			}
 		},
-		[address, publicClient, writeContractAsync, chainId, handleTx]
+		[address, publicClient, writeContractAsync, handleTx, ensureOnBase]
 	);
 
 	return {

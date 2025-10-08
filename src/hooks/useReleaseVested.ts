@@ -49,7 +49,7 @@ export function useReleaseVested() {
 				setIsClaiming(false);
 			}
 		},
-		[address, publicClient, writeContractAsync]
+		[address, publicClient, writeContractAsync, handleTx]
 	);
 
 	return { release, isClaiming, txHash };

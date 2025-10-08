@@ -5,8 +5,8 @@ import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { base, polygon } from '@reown/appkit/networks';
 import { defineChain } from 'viem';
 
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!;
-if (!projectId) console.error('Missing NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID');
+const projectId = process.env.NEXT_PUBLIC_PROJECT_ID!;
+if (!projectId) console.error('Missing NEXT_PUBLIC_PROJECT_ID');
 
 const sproutlyTestnet = defineChain({
 	id: 1313161798,
@@ -45,7 +45,7 @@ export const appKit =
 		adapters: [wagmiAdapter],
 		projectId,
 		// AppKit networks may include @reown/appkit/networks presets + custom viem chain
-		networks: [base, polygon, sproutlyTestnet as any],
+		networks: [base, polygon, sproutlyTestnet],
 		defaultNetwork: base,
 		metadata: {
 			name: 'Sproutly',

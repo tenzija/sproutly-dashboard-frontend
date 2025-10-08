@@ -50,7 +50,10 @@ export function useActiveLocks(opts: Options) {
 		.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as Address;
 	const decimals = opts.tokenDecimals ?? 18;
 	const chainId = opts.chainId ?? 8453;
-	const fmt = opts.formatToken ?? ((v: bigint, d: number) => formatUnits(v, d));
+	const fmt = useMemo(
+		() => opts.formatToken ?? ((v: bigint, d: number) => formatUnits(v, d)),
+		[opts.formatToken]
+	);
 
 	// manual refresh
 	const [refreshKey, setRefreshKey] = useState(0);

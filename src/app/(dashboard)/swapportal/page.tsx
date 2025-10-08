@@ -9,16 +9,32 @@ import { CBY_ABI } from "@/constant/BlockchainConstants";
 import "./Swapportal.scss";
 import { formatThousands, formatToken } from "@/utils/helper";
 // import { useAppKit } from "@reown/appkit/react";
-import { useActiveLocks } from "@/hooks/useActiveLocks";
+import { useActiveLocks, VestingSchedule } from "@/hooks/useActiveLocks";
 import LockCardFromSchedule from "./components/LockCardFromSchedule";
 import { Skeleton } from '@mui/material';
 
 const NEXT_PUBLIC_CBY_ADDRESS = process.env.NEXT_PUBLIC_CBY_ADDRESS;
 const NEXT_PUBLIC_CBY_DECIMALS = Number(process.env.NEXT_PUBLIC_CBY_DECIMALS) || 18;
 const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS;
+// Update LockItem to match the data structure of locks
+type LockItem = {
+  index: number;
+  id: `0x${string}`;
+  raw: VestingSchedule;
+  claimableFormatted: string;
+  totalFormatted: string;
+  lockedFormatted: string;
+  timeRemainingText: string;
+  unlockDateText: string;
+  progressPct: number;
+  // Remove the unnecessary fields from LockItem, if not required
+};
+
 
 function SwapPortalPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [lockData, setLockData] = useState<LockItem[]>([]); // Define the type of lockData state
+
   const { address: currentAddress, isConnected } = useAccount();
   // const { open, close } = useAppKit();
   // const handleClick = () => {
@@ -46,7 +62,9 @@ function SwapPortalPage() {
     tokenDecimals: 18,
   });
 
-  console.log({ locks });
+  useEffect(() => {
+    setLockData(locks); // Update lockData whenever locks change
+  }, [locks]);
 
   useEffect(() => {
     const getData = async () => {
@@ -144,7 +162,7 @@ function SwapPortalPage() {
       <div className="active_lock">
         <h3>Your Active Locks</h3>
         <div className="lock_grid">
-          {locks
+          {lockData
             .filter((item) => item !== null)
             .map((item, idx) => (
               <LockCardFromSchedule
