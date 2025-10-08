@@ -1,123 +1,194 @@
 "use client";
 
-import LockCard from "./components/LockCard";
+// import PageHeader from "../components/pageHeader/PageHeader";
 import Bridge from "./components/Bridge";
-import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useAccount, useReadContract } from "wagmi";
+import React, { useState, useEffect } from "react";
 import { CBY_ABI } from "@/constant/BlockchainConstants";
+import "./Swapportal.scss";
+import { formatThousands, formatToken } from "@/utils/helper";
+// import { useAppKit } from "@reown/appkit/react";
+import { useActiveLocks, VestingSchedule } from "@/hooks/useActiveLocks";
+import LockCardFromSchedule from "./components/LockCardFromSchedule";
+import { Skeleton } from '@mui/material';
+
 const NEXT_PUBLIC_CBY_ADDRESS = process.env.NEXT_PUBLIC_CBY_ADDRESS;
-function Page() {
+const NEXT_PUBLIC_CBY_DECIMALS = Number(process.env.NEXT_PUBLIC_CBY_DECIMALS) || 18;
+const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS;
+// Update LockItem to match the data structure of locks
+type LockItem = {
+  index: number;
+  id: `0x${string}`;
+  raw: VestingSchedule;
+  claimableFormatted: string;
+  totalFormatted: string;
+  lockedFormatted: string;
+  timeRemainingText: string;
+  unlockDateText: string;
+  progressPct: number;
+  // Remove the unnecessary fields from LockItem, if not required
+};
+
+
+function SwapPortalPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [lockData, setLockData] = useState<LockItem[]>([]); // Define the type of lockData state
+
   const { address: currentAddress, isConnected } = useAccount();
+  // const { open, close } = useAppKit();
+  // const handleClick = () => {
+  //   if (isConnected) {
+  //     close();
+  //   } else {
+  //     open();
+  //   }
+  // };
 
 
-  const [value, setValue] = useState<string | undefined>("0.00");
-  const { data } = useReadContract({
+  const [value, setValue] = useState<string>("0.00");
+  const { data, isPending, isFetching, } = useReadContract({
     address: NEXT_PUBLIC_CBY_ADDRESS as `0x${string}`,
     abi: CBY_ABI,
     functionName: "balanceOf",
     args: [currentAddress],
+    // Don’t run until wallet is connected & we have an address
+    query: { enabled: Boolean(isConnected && currentAddress) },
+    chainId: 8453, // Base Mainnet
   });
+
+  const { locks } = useActiveLocks({
+    vestingAddress: VESTING_ADDR as `0x${string}`,
+    tokenDecimals: 18,
+  });
+
+  useEffect(() => {
+    setLockData(locks); // Update lockData whenever locks change
+  }, [locks]);
 
   useEffect(() => {
     const getData = async () => {
       await data;
       if (data !== undefined) {
-        setValue((data as bigint).toString());
+        const ethValue = formatToken(data as bigint, NEXT_PUBLIC_CBY_DECIMALS);
+        setValue(ethValue);
       }
     };
     getData().catch(console.error);
   }, [data]);
 
-  if (isConnected) {
+  const handleStartSwap = () => {
+    setIsModalOpen(true);
+  };
+  if (!isConnected) {
     return (
-      <>
-        <div className="w-full flex justify-between items-center gap-4 p-8 bg-[rgba(137,137,137,0.05)] backdrop-blur-[150px] border border-[rgba(255,255,255,0.09)] rounded-xl  md:h-[396px] h-auto  md:flex-row flex-col">
-          {/* Left Section */}
-          <div className="flex flex-col items-center md:w-1/2 w-100 gap-4">
-            <h2 className="text-center text-2xl font-bold">
-              Ready to Grow Your SEED?
-            </h2>
-            <p className="text-center">
-              Swap your $CBY for $SEED tokens and earn more with longer lock-up
-              periods. Your tokens on the BASE chain are ready for action.
-            </p>
-
-            <div className="flex flex-col items-center justify-center gap-2 w-[221px] h-[97px] p-4 bg-[rgba(137,137,137,0.05)] backdrop-blur-[150px] border border-[rgba(255,255,255,0.09)] rounded-lg">
-              <p className="text-center font-medium text-[12px] leading-4">
-                Available $CBY Balance
-              </p>
-              <div className="flex justify-center items-center gap-2 w-full whitespace-nowrap">
-                <h1 className="text-[24px] text-[#adf151]">{value}</h1>
-                <h2 className="text-[22px]">$CBY</h2>
-              </div>
-              <p className="text-center font-medium text-[12px] leading-4">
-                In Base Chain
-              </p>
-            </div>
-
-            <h3 className="text-center text-lg font-semibold">
-              Your $CBY for Swap
-            </h3>
-            <button className="bg-[#adf151] text-[#233010] font-bold text-[16px] leading-[19.2px] px-4 py-3 rounded-[51px]">
-              Start New Swap
-            </button>
-          </div>
-
-          <div className="flex flex-col items-center justify-center w-1/2">
-            <div className="flex justify-center items-center md:w-auto w-100 h-100 overflow-hidden rounded-[32px] border border-[rgba(255,255,255,0.09)] shadow-[0_4px_18px_rgba(0,0,0,0.25)]">
-              <Image
-                src="/images/Frame 14.png"
-                alt="Connect Wallet"
-                width={565}
-                height={372}
-                className="object-cover w-auto h-100"
-              />
-            </div>
-          </div>
+      <div className="swap_portals">
+        {/* <PageHeader title="Swap Portal" showSearch={false} showButton={false} showBalance={true} /> */}
+        <div className="swap_connect_container glass_card">
+          <Image
+            src="/images/ConnectWallet.png"
+            alt="Connect Wallet"
+            width={144}
+            height={144}
+            className="swap_wallet_image"
+          />
+          <p className="swap_connect_title">Connect Your Wallet to Begin</p>
+          <p className="swap_connect_subtitle">
+            To access the Swap Portal and start exchanging your $CBY for $SEED, please connect your Web3 wallet
+          </p>
+          {/* <button className="swap_connect_btn" onClick={handleClick}>
+            Connect Wallet
+          </button> */}
         </div>
-        <div className="w-full">
-          <h3
-            className="text-[34px] font-bold text-white my-6 
-             md:text-[34px] md:mb-4 md:mt-0 font-sans"
-          >
-            Active Lock
-          </h3>
-          <div
-            className="grid grid-cols-2 gap-x-6 gap-y-6 w-full
-            max-[1200px]:gap-x-5 max-[1200px]:gap-y-5
-            max-[768px]:grid-cols-1 max-[768px]:gap-x-4 max-[768px]:gap-y-4"
-          >
-            <LockCard />
-            <LockCard />
-            <LockCard />
-            <LockCard />
-          </div>
-        </div>
-        <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-      </>
-    );
-  } else {
-    return (
-      <div className="flex flex-col items-center justify-center text-center h-[615px] rounded-lg p-4 gap-2 mt-4 bg-[var(--glass-new,#8989890d)] backdrop-blur-[150px] border border-[var(--glass-stroke-new,#ffffff17)] shadow-[3px_3px_3px_rgba(0,0,0,0.089)]">
-        <Image
-          src="/images/ConnectWallet.png"
-          alt="Connect Wallet"
-          width={144}
-          height={144}
-          className="rounded-[32px] object-cover"
-        />
-        <p className="text-[32px] font-bold text-[var(--Green--100)]">
-          Connect Your Wallet to Begin
-        </p>
-        <p className="text-sm font-medium text-[var(--white-80)] max-w-[430px] leading-[21px]">
-          To access the Swap Portal and start exchanging your $CBY for $SEED,
-          please connect your Web3 wallet
-        </p>
+
+        {/* Reusable Wallet Connection Popup */}
+        {/* <WalletConnectPopup
+          isOpen={popup}
+          onClose={() => setPopup(false)}
+          onWalletConnect={handleWalletConnect}
+          title="Connect Your Wallet"
+          showHelpLinks={true}
+        /> */}
       </div>
     );
   }
+
+  return (
+    <div className="swap_portals">
+      {/* <PageHeader title="Swap Portal" showSearch={false} showButton={false} showBalance={true} /> */}
+      <div className="swap_top">
+        <div className="left">
+          <h2>Ready to Grow Your SEED?</h2>
+          <p>
+            Swap your $CBY for $SEED tokens and earn more with longer lock-up
+            periods. Your tokens on the BASE chain are ready for action.
+          </p>
+          <div className="available">
+            <p>Available $CBY Balance</p>
+            <div className="balance">
+              <h1>
+                {(isPending || isFetching)
+                  ? (
+                    <Skeleton
+                      variant="text"
+                      width={90}
+                      sx={{ fontSize: '2.5rem', lineHeight: 1 }}
+                    />
+                  )
+                  : formatThousands(value)
+                }
+              </h1>
+              <h2>$CBY</h2>
+            </div>
+            <p>In Base Chain</p>
+          </div>
+          <h3>Your $CBY for Swap</h3>
+          <button onClick={handleStartSwap}>Start New Swap </button>
+        </div>
+        <div className="right">
+          <div className="image">
+            <Image
+              src="/images/Frame 14.png"
+              alt="Connect Wallet"
+              width={1080}           // intrinsic pixels
+              height={1080}
+              quality={100}
+              className="swap_wallet_image"
+
+            />
+          </div>
+        </div>
+      </div>
+      <div className="active_lock">
+        <h3>Your Active Locks</h3>
+        <div className="lock_grid">
+          {lockData
+            .filter((item) => item !== null)
+            .map((item, idx) => (
+              <LockCardFromSchedule
+                key={`${item!.id}-${idx}`}
+                item={item!}
+                index={idx}
+                vestingAddress={VESTING_ADDR as `0x${string}`}
+              // onClaim={(id) => {
+              //   // call your release hook here (e.g., writeContract to `release(bytes32 id)`)
+              // }}
+              />
+            ))}
+        </div>
+      </div>
+      <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} />
+
+      {/* Reusable Wallet Connection Popup - Always rendered */}
+      {/* <WalletConnectPopup
+        isOpen={popup}
+        onClose={() => setPopup(false)}
+        onWalletConnect={handleWalletConnect}
+        title="Connect Your Wallet"
+        showHelpLinks={true}
+      /> */}
+    </div>
+  );
 }
 
-export default Page;
+export default SwapPortalPage;
