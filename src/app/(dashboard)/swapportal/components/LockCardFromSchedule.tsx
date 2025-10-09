@@ -50,6 +50,7 @@ export default function LockCardFromSchedule({ vestingAddress, item, index }: Pr
 	const claimable = item.claimableFormatted ?? '0';
 	const displayId = `#${String((index ?? 0) + 1).padStart(3, '0')}`;
 
+	console.log("item in LockCardFromSchedule:", item.raw);
 	const props: LockCardProps = {
 		displayId,
 		amountCBY: formatThousands(amountCBY),
@@ -83,7 +84,7 @@ export default function LockCardFromSchedule({ vestingAddress, item, index }: Pr
 	};
 
 	return (
-		<div className={isClaimed ? 'hidden' : ''}> {/* Add the hidden class if claimed */}
+		<div className={item.progressPct === 100 || isClaimed ? 'hidden' : ''}> {/* Hide card if progress is 100% or if it's claimed */}
 			<LockCard {...props} />
 		</div>
 	);

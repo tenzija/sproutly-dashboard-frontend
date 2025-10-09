@@ -114,7 +114,6 @@ export function useStakeToken() {
 				slicePeriodSeconds = 86_400n,
 				revocable = true,
 				autoApprove = true,
-				infiniteApproval = true,
 			} = p;
 
 			if (!address) {
@@ -147,13 +146,13 @@ export function useStakeToken() {
 
 						if (amountX <= allowance) return 'skip-approve';
 
-						const approveValue = infiniteApproval ? 2n ** 256n - 1n : amountX;
+						// const approveValue = infiniteApproval ? 2n ** 256n - 1n : amountX;
 
 						const { request } = await publicClient.simulateContract({
 							address: tokenX,
 							abi: erc20Abi,
 							functionName: 'approve',
-							args: [vestingAddress, approveValue],
+							args: [vestingAddress, amountX],
 							account: address,
 						});
 

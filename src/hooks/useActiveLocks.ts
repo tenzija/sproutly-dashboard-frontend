@@ -46,6 +46,7 @@ type Options = {
 // ---- Hook ----
 export function useActiveLocks(opts: Options) {
 	const { address } = useAccount();
+	// const address = '0xe0a4BE872F0d628e16871818f415C9fb62bA17A4';
 	const vestingAddress = process.env
 		.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as Address;
 	const decimals = opts.tokenDecimals ?? 18;
@@ -92,7 +93,7 @@ export function useActiveLocks(opts: Options) {
 			address ?? '0x0'
 		}-${refreshKey}`,
 	});
-
+	console.log('idsData', idsData);
 	const ids: Hex[] = useMemo(() => {
 		if (!idsData) return [];
 		return idsData
@@ -173,20 +174,18 @@ export function useActiveLocks(opts: Options) {
 
 			if (s.revoked || s.released >= s.amountTotal) continue;
 
+			// Calculate the progress based on released amount instead of time
+			let progressPct = 0;
+			if (s.amountTotal > 0) {
+				progressPct = Math.round(
+					(Number(s.released) / Number(s.amountTotal)) * 100
+				);
+			}
+
 			const cliff = Number(s.cliff);
 			const duration = Number(s.duration);
 
-			let progressPct = 0;
-			if (now < cliff) progressPct = 0;
-			else if (duration === 1) progressPct = 100;
-			else {
-				const t = Math.min(now, cliff + duration);
-				const num = Math.max(0, t - cliff);
-				progressPct = Math.round((num / Math.max(1, duration)) * 100);
-			}
-
 			const unlockAt = duration === 1 ? cliff : cliff + duration;
-
 			out.push({
 				index: i + 1,
 				id,

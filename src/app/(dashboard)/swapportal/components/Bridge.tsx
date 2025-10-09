@@ -24,7 +24,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
 
   // 🔹 lifted shared staking data (edited in SetStacking, displayed/used in Review)
   const [draft, setDraft] = useState<SetStackingDraft>({
-    amountCBY: "0",
+    amountCBY: "",
     lockSeconds: 1 * 86400, // default 1 day
     lockPeriodLabel: "1 Month",
     unlockDateText: "",
@@ -96,7 +96,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
           />
         )}
 
-        {currentStep === 4 && <Success onClose={onClose} />}
+        {currentStep === 4 && <Success onClose={handleClose} />}
 
         <Stepper steps={steps} currentStep={currentStep} />
       </div>

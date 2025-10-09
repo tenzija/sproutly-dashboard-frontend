@@ -37,10 +37,13 @@ export default function BridgeCPY({ handleNext, currentStep }: BridgeCPYProps) {
     const res = await bridge(amount); // hook will switch if needed
 
     setUiSwitching(false);
-
+    console.log("res", res);
     if (res.status === "success") {
       setIsNextDisabled(true);
     } else if (res.status === "userRejected") {
+      setIsNextDisabled(false);
+      reset();
+    } else if (res.status === "failed") {
       setIsNextDisabled(false);
       reset();
     }

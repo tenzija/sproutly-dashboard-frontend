@@ -3,6 +3,7 @@
 
 import { erc20Abi, mockWormholeBridgeAbi } from '@/abis/minimalAbi';
 import { useCallback, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
 import type { Address, Hex } from 'viem';
 import { parseUnits, parseAbiItem, UserRejectedRequestError } from 'viem';
 import {
@@ -102,7 +103,39 @@ export function useBridge() {
 		startedAt.current = null;
 	}, []);
 
-	// ❌ No auto-check/switch on mount. Nothing here.
+	// Function to check the balance of ERC20 token and POL (Polygon native token)
+	const checkBalances = useCallback(
+		async (erc20Amount: bigint, polAmount: bigint): Promise<boolean> => {
+			if (!polygonClient) throw new Error('Polygon client not ready');
+
+			// Check the ERC20 token balance (mock token in this case)
+			const erc20Balance = await polygonClient.readContract({
+				abi: erc20Abi,
+				address: POLYGON_TOKEN_ADDRESS,
+				functionName: 'balanceOf',
+				args: [address as Address],
+			});
+
+			// Check the Polygon (MATIC) balance
+			const maticBalance = await polygonClient.getBalance({
+				address: address as Address,
+			});
+
+			// Check if the balances are sufficient
+			if (erc20Balance < erc20Amount) {
+				toast.error('Insufficient token balance for the transaction.');
+				return false;
+			}
+
+			if (maticBalance < polAmount) {
+				toast.error('Insufficient POL balance for gas fees.');
+				return false;
+			}
+
+			return true; // Balances are sufficient
+		},
+		[polygonClient, address]
+	);
 
 	// Read-only calls (don’t require wallet to be on Polygon)
 	const { data: crossChainId } = useReadContract({
@@ -292,6 +325,17 @@ export function useBridge() {
 			if (!isReady)
 				return { status: 'failed', message: 'RPC clients not ready' };
 
+			// Convert human-readable amount to bigints
+			const amount = parseUnits(humanAmount, TOKEN_DEC);
+
+			// Calculate the extra gas fee for the transaction
+			const value = await quoteCost(EXTRA_GAS);
+
+			// Check the balances before proceeding with the transaction
+			const hasEnoughBalance = await checkBalances(amount, value);
+			if (!hasEnoughBalance)
+				return { status: 'failed', message: 'Insufficient balance' };
+
 			// ✅ Only here: check/switch network
 			if (activeChainId !== polygon.id) {
 				if (opts.autoSwitch === false) {
@@ -312,7 +356,6 @@ export function useBridge() {
 			}
 
 			const to: Address = (receiver ?? address) as Address;
-			const amount = parseUnits(humanAmount, TOKEN_DEC);
 
 			// balance check
 			const bal = (await polygonClient!.readContract({
@@ -336,8 +379,6 @@ export function useBridge() {
 				setError(msg);
 				return { status: 'failed', message: msg };
 			}
-
-			const value = await quoteCost(EXTRA_GAS);
 
 			startedAt.current = Date.now();
 
@@ -383,6 +424,7 @@ export function useBridge() {
 			sendDeposit,
 			waitBaseCompletion,
 			reset,
+			checkBalances,
 		]
 	);
 
