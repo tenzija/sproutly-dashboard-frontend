@@ -15,61 +15,31 @@ export const useToast = () => {
 			case 'success':
 				toast.success(message, {
 					position: 'top-right',
-					autoClose,
-					hideProgressBar: true,
-					style: {
-						backgroundColor: '#4CAF50', // Green for success
-						color: 'white',
-						borderRadius: '8px',
-					},
+					autoClose: autoClose
 				});
 				break;
 			case 'error':
 				toast.error(message, {
 					position: 'top-right',
-					autoClose,
-					hideProgressBar: true,
-					style: {
-						backgroundColor: '#28313b', // Red for error
-						color: 'white',
-						borderRadius: '8px',
-					},
+					autoClose: autoClose
 				});
 				break;
 			case 'info':
 				toast.info(message, {
 					position: 'top-right',
-					autoClose,
-					hideProgressBar: true,
-					style: {
-						backgroundColor: '#2196F3', // Blue for info
-						color: 'white',
-						borderRadius: '8px',
-					},
+					autoClose: autoClose
 				});
 				break;
 			case 'warning':
 				toast.warning(message, {
 					position: 'top-right',
-					autoClose,
-					hideProgressBar: true,
-					style: {
-						backgroundColor: '#ff9800', // Yellow for warning
-						color: 'white',
-						borderRadius: '8px',
-					},
+					autoClose: autoClose
 				});
 				break;
 			default:
 				toast(message, {
 					position: 'top-right',
-					autoClose,
-					hideProgressBar: true,
-					style: {
-						backgroundColor: '#000', // Default dark background
-						color: 'white',
-						borderRadius: '8px',
-					},
+					autoClose: autoClose
 				});
 		}
 	};

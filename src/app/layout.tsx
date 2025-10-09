@@ -39,7 +39,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               closeOnClick
               rtl={false}
               pauseOnFocusLoss
-              draggable
               pauseOnHover
             />
           </AuthProvider>
