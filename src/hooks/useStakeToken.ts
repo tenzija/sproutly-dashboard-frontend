@@ -12,9 +12,7 @@ import type { Address, Hex, TransactionReceipt } from 'viem';
 import { parseUnits, UserRejectedRequestError } from 'viem';
 import { useEvmError } from '@/hooks/useEvmError';
 import { erc20Abi, tokenVestingAbi } from '@/abis/minimalAbi';
-import { base, polygon } from 'wagmi/chains'; // Adjust for your networks
-import { switchChain } from '@wagmi/core'; // Correctly import from @wagmi/core
-import { config } from '@/config'; // Assuming you have a config file that defines the wagmi config
+import { base } from 'wagmi/chains'; // Adjust for your networks
 
 export type StakeParams = {
 	vestingAddress: Address; // TokenVesting proxy

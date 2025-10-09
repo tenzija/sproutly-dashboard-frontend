@@ -54,6 +54,9 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
     setOpenSidebar(true);
   };
 
+  const handleImageError = () => {
+    setImage("/images/placeholder.png"); // Fallback to placeholder image on error
+  };
 
   return (
     <>
@@ -64,7 +67,6 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
     ${openSidebar ? 'translate-x-[-100%]' : 'translate-x-0'} md:translate-x-0`}
       >
 
-
         <nav className="flex flex-col gap-[5px]">
           <div className="flex items-center gap-2 mt-[-1.5px] mb-5">
             <Image
@@ -72,7 +74,8 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
               alt="Profile"
               width={48}
               height={48}
-              className=" w-12 h-12 object-cover rounded-[50%]"
+              className="w-12 h-12 object-cover rounded-[50%]"
+              onError={handleImageError} // Trigger fallback image if error occurs
             />
             <p>{username}</p>
           </div>

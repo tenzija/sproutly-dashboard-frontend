@@ -29,7 +29,7 @@ const STEPS = [
 const NEON = '#9FE870';
 
 // Custom Connector styling
-const NeonConnector = styled(StepConnector)(({ theme }) => ({
+const NeonConnector = styled(StepConnector)(() => ({
     [`& .MuiStepConnector-line`]: {
         borderColor: 'rgba(255,255,255,0.22)',
         borderTopWidth: 2,

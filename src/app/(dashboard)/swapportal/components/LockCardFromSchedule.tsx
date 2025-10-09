@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import LockCard from './LockCard';
 import type { LockCardProps } from './LockCard';
 import { useReleaseVested } from '@/hooks/useReleaseVested';
