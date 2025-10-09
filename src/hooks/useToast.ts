@@ -14,7 +14,7 @@ export const useToast = () => {
 		switch (type) {
 			case 'success':
 				toast.success(message, {
-					// position: 'top-right',
+					position: 'top-right',
 					autoClose,
 					hideProgressBar: true,
 					style: {
@@ -26,7 +26,7 @@ export const useToast = () => {
 				break;
 			case 'error':
 				toast.error(message, {
-					// position: 'top-right',
+					position: 'top-right',
 					autoClose,
 					hideProgressBar: true,
 					style: {
@@ -38,7 +38,7 @@ export const useToast = () => {
 				break;
 			case 'info':
 				toast.info(message, {
-					// position: 'top-right',
+					position: 'top-right',
 					autoClose,
 					hideProgressBar: true,
 					style: {
@@ -50,7 +50,7 @@ export const useToast = () => {
 				break;
 			case 'warning':
 				toast.warning(message, {
-					// position: 'top-right',
+					position: 'top-right',
 					autoClose,
 					hideProgressBar: true,
 					style: {
@@ -62,7 +62,7 @@ export const useToast = () => {
 				break;
 			default:
 				toast(message, {
-					// position: 'top-right',
+					position: 'top-right',
 					autoClose,
 					hideProgressBar: true,
 					style: {

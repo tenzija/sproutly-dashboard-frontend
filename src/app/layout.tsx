@@ -32,7 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <AuthProvider>
             <ThemeProviderClient>{children}</ThemeProviderClient>
             <ToastContainer
-              position="bottom-right"
+              position="top-right"
               autoClose={5000}
               hideProgressBar={false}
               newestOnTop={true}

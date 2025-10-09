@@ -90,7 +90,9 @@ function Page() {
         ...data,
       })
       .then(() => {
-        toast.success("Password reset successful! Please log in.");
+        toast.success("Password reset successful! Please log in.", {
+          position: "top-right",
+        });
 
         setTimeout(() => {
           window.location.replace("/login");

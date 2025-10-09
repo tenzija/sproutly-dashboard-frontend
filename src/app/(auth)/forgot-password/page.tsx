@@ -67,7 +67,7 @@ function Page() {
         ...formData,
       })
       .then(() => {
-        toast("Reset link sent to your email!", { type: "success" });
+        toast("Reset link sent to your email!", { type: "success", position: "top-right" });
 
         setTimeout(() => {
           window.location.replace("/login");
