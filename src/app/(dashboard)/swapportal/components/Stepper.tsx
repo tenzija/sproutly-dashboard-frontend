@@ -8,7 +8,7 @@ interface StepperProps {
 
 const Stepper: React.FC<StepperProps> = ({ steps, currentStep }) => {
   return (
-    <div className="stepper">
+    <div className="stepper rounded-xl">
       {steps.map((step, index) => {
         const isCompleted = index < currentStep;
         const isActive = index === currentStep;
