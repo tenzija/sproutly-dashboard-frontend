@@ -55,7 +55,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
   };
 
   const handleImageError = () => {
-    setImage("/images/placeholder.png"); // Fallback to placeholder image on error
+    setImage("/images/avatar.png"); // Fallback to placeholder image on error
   };
 
   return (
@@ -70,7 +70,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
         <nav className="flex flex-col gap-[5px]">
           <div className="flex items-center gap-2 mt-[-1.5px] mb-5">
             <Image
-              src={image || "/images/button.png"}
+              src={image || "/images/avatar.png"}
               alt="Profile"
               width={48}
               height={48}

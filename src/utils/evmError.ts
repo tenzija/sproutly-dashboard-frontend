@@ -119,7 +119,7 @@ export function toFriendlyEvmError(
 	if (looksLikeUserDenied(full, code)) {
 		return {
 			code: code ?? 'USER_DENIED',
-			userMessage: 'You said “No” in your wallet. That’s okay!',
+			userMessage: 'You rejected the action in your wallet.',
 			devMessage: full,
 			hint: 'open-wallet',
 		};

@@ -21,16 +21,6 @@ export default function Providers({ children, cookies }: ProvidersProps) {
             const state = cookieToInitialState(wagmiConfig, cookies);
             setInitialState(state ?? null); // Ensure state is State or null
         }
-        // Check if MetaMask is injected into the window
-        if (window.ethereum) {
-            if (window.ethereum.isMetaMask) {
-                console.log('MetaMask is installed');
-            } else {
-                console.log('MetaMask is not detected');
-            }
-        } else {
-            console.log('MetaMask is not installed');
-        }
     }, [cookies]);
 
     // Wait for the initial state to be set before rendering

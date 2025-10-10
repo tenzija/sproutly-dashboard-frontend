@@ -46,7 +46,6 @@ type Options = {
 // ---- Hook ----
 export function useActiveLocks(opts: Options) {
 	const { address } = useAccount();
-	// const address = '0xe0a4BE872F0d628e16871818f415C9fb62bA17A4';
 	const vestingAddress = process.env
 		.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as Address;
 	const decimals = opts.tokenDecimals ?? 18;
@@ -56,11 +55,28 @@ export function useActiveLocks(opts: Options) {
 		[opts.formatToken]
 	);
 
-	// manual refresh
 	const [refreshKey, setRefreshKey] = useState(0);
 	const refetch = useCallback(() => setRefreshKey((k) => k + 1), []);
 
-	/* 1) Count schedules */
+	// Fetch schedule indexes by beneficiary
+	const { data: indexData, isLoading: loadingIndexes } = useReadContract({
+		address: vestingAddress,
+		abi: tokenVestingAbi,
+		functionName: 'getVestingScheduleIndexesByBeneficiary',
+		args: address ? [address] : undefined,
+		query: { enabled: Boolean(address && vestingAddress) },
+		chainId,
+		scopeKey: `locks-index-${chainId}-${vestingAddress}-${address}-${refreshKey}`,
+	});
+
+	// The schedule indices (0, 1, 2, etc.)
+	const indices: number[] = useMemo(() => {
+		return indexData
+			? (indexData as bigint[]).map((index) => Number(index))
+			: [];
+	}, [indexData]);
+
+	// Fetching the count of vesting schedules
 	const { data: countData, isLoading: loadingCount } = useReadContract({
 		address: vestingAddress,
 		abi: tokenVestingAbi,
@@ -74,26 +90,24 @@ export function useActiveLocks(opts: Options) {
 	});
 	const count = Number(countData ?? 0);
 
-	/* 2) Build id reads */
+	// Build ID reads based on fetched indices
 	const idReads = useMemo(() => {
-		if (!address || count <= 0) return [];
-		return Array.from({ length: count }, (_, i) => ({
+		if (!indices.length) return [];
+		return indices.map((index) => ({
 			address: vestingAddress,
 			abi: tokenVestingAbi,
 			functionName: 'computeVestingScheduleIdForAddressAndIndex' as const,
-			args: [address, BigInt(i)],
+			args: [address, BigInt(index)],
 			chainId,
 		}));
-	}, [address, count, vestingAddress, chainId]);
+	}, [address, indices, vestingAddress, chainId]);
 
 	const { data: idsData, isLoading: loadingIds } = useReadContracts({
 		contracts: idReads,
 		query: { enabled: idReads.length > 0 },
-		scopeKey: `locks-ids-${chainId}-${vestingAddress}-${
-			address ?? '0x0'
-		}-${refreshKey}`,
+		scopeKey: `locks-ids-${chainId}-${vestingAddress}-${address}-${refreshKey}`,
 	});
-	console.log('idsData', idsData);
+
 	const ids: Hex[] = useMemo(() => {
 		if (!idsData) return [];
 		return idsData
@@ -101,7 +115,7 @@ export function useActiveLocks(opts: Options) {
 			.filter((x): x is Hex => !!x);
 	}, [idsData]);
 
-	/* 3) Schedules + claimables */
+	// Fetch schedules and claimables using the indices
 	const schedAndClaimReads = useMemo(() => {
 		if (!ids.length) return [];
 		return ids.flatMap((id) => [
@@ -126,9 +140,7 @@ export function useActiveLocks(opts: Options) {
 		useReadContracts({
 			contracts: schedAndClaimReads,
 			query: { enabled: schedAndClaimReads.length > 0 },
-			scopeKey: `locks-sched-claim-${chainId}-${vestingAddress}-${
-				address ?? '0x0'
-			}-${refreshKey}`,
+			scopeKey: `locks-sched-claim-${chainId}-${vestingAddress}-${address}-${refreshKey}`,
 		});
 
 	const humanRemaining = (now: number, end: number) => {
@@ -139,13 +151,12 @@ export function useActiveLocks(opts: Options) {
 		return `${days} Days, ${hours} Hours, ${minutes} Minutes`;
 	};
 
-	/* 4) Shape UI locks */
 	const locks = useMemo(() => {
 		if (!ids.length || !schedClaimData) return [];
 
 		const now = Math.floor(Date.now() / 1000);
 		const out: Array<{
-			index: number;
+			index: number; // The actual index from the contract
 			id: Hex;
 			raw: VestingSchedule;
 			claimableFormatted: string;
@@ -154,11 +165,15 @@ export function useActiveLocks(opts: Options) {
 			timeRemainingText: string;
 			unlockDateText: string;
 			progressPct: number;
+			claimableRaw: bigint;
 		}> = [];
+
+		// Filter valid schedules and their corresponding indices
+		const validSchedules = [];
+		const validIndices = [];
 
 		for (let i = 0; i < ids.length; i++) {
 			const id = ids[i];
-
 			const schedRes = schedClaimData[i * 2];
 			const claimRes = schedClaimData[i * 2 + 1];
 
@@ -172,7 +187,12 @@ export function useActiveLocks(opts: Options) {
 			const s = schedRes.result;
 			const claimable = claimRes.result;
 
+			// Skip fully claimed or revoked schedules
 			if (s.revoked || s.released >= s.amountTotal) continue;
+
+			// Store valid schedules and their corresponding indices
+			validSchedules.push(s);
+			validIndices.push(indices[i]); // Use the actual contract index
 
 			// Calculate the progress based on released amount instead of time
 			let progressPct = 0;
@@ -183,28 +203,29 @@ export function useActiveLocks(opts: Options) {
 			}
 
 			const cliff = Number(s.cliff);
-			const duration = Number(s.duration);
 
-			const unlockAt = duration === 1 ? cliff : cliff + duration;
+			// Use the valid contract index and push it to the list
 			out.push({
-				index: i + 1,
+				index: validIndices[validIndices.length - 1], // Correct contract index from filtered valid schedules
 				id,
 				raw: s,
 				claimableFormatted: fmt(claimable, decimals),
+				claimableRaw: claimable,
 				totalFormatted: fmt(s.amountTotal, decimals),
 				lockedFormatted: fmt(s.amountTotal - s.released, decimals),
-				timeRemainingText: humanRemaining(now, unlockAt),
-				unlockDateText: new Date(unlockAt * 1000).toLocaleDateString(),
+				timeRemainingText: humanRemaining(now, cliff),
+				unlockDateText: new Date(cliff * 1000).toLocaleDateString(),
 				progressPct,
 			});
 		}
 
 		return out;
-	}, [ids, schedClaimData, decimals, fmt]);
+	}, [ids, schedClaimData, decimals, fmt, indices]);
 
 	return {
 		locks,
-		isLoading: loadingCount || loadingIds || loadingSchedClaims,
+		isLoading:
+			loadingCount || loadingIds || loadingSchedClaims || loadingIndexes,
 		count,
 		refetch,
 	};

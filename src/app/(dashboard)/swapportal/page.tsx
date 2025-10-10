@@ -12,6 +12,7 @@ import { formatThousands, formatToken } from "@/utils/helper";
 import { useActiveLocks, VestingSchedule } from "@/hooks/useActiveLocks";
 import LockCardFromSchedule from "./components/LockCardFromSchedule";
 import { Skeleton } from '@mui/material';
+import { LockCardSkeleton } from "./skeleton/LockCardSkeleton";
 
 const NEXT_PUBLIC_CBY_ADDRESS = process.env.NEXT_PUBLIC_CBY_ADDRESS;
 const NEXT_PUBLIC_CBY_DECIMALS = Number(process.env.NEXT_PUBLIC_CBY_DECIMALS) || 18;
@@ -33,7 +34,6 @@ type LockItem = {
 
 function SwapPortalPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [lockData, setLockData] = useState<LockItem[]>([]); // Define the type of lockData state
 
   const { address: currentAddress, isConnected } = useAccount();
   // const { open, close } = useAppKit();
@@ -61,10 +61,6 @@ function SwapPortalPage() {
     vestingAddress: VESTING_ADDR as `0x${string}`,
     tokenDecimals: 18,
   });
-
-  useEffect(() => {
-    setLockData(locks); // Update lockData whenever locks change
-  }, [locks]);
 
   useEffect(() => {
     const getData = async () => {
@@ -143,7 +139,7 @@ function SwapPortalPage() {
             <p>In Base Chain</p>
           </div>
           <h3>Your $CBY for Swap</h3>
-          <button onClick={handleStartSwap}>Start New Swap </button>
+          <button className="success-card__button" onClick={handleStartSwap}>Start New Swap </button>
         </div>
         <div className="right">
           <div className="image">
@@ -162,19 +158,23 @@ function SwapPortalPage() {
       <div className="active_lock">
         <h3>Your Active Locks</h3>
         <div className="lock_grid">
-          {lockData
-            .filter((item) => item !== null)
-            .map((item, idx) => (
-              <LockCardFromSchedule
-                key={`${item!.id}-${idx}`}
-                item={item!}
-                index={idx}
-                vestingAddress={VESTING_ADDR as `0x${string}`}
-              // onClaim={(id) => {
-              //   // call your release hook here (e.g., writeContract to `release(bytes32 id)`)
-              // }}
-              />
-            ))}
+          {/* <LockCardSkeleton /> */}
+          {locks.length === 0 ? (
+            <LockCardSkeleton />
+          ) :
+            locks
+              .filter((item) => item !== null)
+              .map((item, idx) => (
+                <LockCardFromSchedule
+                  key={`${item!.id}-${idx}`}
+                  item={item!}
+                  index={idx}
+                  vestingAddress={VESTING_ADDR as `0x${string}`}
+                // onClaim={(id) => {
+                //   // call your release hook here (e.g., writeContract to `release(bytes32 id)`)
+                // }}
+                />
+              ))}
         </div>
       </div>
       <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} />

@@ -325,18 +325,9 @@ export function useBridge() {
 			if (!isReady)
 				return { status: 'failed', message: 'RPC clients not ready' };
 
-			// Convert human-readable amount to bigints
 			const amount = parseUnits(humanAmount, TOKEN_DEC);
 
-			// Calculate the extra gas fee for the transaction
-			const value = await quoteCost(EXTRA_GAS);
-
-			// Check the balances before proceeding with the transaction
-			const hasEnoughBalance = await checkBalances(amount, value);
-			if (!hasEnoughBalance)
-				return { status: 'failed', message: 'Insufficient balance' };
-
-			// ✅ Only here: check/switch network
+			// Ensure chain first (before any reads/writes tied to chain)
 			if (activeChainId !== polygon.id) {
 				if (opts.autoSwitch === false) {
 					return { status: 'wrongNetwork', currentChainId: activeChainId };
@@ -348,8 +339,8 @@ export function useBridge() {
 						reset();
 						return { status: 'userRejected' };
 					}
-					setProgress('error');
 					const msg = (err as Error).message;
+					setProgress('error');
 					setError(msg);
 					return { status: 'failed', message: msg };
 				}
@@ -357,33 +348,57 @@ export function useBridge() {
 
 			const to: Address = (receiver ?? address) as Address;
 
-			// balance check
-			const bal = (await polygonClient!.readContract({
+			// --- 1) Token balance check BEFORE approval/quote ---
+			const tokenBal = (await polygonClient!.readContract({
 				abi: erc20Abi,
 				address: POLYGON_TOKEN_ADDRESS,
 				functionName: 'balanceOf',
 				args: [address],
 			})) as bigint;
-			if (bal < amount)
+			if (tokenBal < amount) {
 				return { status: 'failed', message: 'Insufficient token balance' };
+			}
 
+			// --- 2) Approve (if needed) ---
 			try {
+				setProgress('approving');
 				await approveIfNeeded(address as Address, amount);
+				// optional: explicitly show the “approved” state
+				setProgress('approved');
 			} catch (err) {
 				if (err instanceof UserRejected) {
 					reset();
 					return { status: 'userRejected' };
 				}
-				setProgress('error');
 				const msg = (err as Error).message;
+				setProgress('error');
 				setError(msg);
 				return { status: 'failed', message: msg };
 			}
 
-			startedAt.current = Date.now();
+			// --- 3) Quote AFTER approval so UI order is correct ---
+			setProgress('quoting');
+			let value: bigint;
+			try {
+				value = await quoteCost(EXTRA_GAS);
+			} catch (err) {
+				const msg = (err as Error).message;
+				setProgress('error');
+				setError(msg);
+				return { status: 'failed', message: msg };
+			}
 
+			// Optional: check native balance for gas now that we know `value`
+			const hasEnough = await checkBalances(amount, value);
+			if (!hasEnough) {
+				return { status: 'failed', message: 'Insufficient balance' };
+			}
+
+			// --- 4) Send deposit ---
+			startedAt.current = Date.now();
 			let hash: Hex;
 			try {
+				setProgress('sending');
 				hash = await sendDeposit(
 					address as Address,
 					to,
@@ -391,26 +406,36 @@ export function useBridge() {
 					EXTRA_GAS,
 					value
 				);
+				setProgress('sent');
 			} catch (err) {
 				if (err instanceof UserRejected) {
 					reset();
 					return { status: 'userRejected' };
 				}
-				setProgress('error');
 				const msg = (err as Error).message;
+				setProgress('error');
 				setError(msg);
 				return { status: 'failed', message: msg };
 			}
 
-			const baseFrom = await baseClient!.getBlockNumber();
-			const completion = await waitBaseCompletion(to, baseFrom);
+			// --- 5) Wait on Base ---
+			try {
+				setProgress('waitingBase');
+				const baseFrom = await baseClient!.getBlockNumber();
+				const completion = await waitBaseCompletion(to, baseFrom);
 
-			const elapsed =
-				startedAt.current != null ? Date.now() - startedAt.current : null;
-			setBridgingMs(elapsed);
-			setProgress('done');
+				const elapsed =
+					startedAt.current != null ? Date.now() - startedAt.current : null;
+				setBridgingMs(elapsed);
+				setProgress('done');
 
-			return { status: 'success', hash, completion, ms: elapsed };
+				return { status: 'success', hash, completion, ms: elapsed };
+			} catch (err) {
+				const msg = (err as Error).message;
+				setProgress('error');
+				setError(msg);
+				return { status: 'failed', message: msg };
+			}
 		},
 		[
 			address,

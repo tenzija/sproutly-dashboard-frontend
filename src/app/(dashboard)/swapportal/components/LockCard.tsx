@@ -1,4 +1,5 @@
 import React from "react";
+import CircularProgress from "@mui/material/CircularProgress";
 
 export interface LockCardProps {
   displayId: string;
@@ -9,6 +10,7 @@ export interface LockCardProps {
   unlockDateText: string;
   progressPct: number;
   timeRemainingText: string;
+  isClaiming?: boolean;
   onClaim?: () => void;
 }
 
@@ -21,6 +23,7 @@ function LockCard({
   unlockDateText,
   progressPct,
   timeRemainingText,
+  isClaiming = false,
   onClaim,
 }: LockCardProps) {
   return (
@@ -47,9 +50,7 @@ function LockCard({
           </div>
 
           <div className="flex flex-col items-center border-l border-r border-[rgba(255,255,255,0.09)] px-4">
-            <span className="text text-[13px]">
-              Total $SEED to be Received
-            </span>
+            <span className="text text-[13px]">Total $SEED to be Received</span>
             <span className="mt-1 text-[20px] font-semibold text-[#e7e7e7]">
               {totalSeedToReceive}
             </span>
@@ -65,15 +66,13 @@ function LockCard({
 
         {/* Progress Section */}
         <div className="mb-4">
-          <span className="text text-[13px] mb-2 block">
-            {unlockDateText}
-          </span>
+          <span className="text text-[13px] mb-2 block">{unlockDateText}</span>
           <div className="flex items-center">
             <div className="relative w-full h-1.5 bg-[#223426] rounded-[6px] mr-3">
               <span
                 className="block h-full bg-[#81e490] rounded-l-[6px]"
                 style={{ width: `${progressPct}%` }}
-              ></span>
+              />
             </div>
             <span className="text-[#afcaaf] text-[13px]">
               {progressPct}%
@@ -83,20 +82,30 @@ function LockCard({
 
         {/* Time Remaining */}
         <div className="mb-4">
-          <span className="text text-[13px] block">
-            Time Remaining
-          </span>
+          <span className="text text-[13px] block">Time Remaining</span>
           <span className="text-[18px] font-semibold text-white block">
             {timeRemainingText}
           </span>
         </div>
 
-        {/* Claim Button */}
+        {/* Claim Button with visible loader */}
         <button
-          onClick={onClaim}
-          className="bg-[#adf151] text-[#083214] text-[14px] font-semibold rounded-[20px] px-4 py-2 w-[180px] h-[40px] transition-colors duration-200 hover:bg-[#c2ee5b] text-center whitespace-nowrap self-start md:text-[12px] md:px-3 md:py-1.5 md:h-[32px] md:w-[160px]"
+          onClick={() => { if (!isClaiming) onClaim?.(); }}
+          disabled={isClaiming}
+          aria-busy={isClaiming}
+          className={[
+            "flex items-center justify-center gap-2",
+            "bg-[#adf151] text-[#083214] text-[14px] font-semibold rounded-[20px]",
+            "px-4 py-2 w-[180px] h-[40px] transition-colors duration-200",
+            "text-center whitespace-nowrap self-start",
+            "md:text-[12px] md:px-3 md:py-1.5 md:h-[32px] md:w-[160px]",
+            isClaiming ? "opacity-80 cursor-wait" : "hover:bg-[#c2ee5b]"
+          ].join(" ")}
         >
-          Claim Vested $SEED
+          {isClaiming && (
+            <CircularProgress size={16} thickness={5} sx={{ color: '#083214' }} />
+          )}
+          {isClaiming ? "Claiming..." : "Claim Vested $SEED"}
         </button>
       </div>
     </div>

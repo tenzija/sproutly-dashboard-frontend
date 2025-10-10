@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import LockCard from './LockCard';
 import type { LockCardProps } from './LockCard';
 import { useReleaseVested } from '@/hooks/useReleaseVested';
-import { useActiveLocks } from "@/hooks/useActiveLocks";
-import { useToast } from "@/hooks/useToast";
-import { FriendlyError } from "@/utils/evmError";
-import { durationLabelFromStartAndCliff, formatThousands, formatToken } from '@/utils/helper';
+import { useActiveLocks } from '@/hooks/useActiveLocks';
+import { useToast } from '@/hooks/useToast';
+import { FriendlyError } from '@/utils/evmError';
+import {
+	durationLabelFromStartAndCliff,
+	formatThousands,
+	formatToken,
+} from '@/utils/helper';
 
 export type VestingScheduleView = {
 	amountTokenFormatted?: string;
@@ -16,6 +20,7 @@ export type VestingScheduleView = {
 	progressPct?: number;
 	index?: number;
 	id: `0x${string}`;
+	claimableRaw: bigint;
 	raw: {
 		cliff: bigint;
 		duration: bigint;
@@ -36,21 +41,64 @@ type Props = {
 	index: number;
 };
 
-export default function LockCardFromSchedule({ vestingAddress, item, index }: Props) {
-	const [isClaiming, setIsClaiming] = useState(false); // Track the claiming state
-	const [isClaimed, setIsClaimed] = useState(false); // Track if the card is claimed
+export default function LockCardFromSchedule({ vestingAddress, item }: Props) {
+	const [isClaiming, setIsClaiming] = useState(false);
+	const [isClaimed, setIsClaimed] = useState(false);
 	const { release } = useReleaseVested();
 	const { refetch } = useActiveLocks({ vestingAddress });
 	const { showToast } = useToast();
 
-	// Prepare the props for LockCard
-	const amountCBY = formatToken(item.raw.amountLockedX ?? item.raw.amountTotal, 18) ?? '0';
-	const lockPeriodLabel = durationLabelFromStartAndCliff(item.raw.start, item.raw.cliff);
+	// prevent state updates after unmount
+	const mountedRef = useRef(true);
+	useEffect(() => () => { mountedRef.current = false; }, []);
+
+	// formatted values
+	const amountCBY =
+		formatToken(item.raw.amountLockedX ?? item.raw.amountTotal, 18) ?? '0';
+	const lockPeriodLabel = durationLabelFromStartAndCliff(
+		item.raw.start,
+		item.raw.cliff
+	);
 	const totalSeed = item.totalFormatted ?? '0';
 	const claimable = item.claimableFormatted ?? '0';
-	const displayId = `#${String((index ?? 0) + 1).padStart(3, '0')}`;
+	const displayId = `#${String(item.index ?? 0).padStart(3, '0')}`;
 
-	console.log("item in LockCardFromSchedule:", item.raw);
+	// post-claim progress
+	const total = item.raw.amountTotal;
+	const released = item.raw.released;
+	const claimableRaw = item.claimableRaw ?? 0n;
+	const afterClaimPct =
+		total > 0n
+			? Math.min(100, Number(((released + claimableRaw) * 100n) / total))
+			: 0;
+
+	const canClaimNow = !isClaiming && claimableRaw > 0n && !item.raw.revoked;
+
+	const handleClaim = async () => {
+		if (!canClaimNow) {
+			if (claimableRaw === 0n) {
+				showToast({ type: 'info', message: 'Nothing to claim yet.' });
+			}
+			return;
+		}
+
+		try {
+			setIsClaiming(true);
+			await release(vestingAddress, item.id);
+			setIsClaimed(true);
+			await refetch();
+			showToast({ type: 'success', message: 'Claim complete!' });
+		} catch (err) {
+			const e = err as FriendlyError;
+			showToast({
+				type: 'error',
+				message: e.userMessage ?? 'Claim failed. Please try again.',
+			});
+		} finally {
+			if (mountedRef.current) setIsClaiming(false);
+		}
+	};
+
 	const props: LockCardProps = {
 		displayId,
 		amountCBY: formatThousands(amountCBY),
@@ -58,33 +106,15 @@ export default function LockCardFromSchedule({ vestingAddress, item, index }: Pr
 		totalSeedToReceive: formatThousands(totalSeed),
 		claimableSeed: formatThousands(claimable),
 		unlockDateText: item.unlockDateText ?? '',
-		progressPct: item.progressPct ?? 0,
+		progressPct: isClaiming ? afterClaimPct : item.progressPct ?? 0,
 		timeRemainingText: item.timeRemainingText ?? '',
-		onClaim: isClaiming
-			? undefined
-			: async () => {
-				try {
-					setIsClaiming(true); // Set claiming state to true
-
-					await release(vestingAddress, item.id);
-
-					// Mark as claimed after successful claim
-					setIsClaimed(true);
-
-					refetch(); // Trigger a refetch to update data
-					showToast({ type: 'success', message: 'Claim complete!' });
-				} catch (err: unknown) {
-					const e = err as FriendlyError;
-					console.log('release error', { e });
-					showToast({ type: 'error', message: e.userMessage ?? 'Something went wrong. Please try again.' });
-				} finally {
-					setIsClaiming(false); // Reset claiming state after completion
-				}
-			},
+		onClaim: handleClaim,
+		isClaiming,
 	};
 
+	// ⬇️ keep this exactly as you asked
 	return (
-		<div className={item.progressPct === 100 || isClaimed ? 'hidden' : ''}> {/* Hide card if progress is 100% or if it's claimed */}
+		<div className={afterClaimPct === 100 && isClaimed ? 'hidden' : ''}> {/* Hide card if progress is 100% or if it's claimed */}
 			<LockCard {...props} />
 		</div>
 	);
