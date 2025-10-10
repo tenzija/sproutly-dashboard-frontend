@@ -8,6 +8,7 @@ import {
   isValidNumberInput,
 } from "../utils/numberUtils";
 import { BridgeStepper } from "./BridgeStepper";
+import { Tooltip } from "@mui/material";
 
 interface BridgeCPYProps {
   handleNext: () => void;
@@ -131,7 +132,17 @@ export default function BridgeCPY({ handleNext, currentStep }: BridgeCPYProps) {
               className="amount-input"
               disabled={inputDisabled}
             />
-            {/* Removed the “Estimated Bridging Fee” section */}
+            <p className="fee-info">
+              Estimated Bridging Fee:{" "}
+              <span style={{ color: "#9FE870", fontWeight: 500 }}>
+                ~ 1.0 POL
+              </span>
+              <Tooltip title="This is the estimated fee for the Bridge transaction." arrow>
+                <span className="info-icon" style={{ cursor: 'pointer' }}>
+                  ⓘ
+                </span>
+              </Tooltip>
+            </p>
           </div>
         </div>
 

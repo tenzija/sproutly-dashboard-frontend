@@ -15,6 +15,7 @@ import { Skeleton } from '@mui/material';
 import { LockCardSkeleton } from "./skeleton/LockCardSkeleton";
 
 const NEXT_PUBLIC_CBY_ADDRESS = process.env.NEXT_PUBLIC_CBY_ADDRESS;
+const NEXT_PUBLIC_MOCK_TOKEN = process.env.NEXT_PUBLIC_MOCK_TOKEN;
 const NEXT_PUBLIC_CBY_DECIMALS = Number(process.env.NEXT_PUBLIC_CBY_DECIMALS) || 18;
 const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS;
 
@@ -24,6 +25,7 @@ function SwapPortalPage() {
   const { address: currentAddress, isConnected } = useAccount();
 
   const [value, setValue] = useState<string>("0.00");
+  const [polygonValue, setPolygonValue] = useState<string>("0.00");
   const { data, isPending, isFetching, refetch: refetchCBYBalance } = useReadContract({
     address: NEXT_PUBLIC_CBY_ADDRESS as `0x${string}`,
     abi: CBY_ABI,
@@ -49,6 +51,26 @@ function SwapPortalPage() {
     };
     getData().catch(console.error);
   }, [data]);
+  const { data: polygonData, isPending: isPendingPolygon, isFetching: isFetchingPolygon, refetch: refetchPolCBYBalance } = useReadContract({
+    address: NEXT_PUBLIC_MOCK_TOKEN as `0x${string}`,
+    abi: CBY_ABI,
+    functionName: "balanceOf",
+    args: [currentAddress],
+    // Don’t run until wallet is connected & we have an address
+    query: { enabled: Boolean(isConnected && currentAddress) },
+    chainId: 137, // Base Mainnet
+  });
+
+  useEffect(() => {
+    const getData = async () => {
+      await polygonData;
+      if (polygonData !== undefined) {
+        const ethValue = formatToken(polygonData as bigint, NEXT_PUBLIC_CBY_DECIMALS);
+        setPolygonValue(ethValue);
+      }
+    };
+    getData().catch(console.error);
+  }, [polygonData]);
 
   const handleStartSwap = () => {
     setIsModalOpen(true);
@@ -96,25 +118,66 @@ function SwapPortalPage() {
             Swap your $CBY for $SEED tokens and earn more with longer lock-up
             periods. Your tokens on the BASE chain are ready for action.
           </p>
-          <div className="available">
-            <p>Available $CBY Balance</p>
-            <div className="balance">
-              <h1>
-                {(isPending || isFetching)
-                  ? (
-                    <Skeleton
-                      variant="text"
-                      width={90}
-                      sx={{ fontSize: '2.5rem', lineHeight: 1 }}
-                    />
-                  )
-                  : formatThousands(value)
-                }
-              </h1>
-              <h2>$CBY</h2>
+          <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+            <div className="available">
+              <p>Available $CBY Balance</p>
+              <div className="balance">
+                <h1>
+                  {(isPendingPolygon || isFetchingPolygon)
+                    ? (
+                      <Skeleton
+                        variant="text"
+                        width={90}
+                        sx={{ fontSize: '2.5rem', lineHeight: 1 }}
+                      />
+                    )
+                    : formatThousands(polygonValue)
+                  }
+                </h1>
+                <h2>$CBY</h2>
+              </div>
+              <div className="flex items-center gap-1">
+                <p>In Polygon Chain</p>
+                <Image
+                  src="/images/polygon-logo.png" // Replace with your path or URL
+                  alt="Polygon Logo"
+                  width={20}
+                  height={20}
+                  className="inline"
+                />
+              </div>
             </div>
-            <p>In Base Chain</p>
+
+            <div className="available">
+              <p>Available $CBY Balance</p>
+              <div className="balance">
+                <h1>
+                  {(isPending || isFetching)
+                    ? (
+                      <Skeleton
+                        variant="text"
+                        width={90}
+                        sx={{ fontSize: '2.5rem', lineHeight: 1 }}
+                      />
+                    )
+                    : formatThousands(value)
+                  }
+                </h1>
+                <h2>$CBY</h2>
+              </div>
+              <div className="flex items-center gap-1">
+                <p>In Base Chain</p>
+                <Image
+                  src="/images/base-logo.svg" // Replace with your path or URL
+                  alt="Base Logo"
+                  width={20}
+                  height={20}
+                  className="inline"
+                />
+              </div>
+            </div>
           </div>
+
           <h3>Your $CBY for Swap</h3>
           <button className="success-card__button" onClick={handleStartSwap}>Start New Swap </button>
         </div>
@@ -156,6 +219,7 @@ function SwapPortalPage() {
       </div>
       <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} onSuccess={async () => {
         await refetchCBYBalance();
+        await refetchPolCBYBalance();
       }} />
 
       {/* Reusable Wallet Connection Popup - Always rendered */}

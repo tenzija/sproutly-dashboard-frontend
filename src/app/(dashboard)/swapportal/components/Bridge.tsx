@@ -23,7 +23,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
   onSuccess,
 }) => {
   const steps = ["Connect Wallet", "Bridge CBY", "Set Staking Terms", "Review & Confirm"];
-  const [currentStep, setCurrentStep] = useState(2);
+  const [currentStep, setCurrentStep] = useState(1);
   const [wasCompleted, setWasCompleted] = useState(false);
 
   // shared staking data
