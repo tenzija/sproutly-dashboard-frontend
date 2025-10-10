@@ -146,8 +146,6 @@ export function useStakeToken() {
 
 						if (amountX <= allowance) return 'skip-approve';
 
-						// const approveValue = infiniteApproval ? 2n ** 256n - 1n : amountX;
-
 						const { request } = await publicClient.simulateContract({
 							address: tokenX,
 							abi: erc20Abi,

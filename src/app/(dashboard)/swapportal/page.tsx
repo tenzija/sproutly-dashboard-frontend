@@ -17,37 +17,14 @@ import { LockCardSkeleton } from "./skeleton/LockCardSkeleton";
 const NEXT_PUBLIC_CBY_ADDRESS = process.env.NEXT_PUBLIC_CBY_ADDRESS;
 const NEXT_PUBLIC_CBY_DECIMALS = Number(process.env.NEXT_PUBLIC_CBY_DECIMALS) || 18;
 const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS;
-// Update LockItem to match the data structure of locks
-type LockItem = {
-  index: number;
-  id: `0x${string}`;
-  raw: VestingSchedule;
-  claimableFormatted: string;
-  totalFormatted: string;
-  lockedFormatted: string;
-  timeRemainingText: string;
-  unlockDateText: string;
-  progressPct: number;
-  // Remove the unnecessary fields from LockItem, if not required
-};
-
 
 function SwapPortalPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { address: currentAddress, isConnected } = useAccount();
-  // const { open, close } = useAppKit();
-  // const handleClick = () => {
-  //   if (isConnected) {
-  //     close();
-  //   } else {
-  //     open();
-  //   }
-  // };
-
 
   const [value, setValue] = useState<string>("0.00");
-  const { data, isPending, isFetching, } = useReadContract({
+  const { data, isPending, isFetching, refetch: refetchCBYBalance } = useReadContract({
     address: NEXT_PUBLIC_CBY_ADDRESS as `0x${string}`,
     abi: CBY_ABI,
     functionName: "balanceOf",
@@ -177,7 +154,9 @@ function SwapPortalPage() {
               ))}
         </div>
       </div>
-      <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} />
+      <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} onSuccess={async () => {
+        await refetchCBYBalance();
+      }} />
 
       {/* Reusable Wallet Connection Popup - Always rendered */}
       {/* <WalletConnectPopup

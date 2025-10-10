@@ -32,6 +32,9 @@ export interface ConfirmSwapProps {
 
   /** passed from parent for final call */
   stakeParams: StakeParamsForReview;
+
+  /** NEW: notify parent/Bridge on successful on-chain completion */
+  onSuccess?: () => void | Promise<void>;
 }
 
 const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as `0x${string}`;
@@ -48,6 +51,7 @@ export default function Review({
   handleNext,
   confirmDisabled,
   stakeParams,
+  onSuccess, // <-- NEW
 }: ConfirmSwapProps) {
   const { stake, isApproving, isStaking } = useStakeToken();
   const [submitting, setSubmitting] = useState(false);
@@ -68,11 +72,14 @@ export default function Review({
       });
 
       if (res.ok) {
-        handleNext(); // go to success
+        // notify parent/Bridge first (e.g., to refetch balances)
+        await onSuccess?.();
+        // then move to success step
+        handleNext();
       }
-      setSubmitting(false);
     } catch (err) {
       console.error(err);
+    } finally {
       setSubmitting(false);
     }
   };
@@ -102,7 +109,7 @@ export default function Review({
           </Typography>
         </Box>
 
-        {/* Row using thin borders as dividers (no stretch) */}
+        {/* Row */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Box sx={{ flex: 1 }}>
             <Typography variant="caption" sx={{ opacity: 0.7, mb: 0.5 }}>
