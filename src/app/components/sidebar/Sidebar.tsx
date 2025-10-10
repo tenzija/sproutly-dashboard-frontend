@@ -118,7 +118,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
               return (
                 <Link key={item.name} href={item.href}>
                   <div
-                    className={`flex items-center px-3 py-1 rounded-lg w-[214px] h-[32px] cursor-pointer
+                    className={`flex items-center px-3 py-2 rounded-lg w-[214px] h-[38px] cursor-pointer
                 text-[color:var(--white-60)] transition-colors duration-300 ease-in-out
                 hover:bg-[#ccf693] hover:text-black
                 ${isActive
@@ -127,7 +127,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
                       }`}
                   >
                     <Icon className="text-base mr-3" />
-                    <span className="text-base font-medium">{item.name}</span>
+                    <span className="text-lg font-medium">{item.name}</span>
                   </div>
                 </Link>
               );

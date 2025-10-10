@@ -113,10 +113,10 @@ function SwapPortalPage() {
       {/* <PageHeader title="Swap Portal" showSearch={false} showButton={false} showBalance={true} /> */}
       <div className="swap_top">
         <div className="left">
-          <h2>Ready to Grow Your SEED?</h2>
+          <h2 className="font-semibold">Ready to Grow Your $SEED?</h2>
           <p>
-            Swap your $CBY for $SEED tokens and earn more with longer lock-up
-            periods. Your tokens on the BASE chain are ready for action.
+            Swap your $CBY for $SEED tokens and earn more $SEED with longer lock-up
+            periods. Below is your available $CBY on both Base and Polygon chains.
           </p>
           <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
             <div className="available">
@@ -137,7 +137,7 @@ function SwapPortalPage() {
                 <h2>$CBY</h2>
               </div>
               <div className="flex items-center gap-1">
-                <p>In Polygon Chain</p>
+                <p>On Polygon Chain</p>
                 <Image
                   src="/images/polygon-logo.png" // Replace with your path or URL
                   alt="Polygon Logo"
@@ -166,7 +166,7 @@ function SwapPortalPage() {
                 <h2>$CBY</h2>
               </div>
               <div className="flex items-center gap-1">
-                <p>In Base Chain</p>
+                <p>On Base Chain</p>
                 <Image
                   src="/images/base-logo.svg" // Replace with your path or URL
                   alt="Base Logo"
@@ -178,8 +178,8 @@ function SwapPortalPage() {
             </div>
           </div>
 
-          <h3>Your $CBY for Swap</h3>
-          <button className="success-card__button" onClick={handleStartSwap}>Start New Swap </button>
+          <h3 className="text-sm text-center">By pressing the button below you will start the swap process, which includes bridging $CBY from Polygon to Base, after which you will be able to vest your $CBY for $SEED.</h3>
+          <button className="success-card__button" onClick={handleStartSwap}>Start New Swap</button>
         </div>
         <div className="right">
           <div className="image">
