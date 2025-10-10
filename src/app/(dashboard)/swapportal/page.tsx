@@ -9,7 +9,7 @@ import { CBY_ABI } from "@/constant/BlockchainConstants";
 import "./Swapportal.scss";
 import { formatThousands, formatToken } from "@/utils/helper";
 // import { useAppKit } from "@reown/appkit/react";
-import { useActiveLocks, VestingSchedule } from "@/hooks/useActiveLocks";
+import { useActiveLocks } from "@/hooks/useActiveLocks";
 import LockCardFromSchedule from "./components/LockCardFromSchedule";
 import { Skeleton } from '@mui/material';
 import { LockCardSkeleton } from "./skeleton/LockCardSkeleton";
