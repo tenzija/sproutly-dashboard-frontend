@@ -10,6 +10,7 @@ import {
 	formatThousands,
 	formatToken,
 } from '@/utils/helper';
+import { toast } from "react-toastify";
 
 export type VestingScheduleView = {
 	amountTokenFormatted?: string;
@@ -86,14 +87,11 @@ export default function LockCardFromSchedule({ vestingAddress, item }: Props) {
 			setIsClaiming(true);
 			await release(vestingAddress, item.id);
 			setIsClaimed(true);
-			await refetch();
-			showToast({ type: 'success', message: 'Claim complete!' });
+			refetch();
+			toast.success('Claim complete!');
 		} catch (err) {
 			const e = err as FriendlyError;
-			showToast({
-				type: 'error',
-				message: e.userMessage ?? 'Claim failed. Please try again.',
-			});
+			toast.error(e.userMessage ?? 'Claim failed. Please try again.');
 		} finally {
 			if (mountedRef.current) setIsClaiming(false);
 		}
