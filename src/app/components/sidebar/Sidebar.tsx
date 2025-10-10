@@ -77,7 +77,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
               className="w-12 h-12 object-cover rounded-[50%]"
               onError={handleImageError} // Trigger fallback image if error occurs
             />
-            <p>{username}</p>
+            <p className="font-semibold ml-2">{username}</p>
           </div>
 
           {!isConnected ? (
