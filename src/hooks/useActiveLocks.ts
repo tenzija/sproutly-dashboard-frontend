@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useAccount, useReadContract, useReadContracts } from 'wagmi';
 import { tokenVestingAbi } from '@/abis/minimalAbi';
 import { formatUnits, type Address, type Hex } from 'viem';

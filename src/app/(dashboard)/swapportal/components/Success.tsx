@@ -8,7 +8,7 @@ export interface SuccessProps {
 function Success({ onClose }: SuccessProps) {
 
   const { refetch } = useActiveLocks({
-    vestingAddress: process.env.NEXT_PUBLIC_VESTING!,
+    vestingAddress: process.env.NEXT_PUBLIC_VESTING as `0x${string}`,
     chainId: 8453,
     tokenDecimals: 18,
   });
