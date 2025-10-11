@@ -68,7 +68,7 @@ function LockCard({
         <div className="mb-4">
           <span className="text text-[13px] mb-2 block">{unlockDateText}</span>
           <div className="flex items-center">
-            <div className="relative w-full h-1.5 bg-[#223426] rounded-[6px] mr-3">
+            <div className="relative w-full h-1.5 bg-[#223426] rounded-[6px] overflow-hidden mr-3">
               <span
                 className="block h-full bg-[#81e490] rounded-l-[6px]"
                 style={{ width: `${progressPct}%` }}

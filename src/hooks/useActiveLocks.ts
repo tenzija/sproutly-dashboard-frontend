@@ -5,7 +5,6 @@ import { formatUnits, type Address, type Hex } from 'viem';
 
 const DAY = 86400;
 
-// ---- Types ----
 export type VestingSchedule = {
 	beneficiary: Address;
 	cliff: bigint;
@@ -37,17 +36,20 @@ function isVestingSchedule(x: unknown): x is VestingSchedule {
 }
 
 type Options = {
-	vestingAddress: string;
+	vestingAddress: Address; // <- required
 	tokenDecimals?: number;
 	chainId?: number;
 	formatToken?: (v: bigint, d: number) => string;
 };
 
-// ---- Hook ----
 export function useActiveLocks(opts: Options) {
 	const { address } = useAccount();
-	const vestingAddress = process.env
-		.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as Address;
+
+	// ✅ use the provided address; fallback to env only if needed
+	const vestingAddress =
+		opts.vestingAddress ??
+		(process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as Address);
+
 	const decimals = opts.tokenDecimals ?? 18;
 	const chainId = opts.chainId ?? 8453;
 	const fmt = useMemo(
@@ -55,42 +57,48 @@ export function useActiveLocks(opts: Options) {
 		[opts.formatToken]
 	);
 
-	const [refreshKey, setRefreshKey] = useState(0);
-	const refetch = useCallback(() => setRefreshKey((k) => k + 1), []);
-
-	// Fetch schedule indexes by beneficiary
-	const { data: indexData, isLoading: loadingIndexes } = useReadContract({
+	// ——— Indexes ———
+	const {
+		data: indexData,
+		isLoading: loadingIndexes,
+		refetch: refetchIndexes, // <- grab wagmi refetch
+	} = useReadContract({
 		address: vestingAddress,
 		abi: tokenVestingAbi,
 		functionName: 'getVestingScheduleIndexesByBeneficiary',
 		args: address ? [address] : undefined,
-		query: { enabled: Boolean(address && vestingAddress) },
 		chainId,
-		scopeKey: `locks-index-${chainId}-${vestingAddress}-${address}-${refreshKey}`,
+		query: {
+			enabled: Boolean(address && vestingAddress),
+			staleTime: 0, // ensure not considered fresh
+			refetchOnMount: 'always', // always re-run on remount
+		},
+		// watch: true,               // optional: auto on new blocks
+		scopeKey: `locks-index-${chainId}-${vestingAddress}-${address}`,
 	});
 
-	// The schedule indices (0, 1, 2, etc.)
-	const indices: number[] = useMemo(() => {
-		return indexData
-			? (indexData as bigint[]).map((index) => Number(index))
-			: [];
-	}, [indexData]);
+	const indices: number[] = useMemo(
+		() => (indexData ? (indexData as bigint[]).map((i) => Number(i)) : []),
+		[indexData]
+	);
 
-	// Fetching the count of vesting schedules
-	const { data: countData, isLoading: loadingCount } = useReadContract({
+	// ——— Count ———
+	const {
+		data: countData,
+		isLoading: loadingCount,
+		refetch: refetchCount,
+	} = useReadContract({
 		address: vestingAddress,
 		abi: tokenVestingAbi,
 		functionName: 'getVestingSchedulesCountByBeneficiary',
 		args: address ? [address] : undefined,
-		query: { enabled: Boolean(address && vestingAddress) },
 		chainId,
-		scopeKey: `locks-count-${chainId}-${vestingAddress}-${
-			address ?? '0x0'
-		}-${refreshKey}`,
+		query: { enabled: Boolean(address && vestingAddress), staleTime: 0 },
+		scopeKey: `locks-count-${chainId}-${vestingAddress}-${address ?? '0x0'}`,
 	});
 	const count = Number(countData ?? 0);
 
-	// Build ID reads based on fetched indices
+	// ——— IDs ———
 	const idReads = useMemo(() => {
 		if (!indices.length) return [];
 		return indices.map((index) => ({
@@ -102,10 +110,14 @@ export function useActiveLocks(opts: Options) {
 		}));
 	}, [address, indices, vestingAddress, chainId]);
 
-	const { data: idsData, isLoading: loadingIds } = useReadContracts({
+	const {
+		data: idsData,
+		isLoading: loadingIds,
+		refetch: refetchIds,
+	} = useReadContracts({
 		contracts: idReads,
-		query: { enabled: idReads.length > 0 },
-		scopeKey: `locks-ids-${chainId}-${vestingAddress}-${address}-${refreshKey}`,
+		query: { enabled: idReads.length > 0, staleTime: 0 },
+		scopeKey: `locks-ids-${chainId}-${vestingAddress}-${address}`,
 	});
 
 	const ids: Hex[] = useMemo(() => {
@@ -115,7 +127,7 @@ export function useActiveLocks(opts: Options) {
 			.filter((x): x is Hex => !!x);
 	}, [idsData]);
 
-	// Fetch schedules and claimables using the indices
+	// ——— Schedules + Claimables ———
 	const schedAndClaimReads = useMemo(() => {
 		if (!ids.length) return [];
 		return ids.flatMap((id) => [
@@ -136,12 +148,15 @@ export function useActiveLocks(opts: Options) {
 		]);
 	}, [ids, vestingAddress, chainId]);
 
-	const { data: schedClaimData, isLoading: loadingSchedClaims } =
-		useReadContracts({
-			contracts: schedAndClaimReads,
-			query: { enabled: schedAndClaimReads.length > 0 },
-			scopeKey: `locks-sched-claim-${chainId}-${vestingAddress}-${address}-${refreshKey}`,
-		});
+	const {
+		data: schedClaimData,
+		isLoading: loadingSchedClaims,
+		refetch: refetchSchedClaims,
+	} = useReadContracts({
+		contracts: schedAndClaimReads,
+		query: { enabled: schedAndClaimReads.length > 0, staleTime: 0 },
+		scopeKey: `locks-sched-claim-${chainId}-${vestingAddress}-${address}`,
+	});
 
 	const humanRemaining = (now: number, end: number) => {
 		const sec = Math.max(0, end - now);
@@ -156,7 +171,7 @@ export function useActiveLocks(opts: Options) {
 
 		const now = Math.floor(Date.now() / 1000);
 		const out: Array<{
-			index: number; // The actual index from the contract
+			index: number;
 			id: Hex;
 			raw: VestingSchedule;
 			claimableFormatted: string;
@@ -168,10 +183,6 @@ export function useActiveLocks(opts: Options) {
 			claimableRaw: bigint;
 		}> = [];
 
-		// Filter valid schedules and their corresponding indices
-		const validSchedules = [];
-		const validIndices = [];
-
 		for (let i = 0; i < ids.length; i++) {
 			const id = ids[i];
 			const schedRes = schedClaimData[i * 2];
@@ -179,22 +190,14 @@ export function useActiveLocks(opts: Options) {
 
 			if (schedRes?.status !== 'success' || claimRes?.status !== 'success')
 				continue;
-
-			// ✅ Safe narrowing with type guards
 			if (!isVestingSchedule(schedRes.result)) continue;
 			if (typeof claimRes.result !== 'bigint') continue;
 
 			const s = schedRes.result;
 			const claimable = claimRes.result;
 
-			// Skip fully claimed or revoked schedules
 			if (s.revoked || s.released >= s.amountTotal) continue;
 
-			// Store valid schedules and their corresponding indices
-			validSchedules.push(s);
-			validIndices.push(indices[i]); // Use the actual contract index
-
-			// Calculate the progress based on released amount instead of time
 			let progressPct = 0;
 			if (s.amountTotal > 0) {
 				progressPct = Math.round(
@@ -204,9 +207,8 @@ export function useActiveLocks(opts: Options) {
 
 			const cliff = Number(s.cliff);
 
-			// Use the valid contract index and push it to the list
 			out.push({
-				index: validIndices[validIndices.length - 1], // Correct contract index from filtered valid schedules
+				index: indices[i], // original index from beneficiary list
 				id,
 				raw: s,
 				claimableFormatted: fmt(claimable, decimals),
@@ -218,15 +220,24 @@ export function useActiveLocks(opts: Options) {
 				progressPct,
 			});
 		}
-
 		return out;
 	}, [ids, schedClaimData, decimals, fmt, indices]);
+
+	// ✅ Real refetch that actually re-queries wagmi
+	const refetch = useCallback(async () => {
+		await Promise.all([
+			refetchIndexes?.(),
+			refetchCount?.(),
+			refetchIds?.(),
+			refetchSchedClaims?.(),
+		]);
+	}, [refetchIndexes, refetchCount, refetchIds, refetchSchedClaims]);
 
 	return {
 		locks,
 		isLoading:
 			loadingCount || loadingIds || loadingSchedClaims || loadingIndexes,
 		count,
-		refetch,
+		refetch, // call this to force fresh reads
 	};
 }

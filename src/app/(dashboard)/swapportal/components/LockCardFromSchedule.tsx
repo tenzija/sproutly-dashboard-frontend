@@ -87,9 +87,11 @@ export default function LockCardFromSchedule({ vestingAddress, item }: Props) {
 			setIsClaiming(true);
 			await release(vestingAddress, item.id);
 			setIsClaimed(true);
+			setIsClaiming(false);
 			refetch();
 			toast.success('Claim complete!');
 		} catch (err) {
+			setIsClaiming(false);
 			const e = err as FriendlyError;
 			toast.error(e.userMessage ?? 'Claim failed. Please try again.');
 		} finally {
@@ -104,7 +106,7 @@ export default function LockCardFromSchedule({ vestingAddress, item }: Props) {
 		totalSeedToReceive: formatThousands(totalSeed),
 		claimableSeed: formatThousands(claimable),
 		unlockDateText: item.unlockDateText ?? '',
-		progressPct: isClaiming ? afterClaimPct : item.progressPct ?? 0,
+		progressPct: item.progressPct ?? 0,
 		timeRemainingText: item.timeRemainingText ?? '',
 		onClaim: handleClaim,
 		isClaiming,

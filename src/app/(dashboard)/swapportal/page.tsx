@@ -9,15 +9,29 @@ import { CBY_ABI } from "@/constant/BlockchainConstants";
 import "./Swapportal.scss";
 import { formatThousands, formatToken } from "@/utils/helper";
 // import { useAppKit } from "@reown/appkit/react";
-import { useActiveLocks } from "@/hooks/useActiveLocks";
+import { useActiveLocks, VestingSchedule } from "@/hooks/useActiveLocks";
 import LockCardFromSchedule from "./components/LockCardFromSchedule";
 import { Skeleton } from '@mui/material';
 import { LockCardSkeleton } from "./skeleton/LockCardSkeleton";
+import { Hex } from "viem";
 
 const NEXT_PUBLIC_CBY_ADDRESS = process.env.NEXT_PUBLIC_CBY_ADDRESS;
 const NEXT_PUBLIC_MOCK_TOKEN = process.env.NEXT_PUBLIC_MOCK_TOKEN;
 const NEXT_PUBLIC_CBY_DECIMALS = Number(process.env.NEXT_PUBLIC_CBY_DECIMALS) || 18;
 const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS;
+
+type LockItem = {
+  index: number; // The actual index from the contract
+  id: Hex;
+  raw: VestingSchedule;
+  claimableFormatted: string;
+  totalFormatted: string;
+  lockedFormatted: string;
+  timeRemainingText: string;
+  unlockDateText: string;
+  progressPct: number;
+  claimableRaw: bigint;
+}
 
 function SwapPortalPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,6 +40,7 @@ function SwapPortalPage() {
 
   const [value, setValue] = useState<string>("0.00");
   const [polygonValue, setPolygonValue] = useState<string>("0.00");
+  const [lockData, setLockData] = useState<LockItem[]>([]); // Define the type of lockData state
   const { data, isPending, isFetching, refetch: refetchCBYBalance } = useReadContract({
     address: NEXT_PUBLIC_CBY_ADDRESS as `0x${string}`,
     abi: CBY_ABI,
@@ -40,6 +55,11 @@ function SwapPortalPage() {
     vestingAddress: VESTING_ADDR as `0x${string}`,
     tokenDecimals: 18,
   });
+
+  useEffect(() => {
+    console.log("Locks updated:", locks);
+    setLockData(locks); // Update lockData whenever locks change
+  }, [locks]);
 
   useEffect(() => {
     const getData = async () => {
@@ -199,10 +219,10 @@ function SwapPortalPage() {
         <h3>Your Active Locks</h3>
         <div className="lock_grid">
           {/* <LockCardSkeleton /> */}
-          {locks.length === 0 ? (
+          {lockData.length === 0 ? (
             <LockCardSkeleton />
           ) :
-            locks
+            lockData
               .filter((item) => item !== null)
               .map((item, idx) => (
                 <LockCardFromSchedule
@@ -210,9 +230,6 @@ function SwapPortalPage() {
                   item={item!}
                   index={idx}
                   vestingAddress={VESTING_ADDR as `0x${string}`}
-                // onClaim={(id) => {
-                //   // call your release hook here (e.g., writeContract to `release(bytes32 id)`)
-                // }}
                 />
               ))}
         </div>
