@@ -24,9 +24,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const cookies = (await headers()).get("cookie");
   return (
     <html lang="en">
-      <head>
+      {/* <head>
         <link rel="icon" type="image/svg+xml" href="/Favi.svg" />
-      </head>
+      </head> */}
       <body className={`backgroundImg ${geistSans.variable} ${geistMono.variable}`}>
         <Providers cookies={cookies}>
           <AuthProvider>
