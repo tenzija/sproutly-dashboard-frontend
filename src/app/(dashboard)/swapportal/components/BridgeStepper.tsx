@@ -3,65 +3,70 @@ import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
-import StepConnector from '@mui/material/StepConnector';
+import StepConnector, { stepConnectorClasses } from '@mui/material/StepConnector';
 import { styled } from '@mui/material/styles';
 import { StepIconProps } from '@mui/material/StepIcon';
 
 type Progress =
-    | 'idle'
-    | 'approving'
-    | 'approved'
-    | 'quoting'
-    | 'sending'
-    | 'sent'
-    | 'waitingBase'
-    | 'done'
-    | 'error';
+    | 'idle' | 'approving' | 'approved' | 'quoting' | 'sending' | 'sent' | 'waitingBase' | 'done' | 'error';
 
 const STEPS = [
     'Approve (if needed)',
     'Quote fee',
     'Send on Polygon',
-    'Finalize on Base',
+    'Finalize on BASE',
     'Complete',
 ];
 
 const NEON = '#9FE870';
+const ICON_BOX = 24;   // StepIcon container (matches MUI expectation)
+const DOT = 12;        // actual glowing dot
 
-// Custom Connector styling
-const NeonConnector = styled(StepConnector)(({ theme }) => ({
-    [`& .MuiStepConnector-line`]: {
+const NeonConnector = styled(StepConnector)(() => ({
+    // ensure the connector is vertically centered against a 24px icon box
+    [`&.${stepConnectorClasses.alternativeLabel}`]: { top: ICON_BOX / 2 }, // 12
+    [`& .${stepConnectorClasses.line}`]: {
         borderColor: 'rgba(255,255,255,0.22)',
         borderTopWidth: 2,
         borderRadius: 1,
         height: 2,
     },
-    [`&.Mui-active .MuiStepConnector-line, 
-    &.Mui-completed .MuiStepConnector-line`]: {
+    [`&.${stepConnectorClasses.active} .${stepConnectorClasses.line}, 
+    &.${stepConnectorClasses.completed} .${stepConnectorClasses.line}`]: {
         borderColor: NEON,
         boxShadow: `0 0 6px ${NEON}`,
     },
 }));
 
-// Custom StepIcon for neon dot
 function NeonStepIcon(props: StepIconProps) {
     const { active, completed, className } = props;
     const filled = active || completed;
+
     return (
         <Box
             className={className}
             sx={{
-                width: 12,
-                height: 12,
-                borderRadius: '50%',
-                background: filled ? NEON : 'rgba(255,255,255,0.35)',
-                boxShadow: filled ? `0 0 6px ${NEON}` : 'none',
+                // 24x24 container so the connector centers at top: 12px
+                width: ICON_BOX,
+                height: ICON_BOX,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
             }}
-        />
+        >
+            <Box
+                sx={{
+                    width: DOT,
+                    height: DOT,
+                    borderRadius: '50%',
+                    background: filled ? NEON : 'rgba(255,255,255,0.35)',
+                    boxShadow: filled ? `0 0 6px ${NEON}` : 'none',
+                }}
+            />
+        </Box>
     );
 }
 
-// Function to get active step based on progress
 function getActiveStep(p: Progress) {
     switch (p) {
         case 'approving': return 0;
@@ -75,13 +80,8 @@ function getActiveStep(p: Progress) {
     }
 }
 
-export function BridgeStepper({
-    progress,
-}: {
-    progress: Progress;
-}) {
+export function BridgeStepper({ progress }: { progress: Progress }) {
     const activeStep = getActiveStep(progress);
-    // if (activeStep < 0 && !showWhenIdle) return null;
 
     return (
         <Box sx={{ width: '100%' }}>

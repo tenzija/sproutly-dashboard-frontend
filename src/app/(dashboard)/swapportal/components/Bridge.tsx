@@ -1,4 +1,5 @@
 // components/Bridge.tsx
+
 import React, { useState, useEffect } from "react";
 import Stepper from "./Stepper";
 import BridgeCPY from "./BridgeCPY";
@@ -11,21 +12,24 @@ interface BridgeModalProps {
   onClose: () => void;
   availableBalance?: string;
   handleConnectWallet?: () => void;
+  /** Called after the final on-chain action completes successfully */
+  onSuccess?: () => void;
 }
 
 const Bridge: React.FC<BridgeModalProps> = ({
   isOpen,
   onClose,
   availableBalance,
+  onSuccess,
 }) => {
   const steps = ["Connect Wallet", "Bridge CBY", "Set Staking Terms", "Review & Confirm"];
   const [currentStep, setCurrentStep] = useState(1);
   const [wasCompleted, setWasCompleted] = useState(false);
 
-  // 🔹 lifted shared staking data (edited in SetStacking, displayed/used in Review)
+  // shared staking data
   const [draft, setDraft] = useState<SetStackingDraft>({
-    amountCBY: "0",
-    lockSeconds: 1 * 86400, // default 1 day
+    amountCBY: "",
+    lockSeconds: 1 * 86400,
     lockPeriodLabel: "1 Month",
     unlockDateText: "",
     totalSeedToReceive: "0",
@@ -41,6 +45,17 @@ const Bridge: React.FC<BridgeModalProps> = ({
     }
   }, [isOpen, wasCompleted]);
 
+  const handleNext = () => {
+    setCurrentStep((s) => s + 1)
+  };
+  const handleBack = () => setCurrentStep((s) => Math.max(1, s - 1));
+
+
+  // Define the success handler
+  const handleFlowSuccess = async () => {
+    onSuccess?.();
+  };
+
   const handleClose = () => {
     if (currentStep === 4) setWasCompleted(true);
     onClose();
@@ -48,13 +63,9 @@ const Bridge: React.FC<BridgeModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleNext = () => setCurrentStep((s) => s + 1);
-  const handleBack = () => setCurrentStep((s) => Math.max(1, s - 1));
-
   return (
     <div className="bridge-modal-overlay">
       <div className="bridge-modal">
-
         {currentStep > 1 && currentStep < 4 && (
           <button type="button" className="back-button" onClick={handleBack} aria-label="Go back">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -64,10 +75,8 @@ const Bridge: React.FC<BridgeModalProps> = ({
         )}
         <button className="close-button" onClick={handleClose}>×</button>
 
-
-
         {currentStep === 1 && (
-          <BridgeCPY handleNext={handleNext} currentStep={currentStep} />
+          <BridgeCPY handleNext={handleNext} currentStep={currentStep} onSuccess={onSuccess} availableBalance={availableBalance} />
         )}
 
         {currentStep === 2 && (
@@ -89,14 +98,15 @@ const Bridge: React.FC<BridgeModalProps> = ({
             lockPeriodLabel={draft.lockPeriodLabel}
             swapRatioLabel={draft.swapRatioLabel}
             unlockDateText={draft.unlockDateText}
-            // final action happens here
+            // final action happens here; call this when tx succeeds:
+            onSuccess={handleFlowSuccess}
             stakeParams={{ amountCBY: draft.amountCBY, lockSeconds: draft.lockSeconds }}
             handleBack={handleBack}
-            handleNext={handleNext}
+            handleNext={handleNext} // keep if you also navigate manually elsewhere
           />
         )}
 
-        {currentStep === 4 && <Success onClose={onClose} />}
+        {currentStep === 4 && <Success onClose={handleClose} />}
 
         <Stepper steps={steps} currentStep={currentStep} />
       </div>

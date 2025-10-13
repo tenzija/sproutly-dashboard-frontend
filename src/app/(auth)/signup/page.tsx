@@ -127,7 +127,9 @@ function Page() {
         ...data,
       })
       .then(() => {
-        toast.success("Registration successful! Please log in.");
+        toast.success("Registration successful! Please log in.", {
+          position: "top-right",
+        });
         setTimeout(() => {
           window.location.replace("/login");
         }, 2000);

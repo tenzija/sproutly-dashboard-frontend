@@ -14,6 +14,9 @@ import { tokenVestingAbi } from '@/abis/minimalAbi';
 import { VESTING_HINTS } from '@/constant/errorHints';
 import { useEvmError } from './useEvmError';
 import { base } from 'wagmi/chains';
+import { useActiveLocks } from './useActiveLocks';
+
+const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS;
 
 const isHex32 = (x: unknown): x is Hex =>
 	typeof x === 'string' && /^0x[0-9a-fA-F]{64}$/.test(x);
@@ -39,6 +42,9 @@ export function useReleaseVested() {
 	const publicClient = usePublicClient();
 	const { writeContractAsync } = useWriteContract();
 	const { switchChainAsync } = useSwitchChain();
+	const { refetch: refetchActiveLocks } = useActiveLocks({
+		vestingAddress: VESTING_ADDR as `0x${string}`,
+	});
 
 	const [isClaiming, setIsClaiming] = useState(false);
 	const [txHash, setTxHash] = useState<Hex | undefined>();
@@ -83,13 +89,21 @@ export function useReleaseVested() {
 					const receipt = await publicClient.waitForTransactionReceipt({
 						hash,
 					});
+					refetchActiveLocks();
 					return receipt; // result passed to onSuccess if you provide it
 				});
 			} finally {
 				setIsClaiming(false);
 			}
 		},
-		[address, publicClient, writeContractAsync, handleTx, ensureOnBase]
+		[
+			address,
+			publicClient,
+			writeContractAsync,
+			handleTx,
+			ensureOnBase,
+			refetchActiveLocks,
+		]
 	);
 
 	return { release, isClaiming, txHash };

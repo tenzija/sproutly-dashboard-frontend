@@ -1,11 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useAccount, useReadContract, useReadContracts } from 'wagmi';
 import { tokenVestingAbi } from '@/abis/minimalAbi';
 import { formatUnits, type Address, type Hex } from 'viem';
 
 const DAY = 86400;
 
-// ---- Types ----
 export type VestingSchedule = {
 	beneficiary: Address;
 	cliff: bigint;
@@ -37,17 +36,20 @@ function isVestingSchedule(x: unknown): x is VestingSchedule {
 }
 
 type Options = {
-	vestingAddress: string;
+	vestingAddress: Address; // <- required
 	tokenDecimals?: number;
 	chainId?: number;
 	formatToken?: (v: bigint, d: number) => string;
 };
 
-// ---- Hook ----
 export function useActiveLocks(opts: Options) {
 	const { address } = useAccount();
-	const vestingAddress = process.env
-		.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as Address;
+
+	// ✅ use the provided address; fallback to env only if needed
+	const vestingAddress =
+		opts.vestingAddress ??
+		(process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as Address);
+
 	const decimals = opts.tokenDecimals ?? 18;
 	const chainId = opts.chainId ?? 8453;
 	const fmt = useMemo(
@@ -55,42 +57,67 @@ export function useActiveLocks(opts: Options) {
 		[opts.formatToken]
 	);
 
-	// manual refresh
-	const [refreshKey, setRefreshKey] = useState(0);
-	const refetch = useCallback(() => setRefreshKey((k) => k + 1), []);
+	// ——— Indexes ———
+	const {
+		data: indexData,
+		isLoading: loadingIndexes,
+		refetch: refetchIndexes, // <- grab wagmi refetch
+	} = useReadContract({
+		address: vestingAddress,
+		abi: tokenVestingAbi,
+		functionName: 'getVestingScheduleIndexesByBeneficiary',
+		args: address ? [address] : undefined,
+		chainId,
+		query: {
+			enabled: Boolean(address && vestingAddress),
+			staleTime: 0, // ensure not considered fresh
+			refetchOnMount: 'always', // always re-run on remount
+		},
+		// watch: true,               // optional: auto on new blocks
+		scopeKey: `locks-index-${chainId}-${vestingAddress}-${address}`,
+	});
 
-	/* 1) Count schedules */
-	const { data: countData, isLoading: loadingCount } = useReadContract({
+	const indices: number[] = useMemo(
+		() => (indexData ? (indexData as bigint[]).map((i) => Number(i)) : []),
+		[indexData]
+	);
+
+	// ——— Count ———
+	const {
+		data: countData,
+		isLoading: loadingCount,
+		refetch: refetchCount,
+	} = useReadContract({
 		address: vestingAddress,
 		abi: tokenVestingAbi,
 		functionName: 'getVestingSchedulesCountByBeneficiary',
 		args: address ? [address] : undefined,
-		query: { enabled: Boolean(address && vestingAddress) },
 		chainId,
-		scopeKey: `locks-count-${chainId}-${vestingAddress}-${
-			address ?? '0x0'
-		}-${refreshKey}`,
+		query: { enabled: Boolean(address && vestingAddress), staleTime: 0 },
+		scopeKey: `locks-count-${chainId}-${vestingAddress}-${address ?? '0x0'}`,
 	});
 	const count = Number(countData ?? 0);
 
-	/* 2) Build id reads */
+	// ——— IDs ———
 	const idReads = useMemo(() => {
-		if (!address || count <= 0) return [];
-		return Array.from({ length: count }, (_, i) => ({
+		if (!indices.length) return [];
+		return indices.map((index) => ({
 			address: vestingAddress,
 			abi: tokenVestingAbi,
 			functionName: 'computeVestingScheduleIdForAddressAndIndex' as const,
-			args: [address, BigInt(i)],
+			args: [address, BigInt(index)],
 			chainId,
 		}));
-	}, [address, count, vestingAddress, chainId]);
+	}, [address, indices, vestingAddress, chainId]);
 
-	const { data: idsData, isLoading: loadingIds } = useReadContracts({
+	const {
+		data: idsData,
+		isLoading: loadingIds,
+		refetch: refetchIds,
+	} = useReadContracts({
 		contracts: idReads,
-		query: { enabled: idReads.length > 0 },
-		scopeKey: `locks-ids-${chainId}-${vestingAddress}-${
-			address ?? '0x0'
-		}-${refreshKey}`,
+		query: { enabled: idReads.length > 0, staleTime: 0 },
+		scopeKey: `locks-ids-${chainId}-${vestingAddress}-${address}`,
 	});
 
 	const ids: Hex[] = useMemo(() => {
@@ -100,7 +127,7 @@ export function useActiveLocks(opts: Options) {
 			.filter((x): x is Hex => !!x);
 	}, [idsData]);
 
-	/* 3) Schedules + claimables */
+	// ——— Schedules + Claimables ———
 	const schedAndClaimReads = useMemo(() => {
 		if (!ids.length) return [];
 		return ids.flatMap((id) => [
@@ -121,14 +148,15 @@ export function useActiveLocks(opts: Options) {
 		]);
 	}, [ids, vestingAddress, chainId]);
 
-	const { data: schedClaimData, isLoading: loadingSchedClaims } =
-		useReadContracts({
-			contracts: schedAndClaimReads,
-			query: { enabled: schedAndClaimReads.length > 0 },
-			scopeKey: `locks-sched-claim-${chainId}-${vestingAddress}-${
-				address ?? '0x0'
-			}-${refreshKey}`,
-		});
+	const {
+		data: schedClaimData,
+		isLoading: loadingSchedClaims,
+		refetch: refetchSchedClaims,
+	} = useReadContracts({
+		contracts: schedAndClaimReads,
+		query: { enabled: schedAndClaimReads.length > 0, staleTime: 0 },
+		scopeKey: `locks-sched-claim-${chainId}-${vestingAddress}-${address}`,
+	});
 
 	const humanRemaining = (now: number, end: number) => {
 		const sec = Math.max(0, end - now);
@@ -138,7 +166,6 @@ export function useActiveLocks(opts: Options) {
 		return `${days} Days, ${hours} Hours, ${minutes} Minutes`;
 	};
 
-	/* 4) Shape UI locks */
 	const locks = useMemo(() => {
 		if (!ids.length || !schedClaimData) return [];
 
@@ -153,18 +180,16 @@ export function useActiveLocks(opts: Options) {
 			timeRemainingText: string;
 			unlockDateText: string;
 			progressPct: number;
+			claimableRaw: bigint;
 		}> = [];
 
 		for (let i = 0; i < ids.length; i++) {
 			const id = ids[i];
-
 			const schedRes = schedClaimData[i * 2];
 			const claimRes = schedClaimData[i * 2 + 1];
 
 			if (schedRes?.status !== 'success' || claimRes?.status !== 'success')
 				continue;
-
-			// ✅ Safe narrowing with type guards
 			if (!isVestingSchedule(schedRes.result)) continue;
 			if (typeof claimRes.result !== 'bigint') continue;
 
@@ -173,40 +198,46 @@ export function useActiveLocks(opts: Options) {
 
 			if (s.revoked || s.released >= s.amountTotal) continue;
 
-			const cliff = Number(s.cliff);
-			const duration = Number(s.duration);
-
 			let progressPct = 0;
-			if (now < cliff) progressPct = 0;
-			else if (duration === 1) progressPct = 100;
-			else {
-				const t = Math.min(now, cliff + duration);
-				const num = Math.max(0, t - cliff);
-				progressPct = Math.round((num / Math.max(1, duration)) * 100);
+			if (s.amountTotal > 0) {
+				progressPct = Math.round(
+					(Number(s.released) / Number(s.amountTotal)) * 100
+				);
 			}
 
-			const unlockAt = duration === 1 ? cliff : cliff + duration;
+			const cliff = Number(s.cliff);
 
 			out.push({
-				index: i + 1,
+				index: indices[i], // original index from beneficiary list
 				id,
 				raw: s,
 				claimableFormatted: fmt(claimable, decimals),
+				claimableRaw: claimable,
 				totalFormatted: fmt(s.amountTotal, decimals),
 				lockedFormatted: fmt(s.amountTotal - s.released, decimals),
-				timeRemainingText: humanRemaining(now, unlockAt),
-				unlockDateText: new Date(unlockAt * 1000).toLocaleDateString(),
+				timeRemainingText: humanRemaining(now, cliff),
+				unlockDateText: new Date(cliff * 1000).toLocaleDateString(),
 				progressPct,
 			});
 		}
-
 		return out;
-	}, [ids, schedClaimData, decimals, fmt]);
+	}, [ids, schedClaimData, decimals, fmt, indices]);
+
+	// ✅ Real refetch that actually re-queries wagmi
+	const refetch = useCallback(async () => {
+		await Promise.all([
+			refetchIndexes?.(),
+			refetchCount?.(),
+			refetchIds?.(),
+			refetchSchedClaims?.(),
+		]);
+	}, [refetchIndexes, refetchCount, refetchIds, refetchSchedClaims]);
 
 	return {
 		locks,
-		isLoading: loadingCount || loadingIds || loadingSchedClaims,
+		isLoading:
+			loadingCount || loadingIds || loadingSchedClaims || loadingIndexes,
 		count,
-		refetch,
+		refetch, // call this to force fresh reads
 	};
 }

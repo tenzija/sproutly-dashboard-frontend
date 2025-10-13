@@ -54,6 +54,9 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
     setOpenSidebar(true);
   };
 
+  const handleImageError = () => {
+    setImage("/images/avatar.png"); // Fallback to placeholder image on error
+  };
 
   return (
     <>
@@ -64,17 +67,17 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
     ${openSidebar ? 'translate-x-[-100%]' : 'translate-x-0'} md:translate-x-0`}
       >
 
-
         <nav className="flex flex-col gap-[5px]">
           <div className="flex items-center gap-2 mt-[-1.5px] mb-5">
             <Image
-              src={image || "/images/button.png"}
+              src={image || "/images/avatar.png"}
               alt="Profile"
               width={48}
               height={48}
-              className=" w-12 h-12 object-cover rounded-[50%]"
+              className="w-12 h-12 object-cover rounded-[50%]"
+              onError={handleImageError} // Trigger fallback image if error occurs
             />
-            <p>{username}</p>
+            <p className="font-semibold ml-2">{username}</p>
           </div>
 
           {!isConnected ? (
@@ -115,7 +118,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
               return (
                 <Link key={item.name} href={item.href}>
                   <div
-                    className={`flex items-center px-3 py-1 rounded-lg w-[214px] h-[32px] cursor-pointer
+                    className={`flex items-center px-3 py-2 rounded-lg w-[214px] h-[38px] cursor-pointer
                 text-[color:var(--white-60)] transition-colors duration-300 ease-in-out
                 hover:bg-[#ccf693] hover:text-black
                 ${isActive
@@ -124,7 +127,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
                       }`}
                   >
                     <Icon className="text-base mr-3" />
-                    <span className="text-base font-medium">{item.name}</span>
+                    <span className="text-lg font-medium">{item.name}</span>
                   </div>
                 </Link>
               );

@@ -5,6 +5,7 @@ import { useAuth } from "../../../context/AuthContext";
 import baseUrl from "@/lib/axios";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
+import { toast } from "react-toastify";
 interface LoginFormData {
   email: string;
   password: string;
@@ -76,7 +77,10 @@ function Page() {
       .post("/auth/login", {
         ...formData,
       })
-      .then((response) => {
+      .then(async (response) => {
+        toast.success("Login successful!", { position: "top-right" });
+        // await for the message to be shown before redirecting
+        await new Promise((resolve) => setTimeout(resolve, 2500));
         login(response.data);
         window.location.replace("/swapportal");
       })

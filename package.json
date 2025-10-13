@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "next dev --turbopack",
-		"build": "next build --turbopack",
+		"build": "next build",
 		"start": "next start",
 		"lint": "eslint"
 	},
@@ -14,14 +14,14 @@
 		"@fontsource/montserrat": "^5.2.8",
 		"@headlessui/react": "^2.2.8",
 		"@mui/material": "^7.3.2",
-		"@reown/appkit": "1.8.8",
-		"@reown/appkit-adapter-wagmi": "1.8.8",
+		"@reown/appkit": "^1.8.9",
+		"@reown/appkit-adapter-wagmi": "^1.8.9",
 		"@reown/appkit-wallet-button": "^1.8.8",
 		"@tailwindcss/postcss": "^4.1.13",
 		"@tanstack/react-query": "^5.87.1",
-		"@walletconnect/ethereum-provider": "2.21.7",
-		"@walletconnect/sign-client": "2.21.7",
-		"@walletconnect/universal-provider": "2.21.7",
+		"@walletconnect/ethereum-provider": "^2.22.2",
+		"@walletconnect/sign-client": "^2.22.2",
+		"@walletconnect/universal-provider": "^2.22.2",
 		"autoprefixer": "^10.4.21",
 		"axios": "^1.11.0",
 		"ethers": "^6.15.0",
@@ -40,20 +40,12 @@
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3",
-		"@types/node": "^20",
-		"@types/react": "^19",
+		"@types/node": "^20.19.19",
+		"@types/react": "^19.2.2",
 		"@types/react-dom": "^19",
 		"eslint": "^9",
 		"eslint-config-next": "15.5.0",
+		"lightningcss-win32-x64-msvc": "^1.30.2",
 		"typescript": "^5"
-	},
-	"overrides": {
-		"@reown/appkit": "1.8.8",
-		"@reown/appkit-controllers": "1.8.8",
-		"@reown/appkit-utils": "1.8.8",
-		"@walletconnect/ethereum-provider": "2.21.7",
-		"@walletconnect/universal-provider": "2.21.7",
-		"@walletconnect/sign-client": "2.21.7",
-		"@walletconnect/core": "2.21.7"
 	}
 }

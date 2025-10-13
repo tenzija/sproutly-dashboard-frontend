@@ -1,3 +1,5 @@
+//src/app/layout.tsx
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "@fontsource/montserrat";
 import "@fontsource/montserrat/400.css";
@@ -5,12 +7,9 @@ import "@fontsource/montserrat/400-italic.css";
 import "./globals.css";
 import 'react-toastify/dist/ReactToastify.css';
 import { headers } from "next/headers";
-import ContextProvider from "../context";
 import { AuthProvider } from "../context/AuthContext";
 import { ToastContainer } from 'react-toastify';
 import ThemeProviderClient from "@/theme/ThemeProviderClient";
-
-// REMOVE: import AppKitInit from './AppKitInit';
 import Providers from './providers';
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -25,28 +24,24 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const cookies = (await headers()).get("cookie");
   return (
     <html lang="en">
-      <head>
+      {/* <head>
         <link rel="icon" type="image/svg+xml" href="/Favi.svg" />
-      </head>
+      </head> */}
       <body className={`backgroundImg ${geistSans.variable} ${geistMono.variable}`}>
-        {/* REMOVE: <AppKitInit /> */}
-        <Providers>
-          <ContextProvider cookies={cookies}>
-            <AuthProvider>
-              <ThemeProviderClient>{children}</ThemeProviderClient>
-              <ToastContainer
-                position="bottom-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={true}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-              />
-            </AuthProvider>
-          </ContextProvider>
+        <Providers cookies={cookies}>
+          <AuthProvider>
+            <ThemeProviderClient>{children}</ThemeProviderClient>
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={true}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              pauseOnHover
+            />
+          </AuthProvider>
         </Providers>
       </body>
     </html>

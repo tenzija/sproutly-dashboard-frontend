@@ -20,7 +20,7 @@ export function nativeSymbolFor(chainId?: number): string {
 		case 1:
 			return 'ETH'; // Ethereum
 		case 8453:
-			return 'ETH'; // Base
+			return 'ETH'; // BASE
 		case 10:
 			return 'ETH'; // Optimism
 		case 137:
@@ -119,7 +119,7 @@ export function toFriendlyEvmError(
 	if (looksLikeUserDenied(full, code)) {
 		return {
 			code: code ?? 'USER_DENIED',
-			userMessage: 'You said “No” in your wallet. That’s okay!',
+			userMessage: 'You rejected the action in your wallet.',
 			devMessage: full,
 			hint: 'open-wallet',
 		};

@@ -90,7 +90,7 @@ export function useVestingEstimate(
 	});
 
 	// Destructure the exact primitives we read inside the memo
-	const { data: clData, isLoading: clLoading, error: clError } = getCL;
+	const { isLoading: clLoading, error: clError } = getCL;
 	const {
 		data: startData,
 		isLoading: startLoading,

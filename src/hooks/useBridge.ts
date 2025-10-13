@@ -3,6 +3,7 @@
 
 import { erc20Abi, mockWormholeBridgeAbi } from '@/abis/minimalAbi';
 import { useCallback, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
 import type { Address, Hex } from 'viem';
 import { parseUnits, parseAbiItem, UserRejectedRequestError } from 'viem';
 import {
@@ -102,7 +103,39 @@ export function useBridge() {
 		startedAt.current = null;
 	}, []);
 
-	// ❌ No auto-check/switch on mount. Nothing here.
+	// Function to check the balance of ERC20 token and POL (Polygon native token)
+	const checkBalances = useCallback(
+		async (erc20Amount: bigint, polAmount: bigint): Promise<boolean> => {
+			if (!polygonClient) throw new Error('Polygon client not ready');
+
+			// Check the ERC20 token balance (mock token in this case)
+			const erc20Balance = await polygonClient.readContract({
+				abi: erc20Abi,
+				address: POLYGON_TOKEN_ADDRESS,
+				functionName: 'balanceOf',
+				args: [address as Address],
+			});
+
+			// Check the Polygon (MATIC) balance
+			const maticBalance = await polygonClient.getBalance({
+				address: address as Address,
+			});
+
+			// Check if the balances are sufficient
+			if (erc20Balance < erc20Amount) {
+				toast.error('Insufficient token balance for the transaction.');
+				return false;
+			}
+
+			if (maticBalance < polAmount) {
+				toast.error('Insufficient POL balance for gas fees.');
+				return false;
+			}
+
+			return true; // Balances are sufficient
+		},
+		[polygonClient, address]
+	);
 
 	// Read-only calls (don’t require wallet to be on Polygon)
 	const { data: crossChainId } = useReadContract({
@@ -215,7 +248,7 @@ export function useBridge() {
 
 	const waitBaseCompletion = useCallback(
 		async (to: Address, fromBlock?: bigint, timeoutMs = 600_000) => {
-			if (!baseClient) throw new Error('Base client not ready');
+			if (!baseClient) throw new Error('BASE client not ready');
 			setProgress('waitingBase');
 
 			const startBlock = fromBlock ?? (await baseClient.getBlockNumber());
@@ -253,7 +286,7 @@ export function useBridge() {
 				await new Promise<void>((r) => setTimeout(r, 3000));
 			}
 
-			throw new Error('Timeout waiting for Base completion');
+			throw new Error('Timeout waiting for BASE completion');
 		},
 		[baseClient]
 	);
@@ -292,7 +325,9 @@ export function useBridge() {
 			if (!isReady)
 				return { status: 'failed', message: 'RPC clients not ready' };
 
-			// ✅ Only here: check/switch network
+			const amount = parseUnits(humanAmount, TOKEN_DEC);
+
+			// Ensure chain first (before any reads/writes tied to chain)
 			if (activeChainId !== polygon.id) {
 				if (opts.autoSwitch === false) {
 					return { status: 'wrongNetwork', currentChainId: activeChainId };
@@ -304,45 +339,66 @@ export function useBridge() {
 						reset();
 						return { status: 'userRejected' };
 					}
-					setProgress('error');
 					const msg = (err as Error).message;
+					setProgress('error');
 					setError(msg);
 					return { status: 'failed', message: msg };
 				}
 			}
 
 			const to: Address = (receiver ?? address) as Address;
-			const amount = parseUnits(humanAmount, TOKEN_DEC);
 
-			// balance check
-			const bal = (await polygonClient!.readContract({
+			// --- 1) Token balance check BEFORE approval/quote ---
+			const tokenBal = (await polygonClient!.readContract({
 				abi: erc20Abi,
 				address: POLYGON_TOKEN_ADDRESS,
 				functionName: 'balanceOf',
 				args: [address],
 			})) as bigint;
-			if (bal < amount)
+			if (tokenBal < amount) {
 				return { status: 'failed', message: 'Insufficient token balance' };
+			}
 
+			// --- 2) Approve (if needed) ---
 			try {
+				setProgress('approving');
 				await approveIfNeeded(address as Address, amount);
+				// optional: explicitly show the “approved” state
+				setProgress('approved');
 			} catch (err) {
 				if (err instanceof UserRejected) {
 					reset();
 					return { status: 'userRejected' };
 				}
-				setProgress('error');
 				const msg = (err as Error).message;
+				setProgress('error');
 				setError(msg);
 				return { status: 'failed', message: msg };
 			}
 
-			const value = await quoteCost(EXTRA_GAS);
+			// --- 3) Quote AFTER approval so UI order is correct ---
+			setProgress('quoting');
+			let value: bigint;
+			try {
+				value = await quoteCost(EXTRA_GAS);
+			} catch (err) {
+				const msg = (err as Error).message;
+				setProgress('error');
+				setError(msg);
+				return { status: 'failed', message: msg };
+			}
 
+			// Optional: check native balance for gas now that we know `value`
+			const hasEnough = await checkBalances(amount, value);
+			if (!hasEnough) {
+				return { status: 'failed', message: 'Insufficient balance' };
+			}
+
+			// --- 4) Send deposit ---
 			startedAt.current = Date.now();
-
 			let hash: Hex;
 			try {
+				setProgress('sending');
 				hash = await sendDeposit(
 					address as Address,
 					to,
@@ -350,26 +406,36 @@ export function useBridge() {
 					EXTRA_GAS,
 					value
 				);
+				setProgress('sent');
 			} catch (err) {
 				if (err instanceof UserRejected) {
 					reset();
 					return { status: 'userRejected' };
 				}
-				setProgress('error');
 				const msg = (err as Error).message;
+				setProgress('error');
 				setError(msg);
 				return { status: 'failed', message: msg };
 			}
 
-			const baseFrom = await baseClient!.getBlockNumber();
-			const completion = await waitBaseCompletion(to, baseFrom);
+			// --- 5) Wait on BASE ---
+			try {
+				setProgress('waitingBase');
+				const baseFrom = await baseClient!.getBlockNumber();
+				const completion = await waitBaseCompletion(to, baseFrom);
 
-			const elapsed =
-				startedAt.current != null ? Date.now() - startedAt.current : null;
-			setBridgingMs(elapsed);
-			setProgress('done');
+				const elapsed =
+					startedAt.current != null ? Date.now() - startedAt.current : null;
+				setBridgingMs(elapsed);
+				setProgress('done');
 
-			return { status: 'success', hash, completion, ms: elapsed };
+				return { status: 'success', hash, completion, ms: elapsed };
+			} catch (err) {
+				const msg = (err as Error).message;
+				setProgress('error');
+				setError(msg);
+				return { status: 'failed', message: msg };
+			}
 		},
 		[
 			address,
@@ -383,6 +449,7 @@ export function useBridge() {
 			sendDeposit,
 			waitBaseCompletion,
 			reset,
+			checkBalances,
 		]
 	);
 

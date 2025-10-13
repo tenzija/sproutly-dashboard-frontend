@@ -120,6 +120,25 @@ export const tokenVestingAbi = [
 			},
 		],
 	},
+	{
+		inputs: [
+			{
+				internalType: 'address',
+				name: 'beneficiary',
+				type: 'address',
+			},
+		],
+		name: 'getVestingScheduleIndexesByBeneficiary',
+		outputs: [
+			{
+				internalType: 'uint256[]',
+				name: '',
+				type: 'uint256[]',
+			},
+		],
+		stateMutability: 'view',
+		type: 'function',
+	},
 ] as const;
 
 // abis/calculationLayer.ts
