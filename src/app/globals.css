@@ -1,5 +1,17 @@
 @import 'tailwindcss';
 
+::-webkit-scrollbar {
+	background: #071210;
+	width: 8px;
+    height: 14px;
+	border-radius: 14px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #182E32;
+	border-radius: 14px;
+}
+
 :host {
 	font-family: Arial, Helvetica, sans-serif !important;
 }
@@ -76,7 +88,7 @@ body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	scroll-behavior: smooth;
-	scrollbar-width: none;
+	/* scrollbar-width: none; */
 	-ms-overflow-style: none;
 }
 
