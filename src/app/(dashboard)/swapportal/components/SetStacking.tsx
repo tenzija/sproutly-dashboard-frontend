@@ -262,7 +262,7 @@ export default function SetStacking({
       </Typography>
 
       {/* CTA row — confirm disables itself and turns Next green */}
-      <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mt: 0.5, mb: 0.5 }}>
+      <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mt: 0.5, mb: 1 }}>
         {/* Review & Confirm: disabled after confirmed */}
         <Button
           onClick={handleConfirm}

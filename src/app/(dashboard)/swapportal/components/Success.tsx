@@ -21,7 +21,7 @@ function Success({ onClose }: SuccessProps) {
     }
   };
   return (
-    <div className="success-card">
+    <div className="success-card !mb-4">
       <Image
         src="/images/Frame 141.png"
         alt="success"

@@ -171,7 +171,7 @@ export default function Review({
         </Typography>
       </Paper>
 
-      <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+      <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 1}}>
         <Button
           onClick={handleBack}
           disabled={confirmIsDisabled}
