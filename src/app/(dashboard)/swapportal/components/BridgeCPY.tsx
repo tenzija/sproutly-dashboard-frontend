@@ -112,7 +112,7 @@ export default function BridgeCPY({ handleNext, currentStep, onSuccess, availabl
             : progress === "sent"
               ? "Sent. Waiting…"
               : progress === "waitingBase"
-                ? "Finalizing on Base…"
+                ? "Finalizing on BASE…"
                 : progress === "done"
                   ? "Bridged"
                   : "Bridge";

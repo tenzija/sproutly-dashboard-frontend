@@ -248,7 +248,7 @@ export function useBridge() {
 
 	const waitBaseCompletion = useCallback(
 		async (to: Address, fromBlock?: bigint, timeoutMs = 600_000) => {
-			if (!baseClient) throw new Error('Base client not ready');
+			if (!baseClient) throw new Error('BASE client not ready');
 			setProgress('waitingBase');
 
 			const startBlock = fromBlock ?? (await baseClient.getBlockNumber());
@@ -286,7 +286,7 @@ export function useBridge() {
 				await new Promise<void>((r) => setTimeout(r, 3000));
 			}
 
-			throw new Error('Timeout waiting for Base completion');
+			throw new Error('Timeout waiting for BASE completion');
 		},
 		[baseClient]
 	);
@@ -418,7 +418,7 @@ export function useBridge() {
 				return { status: 'failed', message: msg };
 			}
 
-			// --- 5) Wait on Base ---
+			// --- 5) Wait on BASE ---
 			try {
 				setProgress('waitingBase');
 				const baseFrom = await baseClient!.getBlockNumber();

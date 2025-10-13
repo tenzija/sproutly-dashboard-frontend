@@ -14,7 +14,7 @@ const STEPS = [
     'Approve (if needed)',
     'Quote fee',
     'Send on Polygon',
-    'Finalize on Base',
+    'Finalize on BASE',
     'Complete',
 ];
 

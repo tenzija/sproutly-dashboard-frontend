@@ -48,7 +48,7 @@ function SwapPortalPage() {
     args: [currentAddress],
     // Don’t run until wallet is connected & we have an address
     query: { enabled: Boolean(isConnected && currentAddress) },
-    chainId: 8453, // Base Mainnet
+    chainId: 8453, // BASE Mainnet
   });
 
   const { locks } = useActiveLocks({
@@ -78,7 +78,7 @@ function SwapPortalPage() {
     args: [currentAddress],
     // Don’t run until wallet is connected & we have an address
     query: { enabled: Boolean(isConnected && currentAddress) },
-    chainId: 137, // Base Mainnet
+    chainId: 137, // BASE Mainnet
   });
 
   useEffect(() => {
@@ -136,7 +136,7 @@ function SwapPortalPage() {
           <h2 className="font-semibold">Ready to Grow Your $SEED?</h2>
           <p>
             Swap your $CBY for $SEED tokens and earn more $SEED with longer lock-up
-            periods. Below is your available $CBY on both Base and Polygon chains.
+            periods. Below is your available $CBY on both BASE and Polygon chains.
           </p>
           <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
             <div className="available">
@@ -186,10 +186,10 @@ function SwapPortalPage() {
                 <h2>$CBY</h2>
               </div>
               <div className="flex items-center gap-1">
-                <p>On Base Chain</p>
+                <p>On BASE Chain</p>
                 <Image
                   src="/images/base-logo.svg" // Replace with your path or URL
-                  alt="Base Logo"
+                  alt="BASE Logo"
                   width={20}
                   height={20}
                   className="inline"
@@ -198,7 +198,7 @@ function SwapPortalPage() {
             </div>
           </div>
 
-          <h3 className="text-sm text-center">By pressing the button below you will start the swap process, which includes bridging $CBY from Polygon to Base, after which you will be able to vest your $CBY for $SEED.</h3>
+          <h3 className="text-sm text-center">By pressing the button below you will start the swap process, which includes bridging $CBY from Polygon to BASE, after which you will be able to vest your $CBY for $SEED.</h3>
           <button className="success-card__button" onClick={handleStartSwap}>Start New Swap</button>
         </div>
         <div className="right">

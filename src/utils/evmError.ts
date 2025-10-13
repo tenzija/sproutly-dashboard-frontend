@@ -20,7 +20,7 @@ export function nativeSymbolFor(chainId?: number): string {
 		case 1:
 			return 'ETH'; // Ethereum
 		case 8453:
-			return 'ETH'; // Base
+			return 'ETH'; // BASE
 		case 10:
 			return 'ETH'; // Optimism
 		case 137:
