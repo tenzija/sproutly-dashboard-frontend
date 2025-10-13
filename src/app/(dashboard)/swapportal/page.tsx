@@ -57,7 +57,6 @@ function SwapPortalPage() {
   });
 
   useEffect(() => {
-    console.log("Locks updated:", locks);
     setLockData(locks); // Update lockData whenever locks change
   }, [locks]);
 
@@ -71,6 +70,7 @@ function SwapPortalPage() {
     };
     getData().catch(console.error);
   }, [data]);
+
   const { data: polygonData, isPending: isPendingPolygon, isFetching: isFetchingPolygon, refetch: refetchPolCBYBalance } = useReadContract({
     address: NEXT_PUBLIC_MOCK_TOKEN as `0x${string}`,
     abi: CBY_ABI,

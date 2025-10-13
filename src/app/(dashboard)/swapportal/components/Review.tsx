@@ -174,6 +174,7 @@ export default function Review({
       <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
         <Button
           onClick={handleBack}
+          disabled={confirmIsDisabled}
           variant="outlined"
           sx={{
             flex: 1, py: 1.4, borderRadius: 999,

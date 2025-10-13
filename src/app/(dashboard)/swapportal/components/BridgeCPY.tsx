@@ -13,9 +13,11 @@ import { Tooltip } from "@mui/material";
 interface BridgeCPYProps {
   handleNext: () => void;
   currentStep: number;
+  onSuccess?: () => void;
+  availableBalance?: string;
 }
 
-export default function BridgeCPY({ handleNext, currentStep }: BridgeCPYProps) {
+export default function BridgeCPY({ handleNext, currentStep, onSuccess, availableBalance }: BridgeCPYProps) {
   const [amount, setAmount] = useState("");
   const [isNextDisabled, setIsNextDisabled] = useState(false);
 
@@ -51,6 +53,7 @@ export default function BridgeCPY({ handleNext, currentStep }: BridgeCPYProps) {
     // if the hook already switched us, the effect above will clear uiSwitching
     if (res.status === "success") {
       setIsNextDisabled(true); // lock Bridge, enable Next
+      onSuccess?.(); // update balance after successful bridge
     } else if (res.status === "userRejected" || res.status === "failed") {
       setIsNextDisabled(false); // re-enable Bridge to retry
       reset();
@@ -67,13 +70,32 @@ export default function BridgeCPY({ handleNext, currentStep }: BridgeCPYProps) {
   const bridgeDisabled =
     isNextDisabled || !amount || !isConnected || !isReady || isBusy;
 
-  const nextDisabled = !isNextDisabled;
+
+  // ----- NEW LOGIC START -----
+  const hasBaseBalance = (() => {
+    const n = Number(availableBalance ?? "0");
+    return Number.isFinite(n) && n > 0;
+  })();
+
+  const isAmountEmpty = !amount; // amount is a string; empty string means no input
+  const showSkip = isAmountEmpty && hasBaseBalance;
+
+  // Maintain your existing "Next disabled until bridged" behavior
+  const nextDisabled = showSkip ? false : !isNextDisabled;
+  const nextLabel = showSkip ? "Skip" : "Next";
+  // ----- NEW LOGIC END -----
 
   const inputDisabled =
     isNextDisabled || !isConnected || !isReady || isBusy;
 
   const bridgeClass = isNextDisabled ? "next-btn" : "bridge-btn";
-  const nextClass = isNextDisabled ? "bridge-btn" : "next-btn";
+  // Highlight Skip using the already-enabled style
+  const nextClass = showSkip
+    ? "bridge-btn"                  // Skip should look clickable/enabled
+    : isNextDisabled
+      ? "bridge-btn"                  // after bridge success -> Next highlighted
+      : "next-btn";                   // default Next (not yet allowed)
+
 
   // Keep all dynamic labels EXCEPT the quoting/estimating-fee one
   const bridgeLabel = !isReady
@@ -102,8 +124,13 @@ export default function BridgeCPY({ handleNext, currentStep }: BridgeCPYProps) {
         <p className="modal-subtitle">
           Your $CBY tokens must be on the BASE chain to proceed with this swap.
           <br /> Select your source chain below to initiate the bridge.
+          <br />
+          <br />
+          <strong>Tip:</strong> Leave amount empty to use Skip if you already hold $CBY on BASE Chain.
+
         </p>
       </div>
+
 
       <div className="modal-content">
         <div className="form-row">
@@ -173,7 +200,7 @@ export default function BridgeCPY({ handleNext, currentStep }: BridgeCPYProps) {
           </button>
 
           <button className={nextClass} onClick={handleNext} disabled={nextDisabled}>
-            Next
+            {nextLabel}
           </button>
         </div>
 

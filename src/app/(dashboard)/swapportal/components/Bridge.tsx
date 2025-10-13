@@ -23,7 +23,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
   onSuccess,
 }) => {
   const steps = ["Connect Wallet", "Bridge CBY", "Set Staking Terms", "Review & Confirm"];
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(2);
   const [wasCompleted, setWasCompleted] = useState(false);
 
   // shared staking data
@@ -45,15 +45,15 @@ const Bridge: React.FC<BridgeModalProps> = ({
     }
   }, [isOpen, wasCompleted]);
 
-  const handleNext = () => setCurrentStep((s) => s + 1);
+  const handleNext = () => {
+    setCurrentStep((s) => s + 1)
+  };
   const handleBack = () => setCurrentStep((s) => Math.max(1, s - 1));
+
 
   // Define the success handler
   const handleFlowSuccess = async () => {
-    // Move to the success step
     onSuccess?.();
-    setWasCompleted(true);
-    // Notify parent (or perform other actions like refreshing balance)
   };
 
   const handleClose = () => {
@@ -76,7 +76,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
         <button className="close-button" onClick={handleClose}>×</button>
 
         {currentStep === 1 && (
-          <BridgeCPY handleNext={handleNext} currentStep={currentStep} />
+          <BridgeCPY handleNext={handleNext} currentStep={currentStep} onSuccess={onSuccess} availableBalance={availableBalance} />
         )}
 
         {currentStep === 2 && (
