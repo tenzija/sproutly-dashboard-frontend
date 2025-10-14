@@ -216,7 +216,7 @@ function SwapPortalPage() {
         </div>
       </div>
       <div className="active_lock">
-        <h3>Your Active Locks</h3>
+        {lockData.length > 0 && <h3>Your Active Locks</h3>}
         <div className="lock_grid">
           {/* <LockCardSkeleton /> */}
           {isLoadingLocks ? (
