@@ -66,7 +66,7 @@ export default function Review({
         amount: stakeParams.amountCBY,
         durationSec: BigInt(stakeParams.lockSeconds),
         cliffDays: 0,
-        slicePeriodSeconds: 86_400n,
+        slicePeriodSeconds: 3_600n, //// was 86,400n (1 day) - changed to 1 hour for testing
         revocable: true,
         decimals: 18,
       });

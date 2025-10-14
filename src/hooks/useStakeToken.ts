@@ -111,7 +111,7 @@ export function useStakeToken() {
 				decimals = 18,
 				durationSec,
 				cliffDays = 0,
-				slicePeriodSeconds = 3_600n,
+				slicePeriodSeconds = 3_600n, //// was 86,400n (1 day) - changed to 1 hour for testing
 				revocable = true,
 				autoApprove = true,
 			} = p;
