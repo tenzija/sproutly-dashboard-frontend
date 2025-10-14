@@ -51,7 +51,7 @@ function SwapPortalPage() {
     chainId: 8453, // BASE Mainnet
   });
 
-  const { locks } = useActiveLocks({
+  const { locks, isLoading: isLoadingLocks } = useActiveLocks({
     vestingAddress: VESTING_ADDR as `0x${string}`,
     tokenDecimals: 18,
   });
@@ -219,7 +219,7 @@ function SwapPortalPage() {
         <h3>Your Active Locks</h3>
         <div className="lock_grid">
           {/* <LockCardSkeleton /> */}
-          {lockData.length === 0 ? (
+          {isLoadingLocks ? (
             <LockCardSkeleton />
           ) :
             lockData
