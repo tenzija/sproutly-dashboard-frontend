@@ -1,33 +1,27 @@
 // src/app/providers.tsx
 'use client';
 
-import React, { type ReactNode, useEffect, useState } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiProvider, cookieToInitialState, type State } from 'wagmi';  // Use State type here
-import { wagmiConfig } from "@/lib/appkit.client";
+// Ensure AppKit init runs on the client before children render:
+import '@/lib/appkit.client';            // side-effect import guarantees createAppKit runs
+// OR, if you prefer explicit:
+import { appKit } from '@/lib/appkit.client';
+void appKit;
 
-// Define the type for the cookies prop
-interface ProvidersProps {
-    children: ReactNode;
-    cookies: string | null;
-}
+import React, { useMemo, useState } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { WagmiProvider, cookieToInitialState, type State } from 'wagmi';
+import { wagmiConfig } from '@/lib/appkit.client';
+
+interface ProvidersProps { children: React.ReactNode; cookies: string | null; }
 
 export default function Providers({ children, cookies }: ProvidersProps) {
     const [queryClient] = useState(() => new QueryClient());
-    const [initialState, setInitialState] = useState<State | null>(null);  // Use State instead of Config
 
-    useEffect(() => {
-        if (cookies) {
-            // Initialize the state based on cookies and wagmiConfig
-            const state = cookieToInitialState(wagmiConfig, cookies);
-            setInitialState(state ?? null); // Ensure state is State or null
-        }
+    const initialState: State | undefined = useMemo(() => {
+        if (!cookies || !cookies.trim()) return undefined;
+        try { return cookieToInitialState(wagmiConfig, cookies) ?? undefined; }
+        catch { return undefined; }
     }, [cookies]);
-
-    // Wait for the initial state to be set before rendering
-    if (!initialState) {
-        return null; // or a loading spinner until state is ready
-    }
 
     return (
         <WagmiProvider config={wagmiConfig} initialState={initialState}>
