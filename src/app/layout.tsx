@@ -31,16 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Providers cookies={cookies}>
           <AuthProvider>
             <ThemeProviderClient>{children}</ThemeProviderClient>
-            <ToastContainer
-              position="top-right"
-              autoClose={5000}
-              hideProgressBar={false}
-              newestOnTop={true}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              pauseOnHover
-            />
+            <ToastContainer />
           </AuthProvider>
         </Providers>
       </body>

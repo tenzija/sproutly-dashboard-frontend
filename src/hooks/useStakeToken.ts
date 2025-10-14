@@ -111,7 +111,7 @@ export function useStakeToken() {
 				decimals = 18,
 				durationSec,
 				cliffDays = 0,
-				slicePeriodSeconds = 86_400n,
+				slicePeriodSeconds = 3_600n,
 				revocable = true,
 				autoApprove = true,
 			} = p;
