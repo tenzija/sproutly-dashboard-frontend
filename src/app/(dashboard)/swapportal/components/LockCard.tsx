@@ -59,7 +59,7 @@ function LockCard({
           <div className="flex flex-col items-center">
             <span className="text-[#adf151] text-[13px]">Claimable $SEED</span>
             <span className="mt-1 text-[20px] font-semibold text-[#adf151]">
-              {claimableSeed}
+              {Number(claimableSeed).toFixed(2)}
             </span>
           </div>
         </div>
