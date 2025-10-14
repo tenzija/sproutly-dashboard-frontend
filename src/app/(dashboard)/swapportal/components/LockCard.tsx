@@ -59,7 +59,7 @@ function LockCard({
           <div className="flex flex-col items-center">
             <span className="text-[#adf151] text-[13px]">Claimable $SEED</span>
             <span className="mt-1 text-[20px] font-semibold text-[#adf151]">
-              {Number(claimableSeed).toFixed(2)}
+              {claimableSeed && !isNaN(Number(claimableSeed.replace(/,/g, ''))) ? Number(claimableSeed.replace(/,/g, '')).toFixed(2) : '0.00'}
             </span>
           </div>
         </div>
