@@ -27,7 +27,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
   const [wasCompleted, setWasCompleted] = useState(false);
 
   // shared staking data
-  const [draft, setDraft] = useState<SetStackingDraft>({
+  const INITIAL_DRAFT: SetStackingDraft = {
     amountCBY: "",
     lockSeconds: 1 * 86400,
     lockPeriodLabel: "1 Month",
@@ -36,7 +36,10 @@ const Bridge: React.FC<BridgeModalProps> = ({
     claimableSeed: "0",
     swapRatioLabel: "1 $CBY = 1.0 $SEED",
     displayId: "#001",
-  });
+  };
+
+  const [draft, setDraft] = useState<SetStackingDraft>(() => ({ ...INITIAL_DRAFT }));
+  const resetDraft = React.useCallback(() => setDraft({ ...INITIAL_DRAFT }), []);
 
   useEffect(() => {
     if (isOpen && wasCompleted) {
@@ -58,6 +61,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
 
   const handleClose = () => {
     if (currentStep === 4) setWasCompleted(true);
+    resetDraft();
     onClose();
   };
 
