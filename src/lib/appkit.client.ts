@@ -98,8 +98,8 @@ export const appKit =
 		metadata: {
 			name: 'Sproutly',
 			description: 'Sproutly dapp',
-			url: 'https://sproutly.example',
-			icons: ['https://avatars.githubusercontent.com/u/179229932'],
+			url: 'https://sproutly-dashboard-frontend.vercel.app/',
+			icons: ['https://pbs.twimg.com/profile_images/1940421108127174656/dimIc4YC_400x400.jpg'],
 		},
 		features: { analytics: false, socials: false, email: false },
 		allWallets: 'SHOW', // This enables support for all wallets, including Coinbase and others
