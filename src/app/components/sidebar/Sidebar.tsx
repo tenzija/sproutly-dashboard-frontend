@@ -14,6 +14,16 @@ import { Tooltip } from "@mui/material";
 
 const sidebarFallback = [
   { name: "Swap Portal", icon: RiSwapBoxFill, href: "/swapportal" },
+  { name: "Dashboard", icon: RiSwapBoxFill, href: "/dashboard" },
+  { name: "NFT Inventory", icon: RiSwapBoxFill, href: "/nft-inventory" },
+  { name: "NFT Cultivation", icon: RiSwapBoxFill, href: "/nft-cultivation" },
+  { name: "Staking", icon: RiSwapBoxFill, href: "/staking" },
+  { name: "Marketplace", icon: RiSwapBoxFill, href: "/marketplace" },
+  { name: "Governance", icon: RiSwapBoxFill, href: "/governance" },
+  { name: "CO2 Management", icon: RiSwapBoxFill, href: "/co2-management" },
+  { name: "Referral Program", icon: RiSwapBoxFill, href: "/referral-program" },
+  { name: "Leaderboard", icon: RiSwapBoxFill, href: "/leaderboard" },
+  { name: "Game Hub", icon: RiSwapBoxFill, href: "/game-hub" },
 ];
 type SidebarProps = {
   openSidebar: boolean;
@@ -116,19 +126,19 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
             {sidebarFallback.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
+
               return (
                 <Link key={item.name} href={item.href}>
                   <div
                     className={`flex items-center px-3 py-2 rounded-lg w-[214px] h-[38px] cursor-pointer
-                text-[color:var(--white-60)] transition-colors duration-300 ease-in-out
-                hover:bg-[#ccf693] hover:text-black
-                ${isActive
-                        ? "bg-[color:var(--Green--100)] text-black font-medium"
-                        : ""
-                      }`}
+                      text-[color:var(--white-60)] transition-colors duration-300 ease-in-out
+                      hover:bg-[#ccf693] hover:text-black
+                      ${isActive ? "bg-[color:var(--Green--100)] text-black" : ""}`}
                   >
                     <Icon className="text-base mr-3" />
-                    <span className="text-lg font-medium">{item.name}</span>
+                    <span className="text-md font-light">
+                      {item.name}
+                    </span>
                   </div>
                 </Link>
               );
