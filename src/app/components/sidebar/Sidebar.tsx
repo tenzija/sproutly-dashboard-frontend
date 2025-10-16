@@ -10,6 +10,7 @@ import { useAccount, useDisconnect } from "wagmi";
 import Image from "next/image";
 import { getCookie } from "@/utils/cookies";
 import { useAutoDisconnectOnLock } from "@/hooks/useAutoDisconnectOnLock";
+import { Tooltip } from "@mui/material";
 
 const sidebarFallback = [
   { name: "Swap Portal", icon: RiSwapBoxFill, href: "/swapportal" },
@@ -84,7 +85,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
             <button
               onClick={handleClick}
               className="w-full flex items-center justify-center gap-3
-               px-4 py-3 mb-[10px] border border-white/10 rounded-lg
+               px-4 py-3 mb-[10px] border border-white/10 rounded-4xl
                bg-[#8989890d] text-[color:var(--white-80)]
                font-bold text-base cursor-pointer
                transition-colors duration-300 ease-in-out
@@ -95,20 +96,20 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
               Connect Wallet
             </button>
           ) : (
-            <button
-              onClick={handleDisconnect}
-              className="w-full flex items-center justify-center gap-3
-               px-4 py-3 mb-[10px] border border-white/10 rounded-lg
-               bg-[#8989890d] text-[color:var(--white-80)]
-               font-bold text-base cursor-pointer
-               transition-colors duration-300 ease-in-out
-               backdrop-blur-[150px]
-               hover:bg-[color:var(--Green--80)] hover:text-black"
-            >
-              {address?.slice(0, 6) + "..." + address?.slice(-4)}
-              <br />
-              disconnect
-            </button>
+            <Tooltip title="Press to disconnect" arrow placement="top">
+              <button
+                onClick={handleDisconnect}
+                className="w-full flex items-center justify-center gap-3
+                px-4 py-3 mb-[10px] border border-white/10 rounded-4xl
+                bg-[#8989890d] text-[color:var(--white-80)]
+                font-bold text-base cursor-pointer
+                transition-colors duration-300 ease-in-out
+                backdrop-blur-[150px]
+                hover:bg-[color:var(--Green--80)] hover:text-black"
+              >
+                {address?.slice(0, 6) + "..." + address?.slice(-4)}
+              </button>
+            </Tooltip>
           )}
 
           <div className="flex flex-col gap-2">
