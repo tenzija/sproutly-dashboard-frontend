@@ -112,7 +112,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
             </Tooltip>
           )}
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-[16px]">
             {sidebarFallback.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
