@@ -29,9 +29,11 @@ const sidebarFallback = [
 type SidebarProps = {
   openSidebar: boolean;
   setOpenSidebar: (value: boolean) => void;
+  setHeaderName: (value: string) => void;   // <-- add this
 };
 
-function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
+
+function Sidebar({ openSidebar, setOpenSidebar, setHeaderName }: SidebarProps) {
   const token = getCookie("authTokens");
   useAutoDisconnectOnLock(2000);
 
@@ -49,6 +51,17 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
       setImage(user?.photoUrl || "");
     }
   }, [token]);
+
+  useEffect(() => {
+    const active = sidebarFallback.find(i => i.href === pathname);
+    if (active) setHeaderName(active.name);
+  }, [pathname, setHeaderName]);
+
+  const onNavClick = (name: string) => {
+    setHeaderName(name);
+    // close sidebar on mobile overlay
+    setOpenSidebar(true); // (your state: true => hidden)
+  };
 
   const handleClick = () => {
     if (isConnected) {
@@ -133,9 +146,8 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
 
               const baseClasses =
                 "flex items-center px-3 py-2 rounded-lg w-[214px] h-[38px] text-[color:var(--white-60)] transition-colors duration-300 ease-in-out";
-              const enabledClasses = `cursor-pointer hover:bg-[#ccf693] hover:text-black ${
-                isActive ? "bg-[color:var(--Green--100)] text-black" : ""
-              }`;
+              const enabledClasses = `cursor-pointer hover:bg-[#ccf693] hover:text-black ${isActive ? "bg-[color:var(--Green--100)] text-black" : ""
+                }`;
               const disabledClasses =
                 "cursor-not-allowed opacity-30 hover:bg-[color:var(--white-25)] hover:text-[color:var(--white-60)]";
 
