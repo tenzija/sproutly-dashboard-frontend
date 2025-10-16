@@ -25,6 +25,7 @@ const sidebarFallback = [
   { name: "Leaderboard", icon: RiSwapBoxFill, href: "/leaderboard" },
   { name: "Game Hub", icon: RiSwapBoxFill, href: "/game-hub" },
 ];
+
 type SidebarProps = {
   openSidebar: boolean;
   setOpenSidebar: (value: boolean) => void;
@@ -69,15 +70,17 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
     setImage("/images/avatar.png"); // Fallback to placeholder image on error
   };
 
+  // Only this route is enabled
+  const ENABLED_HREF = "/swapportal";
+
   return (
     <>
       <div
         className={`py-8 top-0 left-0 h-screen w-[263px] border-l border-r p-8 px-6 flex flex-col justify-between ml-0
     bg-[var(--glass-new,#8989890d)] backdrop-blur-[150px] border border-[var(--glass-stroke-new,#ffffff17)]
     shadow-[3px_3px_3px_rgba(0,0,0,0.089)] fixed md:sticky z-50 md:z-auto transition-transform duration-300
-    ${openSidebar ? 'translate-x-[-100%]' : 'translate-x-0'} md:translate-x-0`}
+    ${openSidebar ? "translate-x-[-100%]" : "translate-x-0"} md:translate-x-0`}
       >
-
         <nav className="flex flex-col gap-[5px]">
           <div className="flex items-center gap-2 mt-[-1.5px] mb-5">
             <Image
@@ -86,7 +89,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
               width={48}
               height={48}
               className="w-12 h-12 object-cover rounded-[50%]"
-              onError={handleImageError} // Trigger fallback image if error occurs
+              onError={handleImageError}
             />
             <p className="font-semibold ml-2">{username}</p>
           </div>
@@ -126,21 +129,45 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
             {sidebarFallback.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
+              const isEnabled = item.href === ENABLED_HREF;
+
+              const baseClasses =
+                "flex items-center px-3 py-2 rounded-lg w-[214px] h-[38px] text-[color:var(--white-60)] transition-colors duration-300 ease-in-out";
+              const enabledClasses = `cursor-pointer hover:bg-[#ccf693] hover:text-black ${
+                isActive ? "bg-[color:var(--Green--100)] text-black" : ""
+              }`;
+              const disabledClasses =
+                "cursor-not-allowed opacity-30 hover:bg-[color:var(--white-25)] hover:text-[color:var(--white-60)]";
+
+              if (isEnabled) {
+                return (
+                  <Link key={item.name} href={item.href} className="block">
+                    <div className={`${baseClasses} ${enabledClasses}`}>
+                      <Icon className="text-base mr-3" />
+                      <span className="text-md font-light">{item.name}</span>
+                    </div>
+                  </Link>
+                );
+              }
 
               return (
-                <Link key={item.name} href={item.href}>
+                <Tooltip
+                  key={item.name}
+                  title="coming soon!"
+                  placement="bottom"
+                  arrow
+                >
+                  {/* Use a div (not Link) so it's clearly disabled and not navigable */}
                   <div
-                    className={`flex items-center px-3 py-2 rounded-lg w-[214px] h-[38px] cursor-pointer
-                      text-[color:var(--white-60)] transition-colors duration-300 ease-in-out
-                      hover:bg-[#ccf693] hover:text-black
-                      ${isActive ? "bg-[color:var(--Green--100)] text-black" : ""}`}
+                    role="button"
+                    aria-disabled="true"
+                    tabIndex={-1}
+                    className={`${baseClasses} ${disabledClasses}`}
                   >
                     <Icon className="text-base mr-3" />
-                    <span className="text-md font-light">
-                      {item.name}
-                    </span>
+                    <span className="text-md font-light">{item.name}</span>
                   </div>
-                </Link>
+                </Tooltip>
               );
             })}
           </div>
