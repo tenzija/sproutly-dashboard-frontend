@@ -153,7 +153,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
               return (
                 <Tooltip
                   key={item.name}
-                  title="coming soon!"
+                  title="Work in progress!"
                   placement="bottom"
                   arrow
                 >
