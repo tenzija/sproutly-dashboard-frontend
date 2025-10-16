@@ -5,6 +5,7 @@ import { useAuth } from "../../../context/AuthContext";
 import baseUrl from "@/lib/axios";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "react-toastify";
 interface LoginFormData {
   email: string;
@@ -113,15 +114,18 @@ function Page() {
         <div className="rounded-[24px] border border-white/10 bg-[rgba(44,44,44,0.8)] p-40 shadow-[0_25px_50px_rgba(0,0,0,0.3)] backdrop-blur-[20px] sm:rounded-[20px] sm:p-[30px_20px]">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-xl font-normal text-white mb-1">
-              Welcome back
-            </h1>
-            <h2 className="text-3xl font-light text-white mb-4 tracking-wide">
-              sproutly
-            </h2>
-            <p className="text-slate-400 text-sm">
-              Sign in to your Sproutly account
-            </p>
+            <h1 className="text-xl font-normal text-white mb-1">Welcome back</h1>
+
+            <div className="flex justify-center">
+              <Image
+                src="/images/logo-cropped.png"
+                alt="Sproutly Logo"
+                width={170}
+                height={170}
+              />
+            </div>
+
+            <p className="text-slate-400 text-sm">Sign in to your Sproutly account</p>
           </div>
 
           {/* Form */}
