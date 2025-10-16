@@ -2,6 +2,9 @@
 import { createTheme } from '@mui/material/styles';
 
 export const eternaTheme = createTheme({
+	typography: {
+		fontFamily: 'var(--font-satoshi), ui-sans-serif, system-ui, sans-serif',
+	},
 	palette: {
 		mode: 'dark',
 		primary: { main: '#b7ff57' }, // neon green

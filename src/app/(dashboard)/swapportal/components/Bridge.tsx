@@ -7,6 +7,18 @@ import SetStacking, { SetStackingDraft } from "./SetStacking";
 import Review from "./Review";
 import Success from "./Success";
 
+// shared staking data
+const INITIAL_DRAFT: SetStackingDraft = {
+  amountCBY: "",
+  lockSeconds: 1 * 86400,
+  lockPeriodLabel: "1 Month",
+  unlockDateText: "",
+  totalSeedToReceive: "0",
+  claimableSeed: "0",
+  swapRatioLabel: "1 $CBY = 1.0 $SEED",
+  displayId: "#001",
+};
+
 interface BridgeModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -25,18 +37,6 @@ const Bridge: React.FC<BridgeModalProps> = ({
   const steps = ["Connect Wallet", "Bridge CBY", "Set Staking Terms", "Review & Confirm"];
   const [currentStep, setCurrentStep] = useState(1);
   const [wasCompleted, setWasCompleted] = useState(false);
-
-  // shared staking data
-  const INITIAL_DRAFT: SetStackingDraft = {
-    amountCBY: "",
-    lockSeconds: 1 * 86400,
-    lockPeriodLabel: "1 Month",
-    unlockDateText: "",
-    totalSeedToReceive: "0",
-    claimableSeed: "0",
-    swapRatioLabel: "1 $CBY = 1.0 $SEED",
-    displayId: "#001",
-  };
 
   const [draft, setDraft] = useState<SetStackingDraft>(() => ({ ...INITIAL_DRAFT }));
   const resetDraft = React.useCallback(() => setDraft({ ...INITIAL_DRAFT }), []);

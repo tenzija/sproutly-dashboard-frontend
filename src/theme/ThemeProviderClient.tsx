@@ -13,6 +13,9 @@ export default function ThemeProviderClient({ children }: PropsWithChildren) {
         const BORDER_FOCUS = "rgba(255,255,255,0.36)"; // ← NOT green
 
         return createTheme({
+            typography: {
+                fontFamily: 'var(--font-satoshi), ui-sans-serif, system-ui, sans-serif',
+            },
             palette: {
                 mode: "dark",
                 background: { default: "#0b0b0b", paper: "#0b0b0b" },

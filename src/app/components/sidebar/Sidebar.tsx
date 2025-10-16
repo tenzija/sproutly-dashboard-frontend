@@ -10,10 +10,22 @@ import { useAccount, useDisconnect } from "wagmi";
 import Image from "next/image";
 import { getCookie } from "@/utils/cookies";
 import { useAutoDisconnectOnLock } from "@/hooks/useAutoDisconnectOnLock";
+import { Tooltip } from "@mui/material";
 
 const sidebarFallback = [
   { name: "Swap Portal", icon: RiSwapBoxFill, href: "/swapportal" },
+  { name: "Dashboard", icon: RiSwapBoxFill, href: "/dashboard" },
+  { name: "NFT Inventory", icon: RiSwapBoxFill, href: "/nft-inventory" },
+  { name: "NFT Cultivation", icon: RiSwapBoxFill, href: "/nft-cultivation" },
+  { name: "Staking", icon: RiSwapBoxFill, href: "/staking" },
+  { name: "Marketplace", icon: RiSwapBoxFill, href: "/marketplace" },
+  { name: "Governance", icon: RiSwapBoxFill, href: "/governance" },
+  { name: "CO2 Management", icon: RiSwapBoxFill, href: "/co2-management" },
+  { name: "Referral Program", icon: RiSwapBoxFill, href: "/referral-program" },
+  { name: "Leaderboard", icon: RiSwapBoxFill, href: "/leaderboard" },
+  { name: "Game Hub", icon: RiSwapBoxFill, href: "/game-hub" },
 ];
+
 type SidebarProps = {
   openSidebar: boolean;
   setOpenSidebar: (value: boolean) => void;
@@ -58,15 +70,17 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
     setImage("/images/avatar.png"); // Fallback to placeholder image on error
   };
 
+  // Only this route is enabled
+  const ENABLED_HREF = "/swapportal";
+
   return (
     <>
       <div
-        className={`py-8 top-0 left-0 h-screen w-[263px] border-l border-r p-8 px-6 flex flex-col ml-0
+        className={`py-8 top-0 left-0 h-screen w-[263px] border-l border-r p-8 px-6 flex flex-col justify-between ml-0
     bg-[var(--glass-new,#8989890d)] backdrop-blur-[150px] border border-[var(--glass-stroke-new,#ffffff17)]
     shadow-[3px_3px_3px_rgba(0,0,0,0.089)] fixed md:sticky z-50 md:z-auto transition-transform duration-300
-    ${openSidebar ? 'translate-x-[-100%]' : 'translate-x-0'} md:translate-x-0`}
+    ${openSidebar ? "translate-x-[-100%]" : "translate-x-0"} md:translate-x-0`}
       >
-
         <nav className="flex flex-col gap-[5px]">
           <div className="flex items-center gap-2 mt-[-1.5px] mb-5">
             <Image
@@ -75,7 +89,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
               width={48}
               height={48}
               className="w-12 h-12 object-cover rounded-[50%]"
-              onError={handleImageError} // Trigger fallback image if error occurs
+              onError={handleImageError}
             />
             <p className="font-semibold ml-2">{username}</p>
           </div>
@@ -84,7 +98,7 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
             <button
               onClick={handleClick}
               className="w-full flex items-center justify-center gap-3
-               px-4 py-3 mb-[10px] border border-white/10 rounded-lg
+               px-4 py-3 mb-[10px] border border-white/10 rounded-4xl
                bg-[#8989890d] text-[color:var(--white-80)]
                font-bold text-base cursor-pointer
                transition-colors duration-300 ease-in-out
@@ -95,45 +109,75 @@ function Sidebar({ openSidebar, setOpenSidebar }: SidebarProps) {
               Connect Wallet
             </button>
           ) : (
-            <button
-              onClick={handleDisconnect}
-              className="w-full flex items-center justify-center gap-3
-               px-4 py-3 mb-[10px] border border-white/10 rounded-lg
-               bg-[#8989890d] text-[color:var(--white-80)]
-               font-bold text-base cursor-pointer
-               transition-colors duration-300 ease-in-out
-               backdrop-blur-[150px]
-               hover:bg-[color:var(--Green--80)] hover:text-black"
-            >
-              {address?.slice(0, 6) + "..." + address?.slice(-4)}
-              <br />
-              disconnect
-            </button>
+            <Tooltip title="Press to disconnect" arrow placement="top">
+              <button
+                onClick={handleDisconnect}
+                className="w-full flex items-center justify-center gap-3
+                px-4 py-3 mb-[10px] border border-white/10 rounded-4xl
+                bg-[#8989890d] text-[color:var(--white-80)]
+                font-bold text-base cursor-pointer
+                transition-colors duration-300 ease-in-out
+                backdrop-blur-[150px]
+                hover:bg-[color:var(--Green--80)] hover:text-black"
+              >
+                {address?.slice(0, 6) + "..." + address?.slice(-4)}
+              </button>
+            </Tooltip>
           )}
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-[16px]">
             {sidebarFallback.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
+              const isEnabled = item.href === ENABLED_HREF;
+
+              const baseClasses =
+                "flex items-center px-3 py-2 rounded-lg w-[214px] h-[38px] text-[color:var(--white-60)] transition-colors duration-300 ease-in-out";
+              const enabledClasses = `cursor-pointer hover:bg-[#ccf693] hover:text-black ${
+                isActive ? "bg-[color:var(--Green--100)] text-black" : ""
+              }`;
+              const disabledClasses =
+                "cursor-not-allowed opacity-30 hover:bg-[color:var(--white-25)] hover:text-[color:var(--white-60)]";
+
+              if (isEnabled) {
+                return (
+                  <Link key={item.name} href={item.href} className="block">
+                    <div className={`${baseClasses} ${enabledClasses}`}>
+                      <Icon className="text-base mr-3" />
+                      <span className="text-md font-light">{item.name}</span>
+                    </div>
+                  </Link>
+                );
+              }
+
               return (
-                <Link key={item.name} href={item.href}>
+                <Tooltip
+                  key={item.name}
+                  title="Work in progress!"
+                  placement="bottom"
+                  arrow
+                >
+                  {/* Use a div (not Link) so it's clearly disabled and not navigable */}
                   <div
-                    className={`flex items-center px-3 py-2 rounded-lg w-[214px] h-[38px] cursor-pointer
-                text-[color:var(--white-60)] transition-colors duration-300 ease-in-out
-                hover:bg-[#ccf693] hover:text-black
-                ${isActive
-                        ? "bg-[color:var(--Green--100)] text-black font-medium"
-                        : ""
-                      }`}
+                    role="button"
+                    aria-disabled="true"
+                    tabIndex={-1}
+                    className={`${baseClasses} ${disabledClasses}`}
                   >
                     <Icon className="text-base mr-3" />
-                    <span className="text-lg font-medium">{item.name}</span>
+                    <span className="text-md font-light">{item.name}</span>
                   </div>
-                </Link>
+                </Tooltip>
               );
             })}
           </div>
         </nav>
+        <Image
+          src="/images/logo-cropped.png"
+          alt="Sproutly Logo"
+          width={300}
+          height={300}
+        />
       </div>
       {!openSidebar && (
         <label
