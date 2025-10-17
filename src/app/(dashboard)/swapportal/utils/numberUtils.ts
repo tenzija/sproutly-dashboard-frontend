@@ -1,5 +1,5 @@
 // Utility functions for number formatting and validation
-// Used across BridgeCPY, Review, and SetStacking components
+// Used across BridgeCBY, Review, and SetStacking components
 
 /**
  * Validates if a string contains only numbers and decimal points

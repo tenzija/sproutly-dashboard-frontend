@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Stepper from "./Stepper";
-import BridgeCPY from "./BridgeCPY";
+import BridgeCBY from "./BridgeCBY";
 import SetStacking, { SetStackingDraft } from "./SetStacking";
 import Review from "./Review";
 import Success from "./Success";
@@ -80,7 +80,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
         <button className="close-button" onClick={handleClose}>×</button>
 
         {currentStep === 1 && (
-          <BridgeCPY handleNext={handleNext} currentStep={currentStep} onSuccess={onSuccess} availableBalance={availableBalance} />
+          <BridgeCBY handleNext={handleNext} currentStep={currentStep} onSuccess={onSuccess} availableBalance={availableBalance} />
         )}
 
         {currentStep === 2 && (

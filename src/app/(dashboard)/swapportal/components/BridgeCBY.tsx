@@ -10,14 +10,14 @@ import {
 import { BridgeStepper } from "./BridgeStepper";
 import { Tooltip } from "@mui/material";
 
-interface BridgeCPYProps {
+interface BridgeCBYProps {
   handleNext: () => void;
   currentStep: number;
   onSuccess?: () => void;
   availableBalance?: string;
 }
 
-export default function BridgeCPY({ handleNext, currentStep, onSuccess, availableBalance }: BridgeCPYProps) {
+export default function BridgeCBY({ handleNext, currentStep, onSuccess, availableBalance }: BridgeCBYProps) {
   const [amount, setAmount] = useState("");
   const [isNextDisabled, setIsNextDisabled] = useState(false);
 
