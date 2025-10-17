@@ -79,8 +79,6 @@ export default function BridgeCBY({ handleNext, currentStep, onSuccess, availabl
   const bridgeDisabled =
     isNextDisabled || !amount || !isConnected || !isReady || isBusy || Number(amount) <= 0 || isNaN(Number(amount)) || Number(amount) > Number(availableBalancePolygon || "0");
 
-  console.log("BridgeCBY render:", { amount, availableBalancePolygon, bridgeDisabled });
-
 
   // ----- NEW LOGIC START -----
   const hasBaseBalance = (() => {
