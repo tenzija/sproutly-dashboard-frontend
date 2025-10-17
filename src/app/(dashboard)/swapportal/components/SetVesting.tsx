@@ -19,6 +19,7 @@ import { base } from "viem/chains";
 import LockupSlider from "./LockUpSlider";
 import { isValidNumberInput } from "../utils/numberUtils";
 import { toast } from "react-toastify";
+import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 
 const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as `0x${string}`;
 
@@ -88,6 +89,24 @@ export interface SetVestingProps {
   onConfirm?: (snapshot: SetVestingDraft) => void;
 }
 
+const VESTING_OVER_BALANCE_TOAST_ID = "vesting-over-balance";
+const VESTING_INVALID_TOAST_ID = "vesting-invalid-number";
+
+const parseNum = (s?: string) => {
+  if (s == null) return NaN;
+  return Number(String(s).replace(/,/g, "").trim());
+};
+
+// One-at-a-time toast: clears queued toasts, and replaces current if active
+const showToastOnce = (id: string, message: string) => {
+  toast.clearWaitingQueue?.(); // prevents replaying a queue
+  if (toast.isActive(id)) {
+    toast.update(id, { render: message, type: "error", autoClose: 3000 });
+  } else {
+    toast.error(message, { toastId: id, autoClose: 3000 });
+  }
+};
+
 export default function SetVesting({
   value,
   onChange,
@@ -97,6 +116,15 @@ export default function SetVesting({
 }: SetVestingProps) {
   const { amountCBY, lockSeconds } = value;
   const [confirmed, setConfirmed] = useState(false);
+
+  const debouncedOverBalanceToast = useDebouncedCallback(
+    (msg: string) => showToastOnce(VESTING_OVER_BALANCE_TOAST_ID, msg),
+    400
+  );
+  const debouncedInvalidToast = useDebouncedCallback(
+    (msg: string) => showToastOnce(VESTING_INVALID_TOAST_ID, msg),
+    400
+  );
 
   // derive current option, unlock preview
   const lockOpt = useMemo(
@@ -149,11 +177,22 @@ export default function SetVesting({
 
   const onAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value.trim();
-    if (!isValidNumberInput(v)) return;
-    if (availableBalance && Number(v || "0") > Number(availableBalance)) {
-      toast.error("Amount exceeds available balance.");
+
+    const bal = parseNum(availableBalance);
+    const n = parseNum(v);
+
+    // Only compare when both sides are valid numbers
+    if (!Number.isNaN(n) && !Number.isNaN(bal) && n > bal) {
+      debouncedOverBalanceToast("Amount exceeds available balance.");
       return;
     }
+
+    // Same numeric rules as elsewhere
+    if (!isValidNumberInput(v)) {
+      debouncedInvalidToast("Invalid number format.");
+      return;
+    }
+
     onChange({ ...value, amountCBY: v });
   };
 

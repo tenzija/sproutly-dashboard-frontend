@@ -10,6 +10,7 @@ import {
 import { BridgeStepper } from "./BridgeStepper";
 import { Tooltip } from "@mui/material";
 import { toast } from "react-toastify";
+import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 
 interface BridgeCBYProps {
   handleNext: () => void;
@@ -20,6 +21,18 @@ interface BridgeCBYProps {
 }
 
 const OVER_BALANCE_TOAST_ID = "over-balance";
+const INVALID_NUMBER_TOAST_ID = "invalid-number";
+
+const showToastOnce = (id: string, message: string) => {
+  // nuke any waiting toasts so we never replay a queue
+  toast.clearWaitingQueue?.();
+  if (toast.isActive(id)) {
+    // replace current toast content instead of stacking
+    toast.update(id, { render: message, type: "error", autoClose: 3000 });
+  } else {
+    toast.error(message, { toastId: id, autoClose: 3000 });
+  }
+};
 
 const parseNum = (s?: string) => {
   if (s == null) return NaN;
@@ -49,6 +62,15 @@ export default function BridgeCBY({ handleNext, currentStep, onSuccess, availabl
 
   const showSwitching = uiSwitching && !isOnPolygon;
   const isBusy = showSwitching || (progress !== "idle" && progress !== "error");
+
+  const debouncedOverBalanceToast = useDebouncedCallback(
+    (msg: string) => showToastOnce(OVER_BALANCE_TOAST_ID, msg),
+    400
+  );
+  const debouncedInvalidToast = useDebouncedCallback(
+    (msg: string) => showToastOnce(INVALID_NUMBER_TOAST_ID, msg),
+    400
+  );
 
   const onBridge = async () => {
     // guard accidental double-clicks or invalid preconditions
@@ -162,13 +184,19 @@ export default function BridgeCBY({ handleNext, currentStep, onSuccess, availabl
               value={amount}
               onChange={(e) => {
                 const v = e.target.value.trim();
-                if (!isValidNumberInput(v)) {
-                  toast.error("Invalid number format.");
-                  return;
-                } else if (availableBalancePolygon && Number(v || "0") > parseNum(availableBalancePolygon)) {
-                  toast.error("Amount exceeds available balance on Polygon.");
+
+                const bal = parseNum(availableBalancePolygon);
+                const n = parseNum(v);
+                if (!Number.isNaN(n) && !Number.isNaN(bal) && n > bal) {
+                  debouncedOverBalanceToast("Amount exceeds available balance on Polygon.");
                   return;
                 }
+
+                if (!isValidNumberInput(v)) {
+                  debouncedInvalidToast("Invalid number format");
+                  return;
+                }
+
                 setAmount(v);
               }}
               className="amount-input"
