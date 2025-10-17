@@ -9,9 +9,10 @@ import { GiHamburgerMenu } from "react-icons/gi";
 type PageHeaderProps = {
   openSidebar: boolean;
   setOpenSidebar: (value: boolean) => void;
+  headerName: string;
 };
 
-function PageHeader({ openSidebar, setOpenSidebar }: PageHeaderProps) {
+function PageHeader({ openSidebar, setOpenSidebar, headerName }: PageHeaderProps) {
   const { logout } = useAuth();
   const { disconnect } = useDisconnect();
   const { isConnected } = useAccount();
@@ -100,7 +101,7 @@ function PageHeader({ openSidebar, setOpenSidebar }: PageHeaderProps) {
         <button className="max-md:flex hidden items-center justify-center" onClick={handleSidebarToggle}>
           <GiHamburgerMenu className="text-2xl" />
         </button>
-        <p className="text-xl md:text-2xl font-bold">Swap portal</p>
+        <p className="text-xl md:text-2xl font-bold">{headerName}</p>
       </div>
 
       <div className="right_element">
