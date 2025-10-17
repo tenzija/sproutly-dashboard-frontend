@@ -101,7 +101,7 @@ function Sidebar({ openSidebar, setOpenSidebar, setHeaderName }: SidebarProps) {
   };
 
   // Only this route is enabled
-  const ENABLED_HREF = ["/swapportal", "/staking"];
+  const ENABLED_HREF = ["/swapportal"];
 
   // put this above your component (same file is fine)
   function SvgIcon({ src, className = "" }: { src: string; className?: string }) {
