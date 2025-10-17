@@ -84,7 +84,7 @@ function Sidebar({ openSidebar, setOpenSidebar, setHeaderName }: SidebarProps) {
   };
 
   // Only this route is enabled
-  const ENABLED_HREF = "/swapportal";
+  const ENABLED_HREF = ["/swapportal", "/staking"];
 
   return (
     <>
@@ -142,7 +142,7 @@ function Sidebar({ openSidebar, setOpenSidebar, setHeaderName }: SidebarProps) {
             {sidebarFallback.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
-              const isEnabled = item.href === ENABLED_HREF;
+              const isEnabled = ENABLED_HREF.includes(item.href);
 
               const baseClasses =
                 "flex items-center px-3 py-2 rounded-lg w-[214px] h-[38px] text-[color:var(--white-60)] transition-colors duration-300 ease-in-out";
@@ -153,7 +153,16 @@ function Sidebar({ openSidebar, setOpenSidebar, setHeaderName }: SidebarProps) {
 
               if (isEnabled) {
                 return (
-                  <Link key={item.name} href={item.href} className="block">
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="block"              // keep layout identical
+                    prefetch={false}
+                    onClick={() => {
+                      setHeaderName(item.name);    // update header
+                      setOpenSidebar(true);        // close sidebar on mobile (your logic: true => hidden)
+                    }}
+                  >
                     <div className={`${baseClasses} ${enabledClasses}`}>
                       <Icon className="text-base mr-3" />
                       <span className="text-md font-light">{item.name}</span>
@@ -163,19 +172,8 @@ function Sidebar({ openSidebar, setOpenSidebar, setHeaderName }: SidebarProps) {
               }
 
               return (
-                <Tooltip
-                  key={item.name}
-                  title="Work in progress!"
-                  placement="bottom"
-                  arrow
-                >
-                  {/* Use a div (not Link) so it's clearly disabled and not navigable */}
-                  <div
-                    role="button"
-                    aria-disabled="true"
-                    tabIndex={-1}
-                    className={`${baseClasses} ${disabledClasses}`}
-                  >
+                <Tooltip key={item.name} title="Work in progress!" placement="bottom" arrow>
+                  <div role="button" aria-disabled="true" tabIndex={-1} className={`${baseClasses} ${disabledClasses}`}>
                     <Icon className="text-base mr-3" />
                     <span className="text-md font-light">{item.name}</span>
                   </div>
