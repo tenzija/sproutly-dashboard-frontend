@@ -23,6 +23,7 @@ interface BridgeModalProps {
   isOpen: boolean;
   onClose: () => void;
   availableBalance?: string;
+  availableBalancePolygon?: string;
   handleConnectWallet?: () => void;
   /** Called after the final on-chain action completes successfully */
   onSuccess?: () => void;
@@ -32,6 +33,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
   isOpen,
   onClose,
   availableBalance,
+  availableBalancePolygon,
   onSuccess,
 }) => {
   const steps = ["Connect Wallet", "Bridge CBY", "Set Staking Terms", "Review & Confirm"];
@@ -80,7 +82,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
         <button className="close-button" onClick={handleClose}>×</button>
 
         {currentStep === 1 && (
-          <BridgeCBY handleNext={handleNext} currentStep={currentStep} onSuccess={onSuccess} availableBalance={availableBalance} />
+          <BridgeCBY handleNext={handleNext} currentStep={currentStep} onSuccess={onSuccess} availableBalance={availableBalance} availableBalancePolygon={availableBalancePolygon} />
         )}
 
         {currentStep === 2 && (

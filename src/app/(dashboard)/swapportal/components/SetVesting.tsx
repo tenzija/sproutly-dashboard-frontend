@@ -17,6 +17,8 @@ import { formatThousands } from "@/utils/helper";
 import { useVestingEstimate } from "@/hooks/useVestingEstimate";
 import { base } from "viem/chains";
 import LockupSlider from "./LockUpSlider";
+import { isValidNumberInput } from "../utils/numberUtils";
+import { toast } from "react-toastify";
 
 const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as `0x${string}`;
 
@@ -75,9 +77,6 @@ const CONTROL_SX = {
     alignItems: "center",
   },
 } as const;
-
-
-const isValidNumberInput = (v: string) => /^(\d+(\.\d{0,18})?)?$/.test(v);
 
 export interface SetVestingProps {
   value: SetVestingDraft;
@@ -151,7 +150,10 @@ export default function SetVesting({
   const onAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value.trim();
     if (!isValidNumberInput(v)) return;
-    if (availableBalance && Number(v || "0") > Number(availableBalance)) return;
+    if (availableBalance && Number(v || "0") > Number(availableBalance)) {
+      toast.error("Amount exceeds available balance.");
+      return;
+    }
     onChange({ ...value, amountCBY: v });
   };
 

@@ -234,7 +234,7 @@ function SwapPortalPage() {
               ))}
         </div>
       </div>
-      <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} onSuccess={async () => {
+      <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} availableBalancePolygon={polygonValue} onSuccess={async () => {
         await refetchCBYBalance();
         await refetchPolCBYBalance();
       }} />

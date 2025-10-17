@@ -9,15 +9,24 @@ import {
 } from "../utils/numberUtils";
 import { BridgeStepper } from "./BridgeStepper";
 import { Tooltip } from "@mui/material";
+import { toast } from "react-toastify";
 
 interface BridgeCBYProps {
   handleNext: () => void;
   currentStep: number;
   onSuccess?: () => void;
   availableBalance?: string;
+  availableBalancePolygon?: string;
 }
 
-export default function BridgeCBY({ handleNext, currentStep, onSuccess, availableBalance }: BridgeCBYProps) {
+const OVER_BALANCE_TOAST_ID = "over-balance";
+
+const parseNum = (s?: string) => {
+  if (s == null) return NaN;
+  return Number(String(s).replace(/,/g, "").trim());
+};
+
+export default function BridgeCBY({ handleNext, currentStep, onSuccess, availableBalance, availableBalancePolygon }: BridgeCBYProps) {
   const [amount, setAmount] = useState("");
   const [isNextDisabled, setIsNextDisabled] = useState(false);
 
@@ -68,7 +77,9 @@ export default function BridgeCBY({ handleNext, currentStep, onSuccess, availabl
   }, [currentStep]);
 
   const bridgeDisabled =
-    isNextDisabled || !amount || !isConnected || !isReady || isBusy || Number(amount) <= 0 || isNaN(Number(amount));
+    isNextDisabled || !amount || !isConnected || !isReady || isBusy || Number(amount) <= 0 || isNaN(Number(amount)) || Number(amount) > Number(availableBalancePolygon || "0");
+
+  console.log("BridgeCBY render:", { amount, availableBalancePolygon, bridgeDisabled });
 
 
   // ----- NEW LOGIC START -----
@@ -151,11 +162,17 @@ export default function BridgeCBY({ handleNext, currentStep, onSuccess, availabl
               type="text"
               placeholder="Enter amount"
               value={amount}
-              onChange={(e) =>
-                setAmount(
-                  isValidNumberInput(e.target.value) ? e.target.value : amount
-                )
-              }
+              onChange={(e) => {
+                const v = e.target.value.trim();
+                if (!isValidNumberInput(v)) {
+                  toast.error("Invalid number format.");
+                  return;
+                } else if (availableBalancePolygon && Number(v || "0") > parseNum(availableBalancePolygon)) {
+                  toast.error("Amount exceeds available balance on Polygon.");
+                  return;
+                }
+                setAmount(v);
+              }}
               className="amount-input"
               disabled={inputDisabled}
             />
