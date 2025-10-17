@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { RiSwapBoxFill } from "react-icons/ri";
 import { FaWallet } from "react-icons/fa";
 import { useAppKit } from "@reown/appkit/react";
 import { useAccount, useDisconnect } from "wagmi";
@@ -12,18 +11,36 @@ import { getCookie } from "@/utils/cookies";
 import { useAutoDisconnectOnLock } from "@/hooks/useAutoDisconnectOnLock";
 import { Tooltip } from "@mui/material";
 
-const sidebarFallback = [
-  { name: "Swap Portal", icon: RiSwapBoxFill, href: "/swapportal" },
-  { name: "Dashboard", icon: RiSwapBoxFill, href: "/dashboard" },
-  { name: "NFT Inventory", icon: RiSwapBoxFill, href: "/nft-inventory" },
-  { name: "NFT Cultivation", icon: RiSwapBoxFill, href: "/nft-cultivation" },
-  { name: "Staking", icon: RiSwapBoxFill, href: "/staking" },
-  { name: "Marketplace", icon: RiSwapBoxFill, href: "/marketplace" },
-  { name: "Governance", icon: RiSwapBoxFill, href: "/governance" },
-  { name: "CO2 Management", icon: RiSwapBoxFill, href: "/co2-management" },
-  { name: "Referral Program", icon: RiSwapBoxFill, href: "/referral-program" },
-  { name: "Leaderboard", icon: RiSwapBoxFill, href: "/leaderboard" },
-  { name: "Game Hub", icon: RiSwapBoxFill, href: "/game-hub" },
+type IconComponent = React.ComponentType<{ className?: string }>;
+
+type SidebarItemBase = {
+  name: string;
+  href: string;
+};
+
+type SidebarItemWithComponent = SidebarItemBase & {
+  icon: IconComponent;
+};
+
+type SidebarItemWithPath = SidebarItemBase & {
+  iconPath: string; // e.g. "/images/sidebar/staking.svg"
+};
+
+type SidebarItem = SidebarItemWithComponent | SidebarItemWithPath;
+
+
+const sidebarFallback: SidebarItem[] = [
+  { name: "Swap Portal", iconPath: "/images/sidebar/swapportal.svg", href: "/swapportal" },
+  { name: "Dashboard", iconPath: "/images/sidebar/dashboard.svg", href: "/dashboard" },
+  { name: "NFT Inventory", iconPath: "/images/sidebar/nft-inventory.svg", href: "/nft-inventory" },
+  { name: "NFT Cultivation", iconPath: "/images/sidebar/nft-cultivation.svg", href: "/nft-cultivation" },
+  { name: "Staking", iconPath: "/images/sidebar/staking.svg", href: "/staking" },
+  { name: "Marketplace", iconPath: "/images/sidebar/marketplace.svg", href: "/marketplace" },
+  { name: "Governance", iconPath: "/images/sidebar/governance.svg", href: "/governance" },
+  { name: "CO2 Management", iconPath: "/images/sidebar/co2.svg", href: "/co2-management" },
+  { name: "Referral Program", iconPath: "/images/sidebar/referral-program.svg", href: "/referral-program" },
+  { name: "Leaderboard", iconPath: "/images/sidebar/leaderboard.svg", href: "/leaderboard" },
+  { name: "Game Hub", iconPath: "/images/sidebar/game-hub.svg", href: "/game-hub" },
 ];
 
 type SidebarProps = {
@@ -86,6 +103,27 @@ function Sidebar({ openSidebar, setOpenSidebar, setHeaderName }: SidebarProps) {
   // Only this route is enabled
   const ENABLED_HREF = ["/swapportal", "/staking"];
 
+  // put this above your component (same file is fine)
+  function SvgIcon({ src, className = "" }: { src: string; className?: string }) {
+    return (
+      <span
+        aria-hidden
+        className={`inline-block ${className}`}
+        style={{
+          WebkitMaskImage: `url(${src})`,
+          maskImage: `url(${src})`,
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+          backgroundColor: "currentColor", // <- picks up your text/hover colors
+        }}
+      />
+    );
+  }
+
+
+
   return (
     <>
       <div
@@ -140,7 +178,6 @@ function Sidebar({ openSidebar, setOpenSidebar, setHeaderName }: SidebarProps) {
 
           <div className="flex flex-col gap-2 mt-[16px]">
             {sidebarFallback.map((item) => {
-              const Icon = item.icon;
               const isActive = pathname === item.href;
               const isEnabled = ENABLED_HREF.includes(item.href);
 
@@ -164,7 +201,12 @@ function Sidebar({ openSidebar, setOpenSidebar, setHeaderName }: SidebarProps) {
                     }}
                   >
                     <div className={`${baseClasses} ${enabledClasses}`}>
-                      <Icon className="text-base mr-3" />
+                      {/* icon */}
+                      {"iconPath" in item
+                        ? <SvgIcon src={item.iconPath} className="mr-3 h-4 w-4" />
+                        : (() => { const Icon = (item).icon; return <Icon className="text-base mr-3" /> })()
+                      }
+
                       <span className="text-md font-light">{item.name}</span>
                     </div>
                   </Link>
@@ -174,7 +216,10 @@ function Sidebar({ openSidebar, setOpenSidebar, setHeaderName }: SidebarProps) {
               return (
                 <Tooltip key={item.name} title="Work in progress!" placement="bottom" arrow>
                   <div role="button" aria-disabled="true" tabIndex={-1} className={`${baseClasses} ${disabledClasses}`}>
-                    <Icon className="text-base mr-3" />
+                    {"iconPath" in item
+                      ? <SvgIcon src={item.iconPath} className="mr-3 h-4 w-4" />
+                      : (() => { const Icon = (item).icon; return <Icon className="text-base mr-3" /> })()
+                    }
                     <span className="text-md font-light">{item.name}</span>
                   </div>
                 </Tooltip>
