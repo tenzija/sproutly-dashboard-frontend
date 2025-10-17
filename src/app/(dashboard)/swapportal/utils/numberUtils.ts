@@ -2,12 +2,41 @@
 // Used across BridgeCBY, Review, and SetStacking components
 
 /**
- * Validates if a string contains only numbers and decimal points
- * @param value - The string to validate
- * @returns boolean - True if valid, false otherwise
+ * Validates amount input:
+ * - up to 8 integer digits (max 99,999,999.99)
+ * - up to 2 decimal digits
+ * - no leading zeros (except single '0' before decimals)
+ * - allows intermediate typing states (e.g. '', '.', '0.', '12.')
+ * - enforces min 0.01 once two decimals are present
  */
 export const isValidNumberInput = (value: string): boolean => {
-	return /^\d*\.?\d*$/.test(value) || value === '';
+  if (value === '') return true; // allow empty while typing
+
+  // digits with an optional single dot only
+  if (!/^\d*\.?\d*$/.test(value)) return false;
+
+  const [intPartRaw = '', decPart = ''] = value.split('.');
+  const intPart = intPartRaw;
+
+  // Disallow multiple leading zeros like "00", "012", "00000001"
+  if (intPart.length > 1 && intPart.startsWith('0')) return false;
+
+  // Max 8 integer digits (except allow '' for entries like ".5" while typing, and allow single '0')
+  if (intPart !== '' && intPart !== '0' && intPart.length > 8) return false;
+
+  // Max 2 decimals
+  if (decPart.length > 2) return false;
+
+  // Allow trailing dot while typing (e.g., "12.")
+  if (value.endsWith('.')) return true;
+
+  // Enforce minimum 0.01 once two decimals are present for 0.xx or .xx
+  if ((intPart === '' || intPart === '0') && decPart.length === 2 && Number(decPart) < 1) {
+    // blocks "0.00" and ".00"
+    return false;
+  }
+
+  return true;
 };
 
 /**

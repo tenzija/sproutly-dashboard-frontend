@@ -68,7 +68,7 @@ export default function BridgeCBY({ handleNext, currentStep, onSuccess, availabl
   }, [currentStep]);
 
   const bridgeDisabled =
-    isNextDisabled || !amount || !isConnected || !isReady || isBusy;
+    isNextDisabled || !amount || !isConnected || !isReady || isBusy || Number(amount) <= 0 || isNaN(Number(amount));
 
 
   // ----- NEW LOGIC START -----
