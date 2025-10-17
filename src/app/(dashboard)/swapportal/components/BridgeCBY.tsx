@@ -9,15 +9,37 @@ import {
 } from "../utils/numberUtils";
 import { BridgeStepper } from "./BridgeStepper";
 import { Tooltip } from "@mui/material";
+import { toast } from "react-toastify";
+import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 
-interface BridgeCPYProps {
+interface BridgeCBYProps {
   handleNext: () => void;
   currentStep: number;
   onSuccess?: () => void;
   availableBalance?: string;
+  availableBalancePolygon?: string;
 }
 
-export default function BridgeCPY({ handleNext, currentStep, onSuccess, availableBalance }: BridgeCPYProps) {
+const OVER_BALANCE_TOAST_ID = "over-balance";
+const INVALID_NUMBER_TOAST_ID = "invalid-number";
+
+const showToastOnce = (id: string, message: string) => {
+  // nuke any waiting toasts so we never replay a queue
+  toast.clearWaitingQueue?.();
+  if (toast.isActive(id)) {
+    // replace current toast content instead of stacking
+    toast.update(id, { render: message, type: "error", autoClose: 3000 });
+  } else {
+    toast.error(message, { toastId: id, autoClose: 3000 });
+  }
+};
+
+const parseNum = (s?: string) => {
+  if (s == null) return NaN;
+  return Number(String(s).replace(/,/g, "").trim());
+};
+
+export default function BridgeCBY({ handleNext, currentStep, onSuccess, availableBalance, availableBalancePolygon }: BridgeCBYProps) {
   const [amount, setAmount] = useState("");
   const [isNextDisabled, setIsNextDisabled] = useState(false);
 
@@ -40,6 +62,15 @@ export default function BridgeCPY({ handleNext, currentStep, onSuccess, availabl
 
   const showSwitching = uiSwitching && !isOnPolygon;
   const isBusy = showSwitching || (progress !== "idle" && progress !== "error");
+
+  const debouncedOverBalanceToast = useDebouncedCallback(
+    (msg: string) => showToastOnce(OVER_BALANCE_TOAST_ID, msg),
+    400
+  );
+  const debouncedInvalidToast = useDebouncedCallback(
+    (msg: string) => showToastOnce(INVALID_NUMBER_TOAST_ID, msg),
+    400
+  );
 
   const onBridge = async () => {
     // guard accidental double-clicks or invalid preconditions
@@ -68,7 +99,7 @@ export default function BridgeCPY({ handleNext, currentStep, onSuccess, availabl
   }, [currentStep]);
 
   const bridgeDisabled =
-    isNextDisabled || !amount || !isConnected || !isReady || isBusy;
+    isNextDisabled || !amount || !isConnected || !isReady || isBusy || Number(amount) <= 0 || isNaN(Number(amount)) || Number(amount) > Number(availableBalancePolygon || "0");
 
 
   // ----- NEW LOGIC START -----
@@ -151,11 +182,23 @@ export default function BridgeCPY({ handleNext, currentStep, onSuccess, availabl
               type="text"
               placeholder="Enter amount"
               value={amount}
-              onChange={(e) =>
-                setAmount(
-                  isValidNumberInput(e.target.value) ? e.target.value : amount
-                )
-              }
+              onChange={(e) => {
+                const v = e.target.value.trim();
+
+                const bal = parseNum(availableBalancePolygon);
+                const n = parseNum(v);
+                if (!Number.isNaN(n) && !Number.isNaN(bal) && n > bal) {
+                  debouncedOverBalanceToast("Amount exceeds available balance on Polygon.");
+                  return;
+                }
+
+                if (!isValidNumberInput(v)) {
+                  debouncedInvalidToast("Invalid number format");
+                  return;
+                }
+
+                setAmount(v);
+              }}
               className="amount-input"
               disabled={inputDisabled}
             />

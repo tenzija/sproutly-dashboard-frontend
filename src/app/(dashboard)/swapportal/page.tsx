@@ -198,7 +198,9 @@ function SwapPortalPage() {
             </div>
           </div>
 
-          <h3 className="text-sm text-center">By pressing the button below you will start the swap process, which includes bridging $CBY from Polygon to BASE, after which you will be able to vest your $CBY for $SEED.</h3>
+          <h3 className="text-sm text-center hidden min-[1350px]:block">
+            By pressing the button below you will start the swap process, which includes bridging $CBY from Polygon to BASE, after which you will be able to vest your $CBY for $SEED.
+          </h3>
           <button className="success-card__button" onClick={handleStartSwap}>Start New Swap</button>
         </div>
         <div className="right">
@@ -234,7 +236,7 @@ function SwapPortalPage() {
               ))}
         </div>
       </div>
-      <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} onSuccess={async () => {
+      <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} availableBalancePolygon={polygonValue} onSuccess={async () => {
         await refetchCBYBalance();
         await refetchPolCBYBalance();
       }} />

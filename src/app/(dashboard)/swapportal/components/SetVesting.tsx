@@ -1,4 +1,4 @@
-// components/SetStacking.tsx
+// components/SetVesting.tsx
 "use client";
 
 import React, { useMemo, useEffect, useState } from "react";
@@ -17,10 +17,13 @@ import { formatThousands } from "@/utils/helper";
 import { useVestingEstimate } from "@/hooks/useVestingEstimate";
 import { base } from "viem/chains";
 import LockupSlider from "./LockUpSlider";
+import { isValidNumberInput } from "../utils/numberUtils";
+import { toast } from "react-toastify";
+import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 
 const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as `0x${string}`;
 
-export type SetStackingDraft = {
+export type SetVestingDraft = {
   amountCBY: string;
   lockSeconds: number;
   lockPeriodLabel: string;
@@ -76,28 +79,52 @@ const CONTROL_SX = {
   },
 } as const;
 
-
-const isValidNumberInput = (v: string) => /^(\d+(\.\d{0,18})?)?$/.test(v);
-
-export interface SetStackingProps {
-  value: SetStackingDraft;
-  onChange: (next: SetStackingDraft) => void;
+export interface SetVestingProps {
+  value: SetVestingDraft;
+  onChange: (next: SetVestingDraft) => void;
   handleNext: () => void;
   handleBack: () => void;
   availableBalance?: string;
   /** optional: parent can be notified when user confirms this step */
-  onConfirm?: (snapshot: SetStackingDraft) => void;
+  onConfirm?: (snapshot: SetVestingDraft) => void;
 }
 
-export default function SetStacking({
+const VESTING_OVER_BALANCE_TOAST_ID = "vesting-over-balance";
+const VESTING_INVALID_TOAST_ID = "vesting-invalid-number";
+
+const parseNum = (s?: string) => {
+  if (s == null) return NaN;
+  return Number(String(s).replace(/,/g, "").trim());
+};
+
+// One-at-a-time toast: clears queued toasts, and replaces current if active
+const showToastOnce = (id: string, message: string) => {
+  toast.clearWaitingQueue?.(); // prevents replaying a queue
+  if (toast.isActive(id)) {
+    toast.update(id, { render: message, type: "error", autoClose: 3000 });
+  } else {
+    toast.error(message, { toastId: id, autoClose: 3000 });
+  }
+};
+
+export default function SetVesting({
   value,
   onChange,
   handleNext,
   availableBalance,
   onConfirm,
-}: SetStackingProps) {
+}: SetVestingProps) {
   const { amountCBY, lockSeconds } = value;
   const [confirmed, setConfirmed] = useState(false);
+
+  const debouncedOverBalanceToast = useDebouncedCallback(
+    (msg: string) => showToastOnce(VESTING_OVER_BALANCE_TOAST_ID, msg),
+    400
+  );
+  const debouncedInvalidToast = useDebouncedCallback(
+    (msg: string) => showToastOnce(VESTING_INVALID_TOAST_ID, msg),
+    400
+  );
 
   // derive current option, unlock preview
   const lockOpt = useMemo(
@@ -137,7 +164,7 @@ export default function SetStacking({
   // handleConfirm enables Next and disables itself
   const handleConfirm = () => {
     if (!canContinue) return;
-    const snapshot: SetStackingDraft = {
+    const snapshot: SetVestingDraft = {
       ...value,
       lockPeriodLabel: lockOpt.label,
       unlockDateText,
@@ -150,8 +177,22 @@ export default function SetStacking({
 
   const onAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value.trim();
-    if (!isValidNumberInput(v)) return;
-    if (availableBalance && Number(v || "0") > Number(availableBalance)) return;
+
+    const bal = parseNum(availableBalance);
+    const n = parseNum(v);
+
+    // Only compare when both sides are valid numbers
+    if (!Number.isNaN(n) && !Number.isNaN(bal) && n > bal) {
+      debouncedOverBalanceToast("Amount exceeds available balance.");
+      return;
+    }
+
+    // Same numeric rules as elsewhere
+    if (!isValidNumberInput(v)) {
+      debouncedInvalidToast("Invalid number format.");
+      return;
+    }
+
     onChange({ ...value, amountCBY: v });
   };
 

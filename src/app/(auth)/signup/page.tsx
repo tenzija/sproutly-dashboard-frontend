@@ -7,6 +7,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import { Listbox, ListboxButton, ListboxOptions } from "@headlessui/react";
+import Image from "next/image";
 interface LoginFormErrors {
   email?: string;
   password?: string;
@@ -161,9 +162,14 @@ function Page() {
         <div className="rounded-[24px] border border-white/10 bg-[rgba(44,44,44,0.8)] p-10 shadow-[0_25px_50px_rgba(0,0,0,0.3)] backdrop-blur-[20px] sm:rounded-[20px] sm:p-[30px_20px]">
           {/* Header */}
           <div className="text-center mb-2">
-            <h2 className="text-3xl font-light text-white mb-1 tracking-wide">
-              sproutly
-            </h2>
+            <div className="flex justify-center">
+              <Image
+                src="/images/logo-cropped.png"
+                alt="Sproutly Logo"
+                width={170}
+                height={170}
+              />
+            </div>
             <p className="text-slate-400 text-sm">
               Sign up to your Sproutly account
             </p>
@@ -243,9 +249,9 @@ function Page() {
                   } as React.ChangeEvent<HTMLSelectElement>)
                 }
               >
-                <div className="relative">
+                <div className="relative font-normal">
                   <ListboxButton
-                    className={`w-full px-4 py-3 border rounded-lg text-slate-300 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 flex justify-start  ${
+                    className={`w-full px-4 py-3 border rounded-lg text-slate-400 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 flex justify-start  ${
                       formData.country.length > 0
                         ? "bg-slate-700"
                         : "bg-transparent"
@@ -256,7 +262,7 @@ function Page() {
                     }`}
                   >
                     {formData.country.length > 0
-                      ? formData.country
+                      ? <span className="text-white">{formData.country}</span>
                       : "Select a country"}
                   </ListboxButton>
                   <ListboxOptions className="absolute mt-1 w-full bg-slate-700 rounded-md shadow-lg z-10 max-h-60 overflow-auto focus:outline-none ">

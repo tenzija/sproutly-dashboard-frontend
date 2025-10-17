@@ -5,12 +5,12 @@ import {
   formatDisplayAmount 
 } from "../utils/numberUtils";
 
-interface SetStackingProps {
+interface SetVestingProps {
   handleNext: () => void;
   handleBack: () => void;
 }
 
-function SetStacking({handleNext, handleBack}: SetStackingProps) {
+function SetVesting({handleNext, handleBack}: SetVestingProps) {
   const [sourceChain, setSourceChain] = useState("Ethereum Mainnet");
   const [amount, setAmount] = useState("");
 
@@ -109,4 +109,4 @@ function SetStacking({handleNext, handleBack}: SetStackingProps) {
   );
 }
 
-export default SetStacking;
+export default SetVesting;

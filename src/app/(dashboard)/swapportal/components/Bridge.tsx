@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import Stepper from "./Stepper";
-import BridgeCPY from "./BridgeCPY";
-import SetStacking, { SetStackingDraft } from "./SetStacking";
+import BridgeCBY from "./BridgeCBY";
+import SetVesting, { SetVestingDraft } from "./SetVesting";
 import Review from "./Review";
 import Success from "./Success";
 
 // shared staking data
-const INITIAL_DRAFT: SetStackingDraft = {
+const INITIAL_DRAFT: SetVestingDraft = {
   amountCBY: "",
   lockSeconds: 1 * 86400,
   lockPeriodLabel: "1 Month",
@@ -23,6 +23,7 @@ interface BridgeModalProps {
   isOpen: boolean;
   onClose: () => void;
   availableBalance?: string;
+  availableBalancePolygon?: string;
   handleConnectWallet?: () => void;
   /** Called after the final on-chain action completes successfully */
   onSuccess?: () => void;
@@ -32,13 +33,14 @@ const Bridge: React.FC<BridgeModalProps> = ({
   isOpen,
   onClose,
   availableBalance,
+  availableBalancePolygon,
   onSuccess,
 }) => {
   const steps = ["Connect Wallet", "Bridge CBY", "Set Staking Terms", "Review & Confirm"];
   const [currentStep, setCurrentStep] = useState(1);
   const [wasCompleted, setWasCompleted] = useState(false);
 
-  const [draft, setDraft] = useState<SetStackingDraft>(() => ({ ...INITIAL_DRAFT }));
+  const [draft, setDraft] = useState<SetVestingDraft>(() => ({ ...INITIAL_DRAFT }));
   const resetDraft = React.useCallback(() => setDraft({ ...INITIAL_DRAFT }), []);
 
   useEffect(() => {
@@ -80,11 +82,11 @@ const Bridge: React.FC<BridgeModalProps> = ({
         <button className="close-button" onClick={handleClose}>×</button>
 
         {currentStep === 1 && (
-          <BridgeCPY handleNext={handleNext} currentStep={currentStep} onSuccess={onSuccess} availableBalance={availableBalance} />
+          <BridgeCBY handleNext={handleNext} currentStep={currentStep} onSuccess={onSuccess} availableBalance={availableBalance} availableBalancePolygon={availableBalancePolygon} />
         )}
 
         {currentStep === 2 && (
-          <SetStacking
+          <SetVesting
             value={draft}
             onChange={setDraft}
             handleNext={handleNext}

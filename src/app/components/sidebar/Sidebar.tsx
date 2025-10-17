@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { FaWallet } from "react-icons/fa";
+import { RiSwapBoxFill } from "react-icons/ri";
 import { useAppKit } from "@reown/appkit/react";
 import { useAccount, useDisconnect } from "wagmi";
 import Image from "next/image";
@@ -30,7 +31,7 @@ type SidebarItem = SidebarItemWithComponent | SidebarItemWithPath;
 
 
 const sidebarFallback: SidebarItem[] = [
-  { name: "Swap Portal", iconPath: "/images/sidebar/swapportal.svg", href: "/swapportal" },
+  { name: "Swap Portal", icon: RiSwapBoxFill, href: "/swapportal" },
   { name: "Dashboard", iconPath: "/images/sidebar/dashboard.svg", href: "/dashboard" },
   { name: "NFT Inventory", iconPath: "/images/sidebar/nft-inventory.svg", href: "/nft-inventory" },
   { name: "NFT Cultivation", iconPath: "/images/sidebar/nft-cultivation.svg", href: "/nft-cultivation" },
@@ -196,9 +197,9 @@ function Sidebar({ openSidebar, setOpenSidebar, setHeaderName }: SidebarProps) {
                   >
                     <div className={`${baseClasses} ${enabledClasses}`}>
                       {/* icon */}
-                      {"iconPath" in item
-                        ? <SvgIcon src={item.iconPath} className="mr-3 h-4 w-4" />
-                        : (() => { const Icon = (item).icon; return <Icon className="text-base mr-3" /> })()
+                      {"icon" in item
+                        ? (() => { const Icon = item.icon; return <Icon className="mr-3 h-4 w-4" /> })()
+                        : <SvgIcon src={item.iconPath} className="mr-3 h-4 w-4" />
                       }
 
                       <span className="text-md font-light">{item.name}</span>
