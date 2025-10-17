@@ -1,5 +1,5 @@
 // Utility functions for number formatting and validation
-// Used across BridgeCBY, Review, and SetStacking components
+// Used across BridgeCBY, Review, and SetVesting components
 
 /**
  * Validates amount input:

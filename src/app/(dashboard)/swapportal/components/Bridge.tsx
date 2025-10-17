@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from "react";
 import Stepper from "./Stepper";
 import BridgeCBY from "./BridgeCBY";
-import SetStacking, { SetStackingDraft } from "./SetStacking";
+import SetVesting, { SetVestingDraft } from "./SetVesting";
 import Review from "./Review";
 import Success from "./Success";
 
 // shared staking data
-const INITIAL_DRAFT: SetStackingDraft = {
+const INITIAL_DRAFT: SetVestingDraft = {
   amountCBY: "",
   lockSeconds: 1 * 86400,
   lockPeriodLabel: "1 Month",
@@ -38,7 +38,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [wasCompleted, setWasCompleted] = useState(false);
 
-  const [draft, setDraft] = useState<SetStackingDraft>(() => ({ ...INITIAL_DRAFT }));
+  const [draft, setDraft] = useState<SetVestingDraft>(() => ({ ...INITIAL_DRAFT }));
   const resetDraft = React.useCallback(() => setDraft({ ...INITIAL_DRAFT }), []);
 
   useEffect(() => {
@@ -84,7 +84,7 @@ const Bridge: React.FC<BridgeModalProps> = ({
         )}
 
         {currentStep === 2 && (
-          <SetStacking
+          <SetVesting
             value={draft}
             onChange={setDraft}
             handleNext={handleNext}

@@ -1,4 +1,4 @@
-// components/SetStacking.tsx
+// components/SetVesting.tsx
 "use client";
 
 import React, { useMemo, useEffect, useState } from "react";
@@ -20,7 +20,7 @@ import LockupSlider from "./LockUpSlider";
 
 const VESTING_ADDR = process.env.NEXT_PUBLIC_TOKEN_VESTING_ADDRESS as `0x${string}`;
 
-export type SetStackingDraft = {
+export type SetVestingDraft = {
   amountCBY: string;
   lockSeconds: number;
   lockPeriodLabel: string;
@@ -79,23 +79,23 @@ const CONTROL_SX = {
 
 const isValidNumberInput = (v: string) => /^(\d+(\.\d{0,18})?)?$/.test(v);
 
-export interface SetStackingProps {
-  value: SetStackingDraft;
-  onChange: (next: SetStackingDraft) => void;
+export interface SetVestingProps {
+  value: SetVestingDraft;
+  onChange: (next: SetVestingDraft) => void;
   handleNext: () => void;
   handleBack: () => void;
   availableBalance?: string;
   /** optional: parent can be notified when user confirms this step */
-  onConfirm?: (snapshot: SetStackingDraft) => void;
+  onConfirm?: (snapshot: SetVestingDraft) => void;
 }
 
-export default function SetStacking({
+export default function SetVesting({
   value,
   onChange,
   handleNext,
   availableBalance,
   onConfirm,
-}: SetStackingProps) {
+}: SetVestingProps) {
   const { amountCBY, lockSeconds } = value;
   const [confirmed, setConfirmed] = useState(false);
 
@@ -137,7 +137,7 @@ export default function SetStacking({
   // handleConfirm enables Next and disables itself
   const handleConfirm = () => {
     if (!canContinue) return;
-    const snapshot: SetStackingDraft = {
+    const snapshot: SetVestingDraft = {
       ...value,
       lockPeriodLabel: lockOpt.label,
       unlockDateText,
