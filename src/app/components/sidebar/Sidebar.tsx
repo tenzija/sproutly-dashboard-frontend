@@ -74,12 +74,6 @@ function Sidebar({ openSidebar, setOpenSidebar, setHeaderName }: SidebarProps) {
     if (active) setHeaderName(active.name);
   }, [pathname, setHeaderName]);
 
-  const onNavClick = (name: string) => {
-    setHeaderName(name);
-    // close sidebar on mobile overlay
-    setOpenSidebar(true); // (your state: true => hidden)
-  };
-
   const handleClick = () => {
     if (isConnected) {
       close();
