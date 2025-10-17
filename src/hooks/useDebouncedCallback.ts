@@ -1,9 +1,8 @@
-// src/utils/useDebouncedCallback.ts
 "use client";
 import { useCallback, useEffect, useRef } from "react";
 
-export function useDebouncedCallback<T extends (...args: any[]) => void>(
-  fn: T,
+export function useDebouncedCallback<Args extends unknown[]>(
+  fn: (...args: Args) => void,
   wait: number
 ) {
   const fnRef = useRef(fn);
@@ -11,11 +10,11 @@ export function useDebouncedCallback<T extends (...args: any[]) => void>(
     fnRef.current = fn;
   }, [fn]);
 
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<ReturnType<typeof globalThis.setTimeout> | null>(null);
 
-  const debounced = useCallback((...args: Parameters<T>) => {
+  const debounced = useCallback((...args: Args) => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => fnRef.current(...args), wait);
+    timerRef.current = globalThis.setTimeout(() => fnRef.current(...args), wait);
   }, [wait]);
 
   useEffect(() => {
@@ -24,5 +23,5 @@ export function useDebouncedCallback<T extends (...args: any[]) => void>(
     };
   }, []);
 
-  return debounced as T;
+  return debounced;
 }
