@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { IoSettingsOutline } from "react-icons/io5";
 import { useAccount, useDisconnect } from "wagmi";
-import { useAuth } from "@/context/AuthContext";
+// import { useAuth } from "@/context/AuthContext";
 import { GiHamburgerMenu } from "react-icons/gi";
 type PageHeaderProps = {
   openSidebar: boolean;
@@ -13,7 +13,7 @@ type PageHeaderProps = {
 };
 
 function PageHeader({ openSidebar, setOpenSidebar, headerName }: PageHeaderProps) {
-  const { logout } = useAuth();
+  // const { logout } = useAuth();
   const { disconnect } = useDisconnect();
   const { isConnected } = useAccount();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -64,7 +64,7 @@ function PageHeader({ openSidebar, setOpenSidebar, headerName }: PageHeaderProps
     if (isConnected) {
       disconnect();
     }
-    logout();
+    // logout();
   };
   const handleSidebarToggle = () => {
     setOpenSidebar(!openSidebar);

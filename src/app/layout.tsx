@@ -48,7 +48,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const cookies = (await headers()).get("cookie");
+  const cookies = (await headers()).get("cookie"); // prod
 
   return (
     <html
@@ -57,7 +57,6 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="backgroundImg antialiased" suppressHydrationWarning>
-        {/* Emotion SSR wrapper ensures no stray <style data-emotion=...> inside the page tree */}
         <EmotionRegistry>
           <Providers cookies={cookies}>
             <AuthProvider>

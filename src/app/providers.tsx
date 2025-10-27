@@ -18,7 +18,7 @@ export default function Providers({ children, cookies }: ProvidersProps) {
     const [queryClient] = useState(() => new QueryClient());
 
     const initialState: State | undefined = useMemo(() => {
-        if (!cookies || !cookies.trim()) return undefined;
+        // if (!cookies || !cookies.trim()) return undefined;
         try { return cookieToInitialState(wagmiConfig, cookies) ?? undefined; }
         catch { return undefined; }
     }, [cookies]);
