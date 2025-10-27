@@ -18,7 +18,7 @@ export default function StakingDashboard() {
                         <MetricsCard label="STAKED TREES" value="0 / 0 trees" />
                         <MetricsCard label="PLOTS AVAILABILITY" value="0 / 0 trees" sublabel="Trees staked / available spots" />
                         <MetricsCard label="AVAILABLE SCBY" value="0.00 $CBY" sublabel="Enough to stake 0 NFTrees" />
-                        <MetricsCard label="YEARLY EST REWARDS" value="0 $aCO2" />
+                        <MetricsCard label="YEARLY EST REWARDS" value="0 $aCO₂" />
                     </div>
 
                     {/* Landplot Cards */}
@@ -61,7 +61,7 @@ export default function StakingDashboard() {
                     {/* Claim Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
                         <ClaimSection title="Claim your staking" subtitle="Wallet balance" balance={1000} />
-                        <ClaimSection title="Claim your staking $aCO2" subtitle="Claim available $aCO2 from staking" balance={1000} />
+                        <ClaimSection title="Claim your staking $aCO₂" subtitle="Claim available $aCO₂ from staking" balance={1000} />
                     </div>
 
                     {/* Content */}

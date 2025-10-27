@@ -1,0 +1,131 @@
+"use client"
+
+import { useState } from "react"
+
+export function TradeSaCO2() {
+  const [activeTab, setActiveTab] = useState<"buy" | "sell">("buy")
+  const [amount, setAmount] = useState("")
+
+  return (
+    <div className="rounded-2xl border border-[rgba(255,255,255,0.09)] bg-[rgba(137,137,137,0.05)] backdrop-blur-[150px] px-8 py-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-xl font-semibold text-white mb-2">Trade $aCO₂ Tokens</h2>
+          <p className="text-sm text-gray-400">
+            Buy or sell $aCO₂ tokens against $SEED. Prices are dynamically adjusted based on current pool liquidity.*
+          </p>
+        </div>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => setActiveTab("buy")}
+            className={`flex-1 sm:flex-none px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === "buy" ? "bg-white text-slate-900" : "bg-slate-800/50 text-white hover:bg-slate-700/50"
+              }`}
+          >
+            Buy
+          </button>
+          <button
+            onClick={() => setActiveTab("sell")}
+            className={`flex-1 sm:flex-none px-6 py-2 rounded-full font-semibold transition-colors ${activeTab === "sell" ? "bg-white text-slate-900" : "bg-slate-800/50 text-white hover:bg-slate-700/50"
+              }`}
+          >
+            Sell
+          </button>
+        </div>
+      </div>
+
+      {/* Buy Section */}
+      {activeTab === "buy" && (
+        <div className="space-y-6">
+          <div>
+            <label className="text-sm text-gray-400 mb-2 block">Buy $aCO₂</label>
+            <input
+              type="text"
+              placeholder="Text input"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full bg-slate-800/50 border border-teal-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/60 transition-colors"
+            />
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+            {/* You will Receive Box */}
+            <div className="w-full md:flex-1 bg-slate-800/30 border border-teal-500/20 rounded-lg p-6">
+              <p className="text-sm text-gray-400 mb-4">You will Receive</p>
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  placeholder="Text input"
+                  className="flex-1 bg-slate-800/50 border border-teal-500/30 rounded-full px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/60 transition-colors"
+                />
+                <span className="text-gray-400 font-medium whitespace-nowrap">Tonnes</span>
+              </div>
+            </div>
+
+            {/* Swap Arrow */}
+            <div className="text-2xl text-lime-400 md:mb-6">↔</div>
+
+            {/* You will Pay Box */}
+            <div className="w-full md:flex-1 bg-slate-800/30 border border-teal-500/20 rounded-lg p-6">
+              <p className="text-sm text-gray-400 mb-4">You will Pay</p>
+              <div className="flex items-baseline gap-2">
+                <p className="text-3xl font-bold text-white">2500</p>
+                <p className="text-gray-400">$SEED</p>
+              </div>
+            </div>
+          </div>
+
+          <button className="w-full bg-[#ADF151] border border-[#ADF151] hover:bg-[#a8d63a] text-slate-900 font-semibold py-3 rounded-full transition-colors">
+            Buy $aCO₂
+          </button>
+        </div>
+      )}
+
+      {/* Sell Section */}
+      {activeTab === "sell" && (
+        <div className="space-y-6">
+          <div>
+            <label className="text-sm text-gray-400 mb-2 block">Sell $aCO₂</label>
+            <input
+              type="text"
+              placeholder="Text input"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full bg-slate-800/50 border border-teal-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/60 transition-colors"
+            />
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+            {/* You will Receive Box */}
+            <div className="w-full md:flex-1 bg-slate-800/30 border border-teal-500/20 rounded-lg p-6">
+              <p className="text-sm text-gray-400 mb-4">You will Receive</p>
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  placeholder="Text input"
+                  className="flex-1 bg-slate-800/50 border border-teal-500/30 rounded-full px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/60 transition-colors"
+                />
+                <span className="text-gray-400 font-medium whitespace-nowrap">Tonnes</span>
+              </div>
+            </div>
+
+            {/* Swap Arrow */}
+            <div className="text-2xl text-lime-400 md:mb-6">↔</div>
+
+            {/* You will Pay Box */}
+            <div className="w-full md:flex-1 bg-slate-800/30 border border-teal-500/20 rounded-lg p-6">
+              <p className="text-sm text-gray-400 mb-4">You will Pay</p>
+              <div className="flex items-baseline gap-2">
+                <p className="text-3xl font-bold text-white">2500</p>
+                <p className="text-gray-400">$SEED</p>
+              </div>
+            </div>
+          </div>
+
+          <button className="w-full bg-[#ADF151] border border-[#ADF151] hover:bg-[#a8d63a] text-slate-900 font-semibold py-3 rounded-full transition-colors">
+            Sell $aCO₂
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
