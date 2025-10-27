@@ -100,7 +100,7 @@ function Page() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-teal-900 flex items-center justify-center p-4 relative  bg-[url('/images/bg2.png')] bg-cover bg-no-repeat ">
+    <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-teal-900 flex items-center justify-center p-4 relative  bg-[url('/images/bg2.png')] bg-cover bg-no-repeat ">
       {/* Background pattern overlay */}
       <div
         className="absolute inset-0 opacity-20"
@@ -111,7 +111,7 @@ function Page() {
       ></div>
 
       <div className="relative z-10 w-full max-w-md">
-        <div className="rounded-[24px] border border-white/10 bg-[rgba(44,44,44,0.8)] p-40 shadow-[0_25px_50px_rgba(0,0,0,0.3)] backdrop-blur-[20px] sm:rounded-[20px] sm:p-[30px_20px]">
+        <div className="rounded-3xl border border-white/10 bg-[rgba(44,44,44,0.8)] p-40 shadow-[0_25px_50px_rgba(0,0,0,0.3)] backdrop-blur-[20px] sm:rounded-[20px] sm:p-[30px_20px]">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-xl font-normal text-white mb-1">Welcome back</h1>
@@ -208,7 +208,7 @@ function Page() {
               Don&apos;t have an account?{" "}
               <Link
                 href="/signup"
-                className="!text-white hover:underline hover:decoration-white transition duration-200"
+                className="text-white! hover:underline hover:decoration-white transition duration-200"
               >
                 Create one here
               </Link>
