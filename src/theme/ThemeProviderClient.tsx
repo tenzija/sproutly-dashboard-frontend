@@ -1,4 +1,3 @@
-// app/theme/ThemeProviderClient.tsx
 "use client";
 
 import { PropsWithChildren, useMemo } from "react";
