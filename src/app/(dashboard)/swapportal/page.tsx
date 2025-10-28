@@ -95,9 +95,6 @@ function SwapPortalPage() {
   }, [polygonData]);
 
   const activeLocks = lockData.filter((item) => item !== null && item.claimableRaw > 0n)
-  console.log({ length: claimedLocks.length, claimedLocks });
-  // const claimedLocks = lockData.filter((item) => item !== null && Number(item.totalFormatted) > 0)
-
 
   const handleStartSwap = () => {
     setIsModalOpen(true);

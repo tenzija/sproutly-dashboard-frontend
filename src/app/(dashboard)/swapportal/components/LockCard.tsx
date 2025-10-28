@@ -31,7 +31,6 @@ function LockCard({
   isClaimedTab = false,
 }: LockCardProps) {
 
-  if (isClaimedTab) console.log("Rendering claimed lock:", displayId, progressPct);
   return (
     <div className="relative w-full rounded-[20px] bg-[url('/images/bg1.jpg')] bg-cover bg-center bg-no-repeat p-5 md:p-4">
       <div className="w-full rounded-[16px] border border-[rgba(255,255,255,0.09)] bg-[rgba(137,137,137,0.05)] backdrop-blur-[150px] p-6 gap-4">
