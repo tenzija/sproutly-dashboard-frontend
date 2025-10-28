@@ -221,55 +221,55 @@ function SwapPortalPage() {
           </div>
         </div>
       </div>
-      {lockData.length > 0 && (
-        <div className="active_lock">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="active">Your Active Locks ({activeLocks.length})</TabsTrigger>
-              <TabsTrigger value="claimed">Claimed Locks ({claimedLocks.length})</TabsTrigger>
-            </TabsList>
 
-            <TabsContent value="active">
-              <div className="lock_grid">
-                {isLoadingLocks ? (
-                  <LockCardSkeleton />
-                ) : activeLocks.length > 0 ? (
-                  activeLocks.map((item, idx) => (
-                    <LockCardFromSchedule
-                      key={`${item!.id}-${idx}`}
-                      item={item!}
-                      index={idx}
-                      vestingAddress={VESTING_ADDR as `0x${string}`}
-                    />
-                  ))
-                ) : (
-                  <p className="text-muted-foreground">No active locks</p>
-                )}
-              </div>
-            </TabsContent>
+      <div className="active_lock">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="active">Your Active Locks ({activeLocks.length})</TabsTrigger>
+            <TabsTrigger value="claimed">Claimed Locks ({claimedLocks.length})</TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="claimed">
-              <div className="lock_grid">
-                {isLoadingLocks ? (
-                  <LockCardSkeleton />
-                ) : claimedLocks.length > 0 ? (
-                  claimedLocks.map((item, idx) => (
-                    <LockCardFromSchedule
-                      key={`${item!.id}-${idx}`}
-                      item={item!}
-                      index={idx}
-                      vestingAddress={VESTING_ADDR as `0x${string}`}
-                      isClaimedTab={true}
-                    />
-                  ))
-                ) : (
-                  <p className="text-muted-foreground">No claimed locks</p>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      )}
+          <TabsContent value="active">
+            <div className="lock_grid">
+              {isLoadingLocks ? (
+                <LockCardSkeleton />
+              ) : activeLocks.length > 0 ? (
+                activeLocks.map((item, idx) => (
+                  <LockCardFromSchedule
+                    key={`${item!.id}-${idx}`}
+                    item={item!}
+                    index={idx}
+                    vestingAddress={VESTING_ADDR as `0x${string}`}
+                  />
+                ))
+              ) : (
+                <p className="text-muted-foreground">No active locks</p>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="claimed">
+            <div className="lock_grid">
+              {isLoadingLocks ? (
+                <LockCardSkeleton />
+              ) : claimedLocks.length > 0 ? (
+                claimedLocks.map((item, idx) => (
+                  <LockCardFromSchedule
+                    key={`${item!.id}-${idx}`}
+                    item={item!}
+                    index={idx}
+                    vestingAddress={VESTING_ADDR as `0x${string}`}
+                    isClaimedTab={true}
+                  />
+                ))
+              ) : (
+                <p className="text-muted-foreground">No claimed locks</p>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+
       <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} availableBalancePolygon={polygonValue} onSuccess={async () => {
         await refetchCBYBalance();
         await refetchPolCBYBalance();

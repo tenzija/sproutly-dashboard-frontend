@@ -2,7 +2,6 @@
 import { deleteCookie, getCookie, setCookie } from "@/utils/cookies";
 import {
   createContext,
-  useContext,
   useState,
   ReactNode,
   useEffect,
@@ -17,7 +16,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
- const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!getCookie("authTokens"));
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!getCookie("authTokens"));
 
   useEffect(() => {
     const token = getCookie("authTokens");
