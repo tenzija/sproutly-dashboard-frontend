@@ -19,6 +19,7 @@ export type VestingScheduleView = {
 	unlockDateText?: string;
 	timeRemainingText?: string;
 	progressPct?: number;
+	progressPctClaimed?: number;
 	index?: number;
 	id: `0x${string}`;
 	claimableRaw: bigint;
@@ -40,14 +41,16 @@ type Props = {
 	vestingAddress: `0x${string}`;
 	item: VestingScheduleView;
 	index: number;
+	isClaimedTab?: boolean;
 };
 
-export default function LockCardFromSchedule({ vestingAddress, item }: Props) {
+export default function LockCardFromSchedule({ vestingAddress, item, isClaimedTab = false }: Props) {
 	const [isClaiming, setIsClaiming] = useState(false);
 	const [isClaimed, setIsClaimed] = useState(false);
 	const { release } = useReleaseVested();
 	const { refetch } = useActiveLocks({ vestingAddress });
 	const { showToast } = useToast();
+	if (isClaimedTab) console.log("Rendering claimed lock from schedule:", item);
 
 	// prevent state updates after unmount
 	const mountedRef = useRef(true);
@@ -107,9 +110,11 @@ export default function LockCardFromSchedule({ vestingAddress, item }: Props) {
 		claimableSeed: formatThousands(claimable),
 		unlockDateText: item.unlockDateText ?? '',
 		progressPct: item.progressPct ?? 0,
+		progressPctClaimed: item.progressPctClaimed ?? 0,
 		timeRemainingText: item.timeRemainingText ?? '',
 		onClaim: handleClaim,
 		isClaiming,
+		isClaimedTab
 	};
 
 	// ⬇️ keep this exactly as you asked
