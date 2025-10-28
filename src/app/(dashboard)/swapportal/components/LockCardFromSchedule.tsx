@@ -50,7 +50,6 @@ export default function LockCardFromSchedule({ vestingAddress, item, isClaimedTa
 	const { release } = useReleaseVested();
 	const { refetch } = useActiveLocks({ vestingAddress });
 	const { showToast } = useToast();
-	if (isClaimedTab) console.log("Rendering claimed lock from schedule:", item);
 
 	// prevent state updates after unmount
 	const mountedRef = useRef(true);
