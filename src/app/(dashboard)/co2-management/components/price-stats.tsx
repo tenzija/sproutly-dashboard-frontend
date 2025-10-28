@@ -33,7 +33,7 @@ export function PriceStats() {
       {stats.map((stat, idx) => (
         <div
           key={idx}
-          className="rounded-2xl border border-[rgba(255,255,255,0.09)] bg-[rgba(137,137,137,0.05)] backdrop-blur-[150px] p-6"
+          className="rounded-2xl border border-[rgba(255,255,255,0.09)] bg-[rgba(137,137,137,0.05)] backdrop-blur-[150px] p-4"
         >
           <p className="text-sm text-gray-400 mb-3">{stat.label}</p>
           <div className="flex items-baseline gap-2 mb-3">

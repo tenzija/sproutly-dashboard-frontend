@@ -71,7 +71,7 @@ export function RecentCertificates() {
             {/* Existing code remains unchanged */}
             {certificates.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage).map((cert) => (
               <tr key={cert.id} className="border-b border-teal-500/10 hover:bg-teal-500/5 transition-colors">
-                <td className="py-[6.5px] px-4">
+                <td className="py-[7.5px] px-4">
                   <div className="flex items-center gap-2">
                     {/* <div className="w-8 h-8 rounded-full bg-gradient-to-br from-lime-400 to-teal-500" /> */}
                     <Image className="rounded-full"
@@ -79,10 +79,10 @@ export function RecentCertificates() {
                     <span className="text-white">{cert.name}</span>
                   </div>
                 </td>
-                <td className="py-[6.5px] px-4 text-gray-300">{cert.certId}</td>
-                <td className="py-[6.5px] px-4 text-gray-300">{cert.offset}t</td>
-                <td className="py-[6.5px] px-4 text-gray-300">{cert.date}</td>
-                <td className="py-[6.5px] px-4">
+                <td className="py-[7.5px] px-4 text-gray-300">{cert.certId}</td>
+                <td className="py-[7.5px] px-4 text-gray-300">{cert.offset}t</td>
+                <td className="py-[7.5px] px-4 text-gray-300">{cert.date}</td>
+                <td className="py-[7.5px] px-4">
                   <div className="flex items-center gap-2">
                     {/* PDF icon button */}
                     <button
