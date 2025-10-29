@@ -9,9 +9,11 @@ export interface LockCardProps {
   claimableSeed: string;
   unlockDateText: string;
   progressPct: number;
+  progressPctClaimed?: number;
   timeRemainingText: string;
   isClaiming?: boolean;
   onClaim?: () => void;
+  isClaimedTab?: boolean;
 }
 
 function LockCard({
@@ -22,10 +24,13 @@ function LockCard({
   claimableSeed,
   unlockDateText,
   progressPct,
+  progressPctClaimed,
   timeRemainingText,
   isClaiming = false,
   onClaim,
+  isClaimedTab = false,
 }: LockCardProps) {
+
   return (
     <div className="relative w-full rounded-[20px] bg-[url('/images/bg1.jpg')] bg-cover bg-center bg-no-repeat p-5 md:p-4">
       <div className="w-full rounded-[16px] border border-[rgba(255,255,255,0.09)] bg-[rgba(137,137,137,0.05)] backdrop-blur-[150px] p-6 gap-4">
@@ -57,7 +62,7 @@ function LockCard({
           </div>
 
           <div className="flex flex-col items-center">
-            <span className="text-[#adf151] text-[13px]">Claimable $SEED</span>
+            <span className="text-[#adf151] text-[13px]">{isClaimedTab ? "Claimed" : 'Claimable'} $SEED</span>
             <span className="mt-1 text-[20px] font-semibold text-[#adf151]">
               {claimableSeed && !isNaN(Number(claimableSeed.replace(/,/g, ''))) ? Number(claimableSeed.replace(/,/g, '')).toFixed(2) : '0.00'}
             </span>
@@ -71,25 +76,26 @@ function LockCard({
             <div className="relative w-full h-1.5 bg-[#223426] rounded-[6px] overflow-hidden mr-3">
               <span
                 className="block h-full bg-[#81e490] rounded-l-[6px]"
-                style={{ width: `${progressPct}%` }}
+                style={{ width: `${progressPct ? progressPct : progressPctClaimed}%` }}
               />
             </div>
             <span className="text-[#afcaaf] text-[13px]">
-              {progressPct}%
+              {progressPct ? progressPct : progressPctClaimed}%
             </span>
           </div>
         </div>
 
         {/* Time Remaining */}
-        <div className="mb-4">
-          <span className="text text-[13px] block">Time Remaining</span>
-          <span className="text-[18px] font-semibold text-white block">
-            {timeRemainingText}
-          </span>
-        </div>
+        {isClaimedTab ? null :
+          <div className="mb-4">
+            <span className="text text-[13px] block">Time Remaining</span>
+            <span className="text-[18px] font-semibold text-white block">
+              {timeRemainingText}
+            </span>
+          </div>}
 
         {/* Claim Button with visible loader */}
-        <button
+        {isClaimedTab ? null : <button
           onClick={() => { if (!isClaiming) onClaim?.(); }}
           disabled={isClaiming}
           aria-busy={isClaiming}
@@ -106,9 +112,9 @@ function LockCard({
             <CircularProgress size={16} thickness={5} sx={{ color: '#083214' }} />
           )}
           {isClaiming ? "Claiming..." : "Claim Vested $SEED"}
-        </button>
+        </button>}
       </div>
-    </div>
+    </div >
   );
 }
 

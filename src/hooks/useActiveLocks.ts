@@ -196,6 +196,7 @@ export function useActiveLocks(opts: Options) {
 			const s = schedRes.result;
 			const claimable = claimRes.result;
 
+			// same as before
 			if (s.revoked || s.released >= s.amountTotal) continue;
 
 			let progressPct = 0;
@@ -208,7 +209,7 @@ export function useActiveLocks(opts: Options) {
 			const cliff = Number(s.cliff);
 
 			out.push({
-				index: indices[i], // original index from beneficiary list
+				index: indices[i],
 				id,
 				raw: s,
 				claimableFormatted: fmt(claimable, decimals),
@@ -218,6 +219,64 @@ export function useActiveLocks(opts: Options) {
 				timeRemainingText: humanRemaining(now, cliff),
 				unlockDateText: new Date(cliff * 1000).toLocaleDateString(),
 				progressPct,
+			});
+		}
+		return out;
+	}, [ids, schedClaimData, decimals, fmt, indices]);
+
+	// 🆕 New logic: partial + fully claimed data
+	const claimedLocks = useMemo(() => {
+		if (!ids.length || !schedClaimData) return [];
+
+		const now = Math.floor(Date.now() / 1000);
+		const out: Array<{
+			index: number;
+			id: Hex;
+			raw: VestingSchedule;
+			claimableFormatted: string;
+			totalFormatted: string;
+			lockedFormatted: string;
+			timeRemainingText: string;
+			unlockDateText: string;
+			progressPctClaimed: number; // 💰 claimed %
+			claimableRaw: bigint;
+		}> = [];
+
+		for (let i = 0; i < ids.length; i++) {
+			const id = ids[i];
+			const schedRes = schedClaimData[i * 2];
+			const claimRes = schedClaimData[i * 2 + 1];
+
+			if (schedRes?.status !== 'success' || claimRes?.status !== 'success')
+				continue;
+			if (!isVestingSchedule(schedRes.result)) continue;
+			if (typeof claimRes.result !== 'bigint') continue;
+
+			const s = schedRes.result;
+			const claimable = claimRes.result;
+
+			// ✅ Only include partial + fully claimed
+			if (s.revoked) continue;
+			if (s.released === 0n) continue; // skip if never claimed anything
+
+			const total = Number(fmt(s.amountTotal, decimals));
+			const released = Number(fmt(s.released, decimals));
+			const progressPctClaimed =
+				total > 0 ? Math.min(Math.round((released / total) * 100), 100) : 0;
+
+			const cliff = Number(s.cliff);
+
+			out.push({
+				index: indices[i],
+				id,
+				raw: s,
+				claimableFormatted: String(released), //already claimed amount
+				claimableRaw: claimable,
+				totalFormatted: fmt(s.amountTotal, decimals),
+				lockedFormatted: fmt(s.amountTotal - s.released, decimals),
+				timeRemainingText: humanRemaining(now, cliff),
+				unlockDateText: new Date(cliff * 1000).toLocaleDateString(),
+				progressPctClaimed, // how much claimed %
 			});
 		}
 		return out;
@@ -235,6 +294,7 @@ export function useActiveLocks(opts: Options) {
 
 	return {
 		locks,
+		claimedLocks,
 		isLoading:
 			loadingCount || loadingIds || loadingSchedClaims || loadingIndexes,
 		count,

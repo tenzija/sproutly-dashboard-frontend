@@ -22,7 +22,7 @@ const INITIAL_DRAFT: SetVestingDraft = {
 interface BridgeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  availableBalance?: string;
+  availableBalance: string;
   availableBalancePolygon?: string;
   handleConnectWallet?: () => void;
   /** Called after the final on-chain action completes successfully */

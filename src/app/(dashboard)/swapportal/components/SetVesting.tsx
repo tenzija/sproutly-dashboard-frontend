@@ -84,7 +84,7 @@ export interface SetVestingProps {
   onChange: (next: SetVestingDraft) => void;
   handleNext: () => void;
   handleBack: () => void;
-  availableBalance?: string;
+  availableBalance: string;
   /** optional: parent can be notified when user confirms this step */
   onConfirm?: (snapshot: SetVestingDraft) => void;
 }
@@ -226,9 +226,24 @@ export default function SetVesting({
       {/* Inputs */}
       <Stack spacing={2}>
         <Box>
-          <Typography variant="subtitle2" sx={{ mb: 0.75, opacity: 0.9 }}>
-            $CBY Amount to Lock
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 0.75,
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
+              $CBY Amount to Lock
+            </Typography>
+            <Typography
+              variant="subtitle2"
+              sx={{ opacity: 0.9, fontWeight: 600, color: "var(--Green--100)", mr: 1 }}
+            >
+              Available $CBY: {formatThousands(availableBalance) ?? "0"}
+            </Typography>
+          </Box>
           <TextField
             placeholder="0.00"
             value={amountCBY}

@@ -14,6 +14,7 @@ import LockCardFromSchedule from "./components/LockCardFromSchedule";
 import { Skeleton } from '@mui/material';
 import { LockCardSkeleton } from "./skeleton/LockCardSkeleton";
 import { Hex } from "viem";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 
 const NEXT_PUBLIC_CBY_ADDRESS = process.env.NEXT_PUBLIC_CBY_ADDRESS;
 const NEXT_PUBLIC_MOCK_TOKEN = process.env.NEXT_PUBLIC_MOCK_TOKEN;
@@ -35,6 +36,7 @@ type LockItem = {
 
 function SwapPortalPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("active")
 
   const { address: currentAddress, isConnected } = useAccount();
 
@@ -51,7 +53,7 @@ function SwapPortalPage() {
     chainId: 8453, // BASE Mainnet
   });
 
-  const { locks, isLoading: isLoadingLocks } = useActiveLocks({
+  const { locks, claimedLocks, isLoading: isLoadingLocks } = useActiveLocks({
     vestingAddress: VESTING_ADDR as `0x${string}`,
     tokenDecimals: 18,
   });
@@ -91,6 +93,8 @@ function SwapPortalPage() {
     };
     getData().catch(console.error);
   }, [polygonData]);
+
+  const activeLocks = lockData.filter((item) => item !== null && item.claimableRaw > 0n)
 
   const handleStartSwap = () => {
     setIsModalOpen(true);
@@ -217,25 +221,55 @@ function SwapPortalPage() {
           </div>
         </div>
       </div>
+
       <div className="active_lock">
-        {lockData.length > 0 && <h3>Your Active Locks</h3>}
-        <div className="lock_grid">
-          {/* <LockCardSkeleton /> */}
-          {isLoadingLocks ? (
-            <LockCardSkeleton />
-          ) :
-            lockData
-              .filter((item) => item !== null)
-              .map((item, idx) => (
-                <LockCardFromSchedule
-                  key={`${item!.id}-${idx}`}
-                  item={item!}
-                  index={idx}
-                  vestingAddress={VESTING_ADDR as `0x${string}`}
-                />
-              ))}
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="active">Your Active Locks ({activeLocks.length})</TabsTrigger>
+            <TabsTrigger value="claimed">Claimed Locks ({claimedLocks.length})</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="active">
+            <div className="lock_grid">
+              {isLoadingLocks ? (
+                <LockCardSkeleton />
+              ) : activeLocks.length > 0 ? (
+                activeLocks.map((item, idx) => (
+                  <LockCardFromSchedule
+                    key={`${item!.id}-${idx}`}
+                    item={item!}
+                    index={idx}
+                    vestingAddress={VESTING_ADDR as `0x${string}`}
+                  />
+                ))
+              ) : (
+                <p className="text-muted-foreground">No active locks</p>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="claimed">
+            <div className="lock_grid">
+              {isLoadingLocks ? (
+                <LockCardSkeleton />
+              ) : claimedLocks.length > 0 ? (
+                claimedLocks.map((item, idx) => (
+                  <LockCardFromSchedule
+                    key={`${item!.id}-${idx}`}
+                    item={item!}
+                    index={idx}
+                    vestingAddress={VESTING_ADDR as `0x${string}`}
+                    isClaimedTab={true}
+                  />
+                ))
+              ) : (
+                <p className="text-muted-foreground">No claimed locks</p>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
+
       <Bridge isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} availableBalance={value} availableBalancePolygon={polygonValue} onSuccess={async () => {
         await refetchCBYBalance();
         await refetchPolCBYBalance();
