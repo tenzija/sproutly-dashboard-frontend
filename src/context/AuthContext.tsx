@@ -5,6 +5,7 @@ import {
   useState,
   ReactNode,
   useEffect,
+  useContext,
 } from "react";
 
 interface AuthContextType {
