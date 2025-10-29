@@ -49,7 +49,7 @@ function TabsTrigger({
             data-slot="tabs-trigger"
             className={cn(
                 // Base text size = h3 style
-                "relative inline-flex items-center justify-center px-4 py-2 text-[20px] font-medium text-[rgba(255,255,255,0.6)] transition-all duration-300 ease-in-out",
+                "relative inline-flex items-center justify-center px-4 py-2 text-[20px] font-semibold text-[rgba(255,255,255,0.6)] transition-all duration-300 ease-in-out",
                 // Hover + focus
                 "hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#adf151]/50",
                 // Active tab style (bold white + underline)
