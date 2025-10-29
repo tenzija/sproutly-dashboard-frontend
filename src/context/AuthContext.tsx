@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     deleteCookie("authTokens");
-    // window.location.replace("/login");
+    window.location.replace("/login");
     setIsAuthenticated(false);
 
   };
@@ -43,8 +43,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// export const useAuth = () => {
-//   const ctx = useContext(AuthContext);
-//   if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
-//   return ctx;
-// };
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
+};

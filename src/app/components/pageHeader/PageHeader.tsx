@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { IoSettingsOutline } from "react-icons/io5";
 import { useAccount, useDisconnect } from "wagmi";
-// import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { GiHamburgerMenu } from "react-icons/gi";
 type PageHeaderProps = {
   openSidebar: boolean;
@@ -13,7 +13,7 @@ type PageHeaderProps = {
 };
 
 function PageHeader({ openSidebar, setOpenSidebar, headerName }: PageHeaderProps) {
-  // const { logout } = useAuth();
+  const { logout } = useAuth();
   const { disconnect } = useDisconnect();
   const { isConnected } = useAccount();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -64,7 +64,7 @@ function PageHeader({ openSidebar, setOpenSidebar, headerName }: PageHeaderProps
     if (isConnected) {
       disconnect();
     }
-    // logout();
+    logout();
   };
   const handleSidebarToggle = () => {
     setOpenSidebar(!openSidebar);
@@ -74,7 +74,7 @@ function PageHeader({ openSidebar, setOpenSidebar, headerName }: PageHeaderProps
 
     const dropdownContent = (
       <div
-        className="absolute top-full right-0 mt-2 bg-[var(--glass-new,#8989890d)] border border-[var(--glass-stroke-new,#ffffff17)] rounded-[12px] p-0 min-w-[200px] z-[999999] backdrop-blur-[150px] shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden animate-[dropdownFadeIn_0.2s_ease-out]"
+        className="absolute top-full right-0 mt-2 bg-(--glass-new,#8989890d) border border-(--glass-stroke-new,#ffffff17) rounded-xl p-0 min-w-[200px] z-999999 backdrop-blur-[150px] shadow-[0_8px_32px_rgba(0,0,0,0.4)] overflow-hidden animate-[dropdownFadeIn_0.2s_ease-out]"
         style={{
           position: "fixed",
           top: `${settingsPosition.top}px`,
@@ -84,7 +84,7 @@ function PageHeader({ openSidebar, setOpenSidebar, headerName }: PageHeaderProps
         ref={settingsPopRef}
       >
         <button
-          className="w-full px-4 py-3 text-[var(--white-100)] text-sm font-normal cursor-pointer transition-colors duration-200 ease-in-out border-b border-white/10 hover:bg-white/5 last:border-b-0 last:text-[#ff6b6b]"
+          className="w-full px-4 py-3 text-(--white-100) text-sm font-normal cursor-pointer transition-colors duration-200 ease-in-out border-b border-white/10 hover:bg-white/5 last:border-b-0 last:text-[#ff6b6b]"
           onClick={() => handleLogout()}
         >
           <span>Logout</span>
@@ -96,7 +96,7 @@ function PageHeader({ openSidebar, setOpenSidebar, headerName }: PageHeaderProps
   };
 
   return (
-    <div className="flex items-center justify-between h-20 flex-grow rounded-[59px] px-8 py-4 max-md:h-auto max-md:gap-4 max-md:p-4 bg-[var(--glass-new,#8989890d)] backdrop-blur-[150px] border border-[var(--glass-stroke-new,#ffffff17)] shadow-[3px_3px_3px_rgba(0,0,0,0.089)]">
+    <div className="flex items-center justify-between h-20 grow rounded-[59px] px-8 py-4 max-md:h-auto max-md:gap-4 max-md:p-4 bg-(--glass-new,#8989890d) backdrop-blur-[150px] border border-(--glass-stroke-new,#ffffff17) shadow-[3px_3px_3px_rgba(0,0,0,0.089)]">
       <div className="flex items-center gap-4">
         <button className="max-md:flex hidden items-center justify-center" onClick={handleSidebarToggle}>
           <GiHamburgerMenu className="text-2xl" />
@@ -106,11 +106,11 @@ function PageHeader({ openSidebar, setOpenSidebar, headerName }: PageHeaderProps
 
       <div className="right_element">
         <div
-          className="flex items-center justify-center bg-[var(--white-50)] backdrop-blur-md rounded-[58px] h-12 w-12 text-[20px] cursor-pointer transition-colors duration-300 ease-in-out  relative z-[10000]"
+          className="flex items-center justify-center bg-(--white-50) backdrop-blur-md rounded-[58px] h-12 w-12 text-[20px] cursor-pointer transition-colors duration-300 ease-in-out  relative z-10000"
           ref={settingsRef}
           onClick={toggleSettings}
         >
-          <IoSettingsOutline className="h-8 w-8 text-[var(--white-100)]" />
+          <IoSettingsOutline className="h-8 w-8 text-(--white-100)" />
           {renderSettingsDropdown()}
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-// import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import baseUrl from "@/lib/axios";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
@@ -64,7 +64,7 @@ function Page() {
     }
     if (serverError) setServerError(null);
   };
-  // const { login } = useAuth();
+  const { login } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -82,7 +82,7 @@ function Page() {
         toast.success("Login successful!", { position: "top-right" });
         // await for the message to be shown before redirecting
         await new Promise((resolve) => setTimeout(resolve, 2500));
-        // login(response.data);
+        login(response.data);
         window.location.replace("/swapportal");
       })
       .catch((error) => {

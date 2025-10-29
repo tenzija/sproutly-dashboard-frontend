@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 // 1. Specify protected and public routes
-const protectedRoutes = [  
+const protectedRoutes = [
+  "/swapportal",
+];
+const publicRoutes = [
   "/login",
   "/signup",
   "/forgot-password",
   "/reset-password",
   "/",
-];
-const publicRoutes = [
-  "/swapportal" // only for development purposes
 ];
 
 export default async function middleware(req: NextRequest) {
