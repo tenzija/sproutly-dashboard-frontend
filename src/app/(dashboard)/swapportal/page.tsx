@@ -243,7 +243,8 @@ function SwapPortalPage() {
                   />
                 ))
               ) : (
-                <p className="text-muted-foreground">No active locks</p>
+                // <p className="text-muted-foreground">No active locks</p>
+                <p />
               )}
             </div>
           </TabsContent>
@@ -263,7 +264,8 @@ function SwapPortalPage() {
                   />
                 ))
               ) : (
-                <p className="text-muted-foreground">No claimed locks</p>
+                // <p className="text-muted-foreground">No claimed locks</p>
+                <p />
               )}
             </div>
           </TabsContent>
