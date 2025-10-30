@@ -37,7 +37,7 @@ const sidebarFallback: SidebarItem[] = [
   { name: "NFT Cultivation", iconPath: "/images/sidebar/nft-cultivation.svg", href: "/nft-cultivation" },
   { name: "Staking", iconPath: "/images/sidebar/staking.svg", href: "/staking" },
   { name: "Marketplace", iconPath: "/images/sidebar/marketplace.svg", href: "/marketplace" },
-  { name: "Governance", iconPath: "/images/sidebar/governance.svg", href: "/governance" },
+  { name: "Governance (Dao)", iconPath: "/images/sidebar/governance.svg", href: "/governance-dao" },
   { name: "CO₂ Management", iconPath: "/images/sidebar/co2.svg", href: "/co2-management" },
   { name: "Referral Program", iconPath: "/images/sidebar/referral-program.svg", href: "/referral-program" },
   { name: "Leaderboard", iconPath: "/images/sidebar/leaderboard.svg", href: "/leaderboard" },
@@ -96,7 +96,7 @@ function Sidebar({ openSidebar, setOpenSidebar, setHeaderName }: SidebarProps) {
   };
 
   // Only this route is enabled
-  const ENABLED_HREF = ["/swapportal", "/co2-management"];
+  const ENABLED_HREF = ["/swapportal", "/staking", "/co2-management", "/governance-dao"];
 
   // put this above your component (same file is fine)
   function SvgIcon({ src, className = "" }: { src: string; className?: string }) {
