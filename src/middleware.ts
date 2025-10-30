@@ -18,17 +18,17 @@ export default async function middleware(req: NextRequest) {
 	const session = (await cookies()).get('authTokens')?.value;
 
 	// Redirect unauthenticated users from protected routes
-	// if (isProtectedRoute && !session) {
-	//   return NextResponse.redirect(new URL("/login", req.nextUrl));
-	// }
+	if (isProtectedRoute && !session) {
+		return NextResponse.redirect(new URL('/login', req.nextUrl));
+	}
 
-	// if (!isPublicRoute && !session) {
-	//   return NextResponse.redirect(new URL("/login", req.nextUrl));
-	// }
-	// // Redirect authenticated users from public routes
-	// if (isPublicRoute && session) {
-	//   return NextResponse.redirect(new URL("/swapportal", req.nextUrl));
-	// }
+	if (!isPublicRoute && !session) {
+		return NextResponse.redirect(new URL('/login', req.nextUrl));
+	}
+	// Redirect authenticated users from public routes
+	if (isPublicRoute && session) {
+		return NextResponse.redirect(new URL('/swapportal', req.nextUrl));
+	}
 
 	return NextResponse.next();
 }
